@@ -518,15 +518,15 @@ def updateInternals(brickFreqMatrix, cm=None, faceIdxMatrix=None):
     denom = max(len(brickFreqMatrix)-2, len(brickFreqMatrix[0])-2, len(brickFreqMatrix[0][0])-2)/2
     old_percent = 0
     old_percent = updateProgressBars(True, False, 0, -1, "Internal")
-    for i in range(50):
+    for i in range(1, 51):
         j0 = j
         j = round(j-0.01, 2)
         gotOne = False
-        for x in range(len(brickFreqMatrix)):
+        for x in range(i, len(brickFreqMatrix) - i):
             # print status to terminal
             old_percent = updateProgressBars(True, False, ((i + x / len(brickFreqMatrix)) ** 0.6) / 7.07107, old_percent, "Internal")
-            for y in range(len(brickFreqMatrix[0])):
-                for z in range(len(brickFreqMatrix[0][0])):
+            for y in range(i, len(brickFreqMatrix[0]) - i):
+                for z in range(i, len(brickFreqMatrix[0][0]) - i):
                     if brickFreqMatrix[x][y][z] != -1:
                         continue
                     idxsToCheck = [(x+1, y, z),
