@@ -594,6 +594,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     lastShellThickness = IntProperty(default=1)
     lastBrickType = StringProperty(default="BRICKS")
     lastMatrixSettings = StringProperty(default="")
+    lastLegalBricksOnly = BoolProperty(default=False)
     lastMatShellDepth = IntProperty(default=1)
     lastBevelWidth = FloatProperty()
     lastBevelSegments = IntProperty()

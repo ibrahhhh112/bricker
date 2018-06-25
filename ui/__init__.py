@@ -537,9 +537,8 @@ class BrickTypesPanel(Panel):
                 if cm.mergeType == "RANDOM":
                     row = col.row(align=True)
                     row.prop(cm, "mergeSeed")
-                elif cm.mergeType == "GREEDY":
-                    row = col.row(align=True)
-                    row.prop(cm, "legalBricksOnly")
+                row = col.row(align=True)
+                row.prop(cm, "legalBricksOnly")
                 row = col.row(align=True)
                 row.prop(cm, "mergeInconsistentMats")
 

@@ -134,7 +134,10 @@ class exportLdraw(Operator):
                 f.write("1 {color} {x} {y} {z} {matrix} {brickFile}\n".format(color=color, x=co.x, y=co.y, z=co.z, matrix=matrix, brickFile=brickFile))
             f.write("0 STEP\n")
         f.close()
-        self.report({"INFO"}, "Ldraw file saved to '%(path)s'" % locals())
+        if not cm.lastLegalBricksOnly:
+            self.report({"WARNING"}, "Model may contain non-standard brick sizes. Enable 'Brick Types > Legal Bricks Only' to make bricks LDraw-compatible.")
+        else:
+            self.report({"INFO"}, "Ldraw file saved to '%(path)s'" % locals())
 
     def blendToLdrawUnits(self, cm, bricksDict, key, idx):
         """ convert location of brick from blender units to ldraw units """

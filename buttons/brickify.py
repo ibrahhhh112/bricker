@@ -176,6 +176,7 @@ class BrickerBrickify(bpy.types.Operator):
         cm.lastLogoDetail = cm.logoDetail
         cm.lastSplitModel = cm.splitModel
         cm.lastBrickType = cm.brickType
+        cm.lastLegalBricksOnly = cm.legalBricksOnly
         cm.lastMaterialType = cm.materialType
         cm.lastShellThickness = cm.shellThickness
         cm.lastMatShellDepth = cm.matShellDepth

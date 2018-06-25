@@ -375,6 +375,7 @@ class BrickerDelete(bpy.types.Operator):
         cm.lastLogoDetail = "NONE"
         cm.lastSplitModel = False
         cm.lastBrickType = "NONE"
+        cm.lastLegalBricksOnly = True
         cm.lastMatrixSettings = "NONE"
         cm.lastMaterialType = "NONE"
         cm.lastIsSmoke = False
