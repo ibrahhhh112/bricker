@@ -231,8 +231,10 @@ class changeBrickType(Operator):
         orig_obj = bpy.data.objects.get(initial_active_obj_name)
         objsToSelect = [bpy.data.objects.get(n) for n in objNamesToSelect if bpy.data.objects.get(n) is not None]
         select(objsToSelect, active=orig_obj if orig_obj else None)
-        self.brickType = typ if not bricksWereGenerated else targetBrickType
         scn.Bricker_runningBlockingOperation = False
+        # store current bricksDict to cache when re-run with original brick type so bricksDict is updated
+        if not bricksWereGenerated:
+            cacheBricksDict("CREATE", cm, bricksDict)
         # print helpful message to user in blender interface
         if bricksWereGenerated:
             self.report({"INFO"}, "Changed bricks to type '{targetType}'".format(size=listToStr(size).replace(",", "x"), targetType=targetBrickType))

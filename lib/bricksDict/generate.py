@@ -663,7 +663,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                 norm_dir = getNormalDirection(nn)
                 bType = "PLATE" if brickType == "BRICKS AND PLATES" else (brickType[:-1] if brickType.endswith("S") else ("CUSTOM 1" if brickType == "CUSTOM" else brickType))
                 flipped, rotated = getFlipRot("" if norm_dir is None else norm_dir[1:])
-                rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, cm, source, nf, Vector(ni), uv_images)
+                rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, cm, source, nf, ni if ni is None else Vector(ni), uv_images)
                 draw = brickFreqMatrix[x][y][z] >= threshold
                 # create bricksDict entry for current brick
                 bricksDict[bKey] = createBricksDictEntry(

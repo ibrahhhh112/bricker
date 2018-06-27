@@ -25,6 +25,7 @@ Created by Christopher Gearhart
 # Blender imports
 import bpy
 from bpy.types import Operator
+from bpy.props import *
 
 # Addon imports
 from ..functions.common import *
@@ -34,7 +35,7 @@ class move_to_layer_override(Operator):
     """Move to Layer"""
     bl_idname = "object.move_to_layer"
     bl_label = "Move to Layer"
-    bl_options = {'REGISTER', 'INTERNAL'}
+    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     ################################################
     # Blender Operator methods
@@ -52,21 +53,27 @@ class move_to_layer_override(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        idxs = [i for i in range(20)]
+        for obj in context.selected_objects:
+            for i in idxs:
+                layer = obj.layers[i]
+                if layer:
+                    self.layers[i] = True
+                    idxs.remove(i)
         # Run confirmation popup for delete action
-        confirmation_returned = context.window_manager.invoke_confirm(self, event)
-        if confirmation_returned != {'FINISHED'}:
-            return confirmation_returned
-        else:
-            try:
-                self.runMove(context)
-            except:
-                handle_exception()
-            return {'FINISHED'}
+        return context.window_manager.invoke_props_popup(self, event)
 
     ###################################################
     # class variables
 
-    layers = CollectionProperty()
+    # This does not behave like scn.layers.
+    # only one should be selected unless shift is held
+    layers = BoolVectorProperty(
+		name="Layers",
+		subtype="LAYER",
+		description="Object Layers",
+		size=20,
+		)
 
     ################################################
     # class methods
@@ -75,13 +82,15 @@ class move_to_layer_override(Operator):
         scn = context.scene
         for obj in bpy.context.selected_objects:
             obj.layers = self.layers
-            if not obj.name.startswith("Bricker_") or obj.name.index("_bricks_f_") == -1:
+            if obj.isBrickifiedObject:
                 continue
-            for cm in scn.cmlist:
-                if obj.name[8:obj.name.index("_bricks_f_")] != cm.source_name:
-                    continue
-                n = cm.source_name
-                for curFrame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                    bricksCurF = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(curFrame)s" % locals())
-                    if bricksCurF.name != obj.name:
-                        bricksCurF.layers = self.layers
+            if obj.cmlist_id == -1:
+                continue
+            cm = getItemByID(scn.cmlist, obj.cmlist_id)
+            if not cm.animated:
+                continue
+            n = cm.source_name
+            for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                bricksCurF = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
+                if bricksCurF.name != obj.name:
+                    bricksCurF.layers = self.layers

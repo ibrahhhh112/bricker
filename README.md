@@ -21,7 +21,7 @@ Blender add-on for automated generation of Brick sculptures and simulations from
       * New feature: SNOT (studs not on top) functionality
       * Write override for 'object.move_to_layer' that moves all frames from animation to another layer
       * Add 'exclusion' functionality so that one model doesn’t create bricks where another model already did
-      * Add many more brick types, including inverted sloped bricks and tiles
+      * Add many more brick types, including inverted sloped bricks
       * Generate model with bricks and slopes to more closely approximate original mesh
       * Transfer matObj functionality to new custom list property
       * Rewrite top and bottom exposure to only include current brick (not exposure of whole brick). Checking exposure of brick then should be function that checks each location in brick
@@ -30,4 +30,3 @@ Blender add-on for automated generation of Brick sculptures and simulations from
   * Known issues:
       * For models with thin outer shells, Bricker may use color of inside face instead of outside face for brick material (see snapchat hotdog file)
       * Applying model rotation when deleting brickified model whose source has rotated parent produces problematic results
-      * Changing type from stud (for plane generated with stud brick type) to cone/brick and back causes issues
