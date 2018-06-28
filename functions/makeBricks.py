@@ -254,7 +254,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
     else:
         m = bpy.data.meshes.new("newMesh")
         allMeshes.to_mesh(m)
-        name = 'Bricker_%(n)s_bricks_combined' % locals()
+        name = 'Bricker_%(n)s_bricks' % locals()
         if frameNum:
             name = "%(name)s_f_%(frameNum)s" % locals()
         allBricksObj = bpy.data.objects.get(name)

@@ -37,7 +37,7 @@ from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
 
-class delete_override(Operator):
+class OBJECT_OT_delete_override(Operator):
     """OK?"""
     bl_idname = "object.delete"
     bl_label = "Delete"

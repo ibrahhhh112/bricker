@@ -30,11 +30,10 @@ from bpy.props import *
 # Addon imports
 from ..functions.common import *
 
-
 class move_to_layer_override(Operator):
-    """Move to Layer"""
-    bl_idname = "object.move_to_layer"
-    bl_label = "Move to Layer"
+    """Move to Layer Override"""
+    bl_idname = "object.move_to_layer_override"
+    bl_label = "Move to Layer Override"
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     ################################################
@@ -42,49 +41,65 @@ class move_to_layer_override(Operator):
 
     @classmethod
     def poll(self, context):
-        # return context.active_object is not None
         return True
 
     def execute(self, context):
-        try:
-            self.runMove(context)
-        except:
-            handle_exception()
+        ev = []
+        event = self.event
+        if event.ctrl:
+            ev.append("Ctrl")
+        if event.shift:
+            ev.append("Shift")
+        if event.alt:
+            ev.append("Alt")
+        if event.oskey:
+            ev.append("OS")
+        changed = [i for i, (l, s) in
+                enumerate(zip(self.layers, self.prev_sel))
+                if l != s]
+
+        # print("+".join(ev), event.type, event.value, changed)
+        # pick only the changed one
+        if not (event.ctrl or event.shift) and changed:
+            self.layers = [i in changed for i in range(20)]
+        self.prev_sel = self.layers[:]
+
+        self.runMove(context)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        idxs = [i for i in range(20)]
-        for obj in context.selected_objects:
-            for i in idxs:
-                layer = obj.layers[i]
-                if layer:
-                    self.layers[i] = True
-                    idxs.remove(i)
-        # Run confirmation popup for delete action
+        self.layers = [any(o.layers[i] for o in context.selected_objects)
+                      for i in range(20)]
+        self.event = event
+        self.object_names = [o.name for o in context.selected_objects]
+        self.prev_sel = self.layers[:]
         return context.window_manager.invoke_props_popup(self, event)
+
+    def check(self, context):
+        return True # thought True updated.. not working
 
     ###################################################
     # class variables
 
-    # This does not behave like scn.layers.
-    # only one should be selected unless shift is held
     layers = BoolVectorProperty(
-		name="Layers",
-		subtype="LAYER",
-		description="Object Layers",
-		size=20,
-		)
+        name="Layers",
+        subtype="LAYER",
+        description="Object Layers",
+        size=20,
+        )
+    event = None
+    object_names = []
+    prev_sel = []
 
     ################################################
     # class methods
 
     def runMove(self, context):
-        scn = context.scene
-        for obj in bpy.context.selected_objects:
+        scn = bpy.context.scene
+        for name in self.object_names:
+            obj = context.scene.objects.get(name)
             obj.layers = self.layers
-            if obj.isBrickifiedObject:
-                continue
-            if obj.cmlist_id == -1:
+            if not obj.isBrickifiedObject or obj.cmlist_id == -1:
                 continue
             cm = getItemByID(scn.cmlist, obj.cmlist_id)
             if not cm.animated:
@@ -92,5 +107,24 @@ class move_to_layer_override(Operator):
             n = cm.source_name
             for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                 bricksCurF = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
-                if bricksCurF.name != obj.name:
+                if bricksCurF is not None and bricksCurF.name != obj.name:
                     bricksCurF.layers = self.layers
+
+class OBJECT_OT_move_to_layer(bpy.types.Operator):
+    """Move to Layer"""
+    bl_idname = "object.move_to_layer"
+    bl_label = "Move to Layer"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def invoke(self, context, event):
+        return bpy.ops.object.move_to_layer_override('INVOKE_DEFAULT')
+
+
+# def register():
+#     bpy.utils.register_module(__name__)
+#
+# def unregister():
+#     addon_updater_ops.unregister()
+#
+# if __name__ == "__main__":
+#     register()
