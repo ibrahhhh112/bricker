@@ -47,7 +47,7 @@ def getModelType(cm=None):
 
 class BrickerDelete(bpy.types.Operator):
     """ Delete Brickified model """
-    bl_idname = "bricker.delete"
+    bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -337,7 +337,7 @@ class BrickerDelete(bpy.types.Operator):
                 # remove objects
                 unhide(bricks)
                 select(bricks, only=True)
-                bpy.ops.object.delete(update_model=False, undo=False)
+                bpy.ops.object.delete()
                 bpy.data.groups.remove(brickGroup, do_unlink=True)
             cm.modelCreated = False
         elif modelType == "ANIMATION":

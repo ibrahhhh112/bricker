@@ -20,7 +20,8 @@ Created by Christopher Gearhart
 """
 
 # System imports
-# NONE!
+import time
+import os
 
 # Blender imports
 import bpy
@@ -28,97 +29,75 @@ from bpy.types import Operator
 from bpy.props import *
 
 # Addon imports
-from ..functions.common import *
+from ..functions import *
+from ..ui.cmlist_actions import *
 
-class move_to_layer_override(Operator):
-    """Move to Layer Override"""
-    bl_idname = "object.move_to_layer_override"
-    bl_label = "Move to Layer Override"
-    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+class duplicate_override(bpy.types.Operator):
+    """Duplicate selected objects (Bricker object duplicates will baked)"""
+    bl_idname = "bricker.duplicate"
+    bl_label = "Duplicate Objects"
+    bl_options = {"REGISTER", "INTERNAL"}
 
     ################################################
     # Blender Operator methods
 
     @classmethod
     def poll(self, context):
+        """ ensures operator can execute (if not, returns false) """
         return True
 
     def execute(self, context):
-        ev = []
-        event = self.event
-        if event.ctrl:
-            ev.append("Ctrl")
-        if event.shift:
-            ev.append("Shift")
-        if event.alt:
-            ev.append("Alt")
-        if event.oskey:
-            ev.append("OS")
-        changed = [i for i, (l, s) in
-                enumerate(zip(self.layers, self.prev_sel))
-                if l != s]
-
-        # print("+".join(ev), event.type, event.value, changed)
-        # pick only the changed one
-        if not (event.ctrl or event.shift) and changed:
-            self.layers = [i in changed for i in range(20)]
-        self.prev_sel = self.layers[:]
-
-        self.runMove(context)
-        return {'FINISHED'}
+        self.duplicate_objects()
+        return {"FINISHED"}
 
     def invoke(self, context, event):
-        self.layers = [any(o.layers[i] for o in context.selected_objects)
-                      for i in range(20)]
-        self.event = event
-        self.object_names = [o.name for o in context.selected_objects]
-        self.prev_sel = self.layers[:]
-        return context.window_manager.invoke_props_popup(self, event)
-
-    def check(self, context):
-        return True # thought True updated.. not working
-
-    ###################################################
-    # class variables
-
-    layers = BoolVectorProperty(
-        name="Layers",
-        subtype="LAYER",
-        description="Object Layers",
-        size=20,
-        )
-    event = None
-    object_names = []
-    prev_sel = []
+        self.duplicate_objects()
+        return {"FINISHED"}
 
     ################################################
+    # Initialization method
+
+    def __init__(self):
+        self.objects = bpy.context.selected_objects
+
+    #############################################
     # class methods
 
-    def runMove(self, context):
+    def duplicate_objects(self):
         scn = bpy.context.scene
-        for name in self.object_names:
-            obj = context.scene.objects.get(name)
-            obj.layers = self.layers
-            if not obj.isBrickifiedObject or obj.cmlist_id == -1:
+        newBrickerObjs = []
+        # set isBrick/isBrickifiedObject to False
+        for obj in self.objects:
+            obj0 = duplicate(obj, link_to_scene=True)
+            obj.select = False
+            obj0.select = True
+            if not (obj0.isBrick or obj0.isBrickifiedObject):
                 continue
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
-            if not cm.animated:
-                continue
-            n = cm.source_name
-            for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                bricksCurF = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
-                if bricksCurF is not None and bricksCurF.name != obj.name:
-                    bricksCurF.layers = self.layers
+            if obj0.isBrick:
+                obj0.isBrick = False
+                obj0.name = obj0.name[8:]
+            elif obj0.isBrickifiedObject:
+                obj0.isBrickifiedObject = False
+                cm, n = getActiveContextInfo(cm_id=obj0.cmlist_id)[1:]
+                obj0.name = "%(n)s_bricks" % locals()
+                obj0.lock_location = [False] * 3
+                obj0.lock_rotation = [False] * 3
+                obj0.lock_scale    = [False] * 3
+            obj0.cmlist_id = -1
+            newBrickerObjs.append(obj0)
+        if len(newBrickerObjs) > 0:
+            parent_clear(newBrickerObjs)
 
-class OBJECT_OT_duplicate_move(bpy.types.Operator):
+
+class BRICKER_OT_duplicate_move(bpy.types.Operator):
     """Duplicate and Move Object"""
-    bl_idname = "object.duplicate_move"
+    bl_idname = "bricker.duplicate_move"
     bl_label = "Duplicate and Move Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     def invoke(self, context, event):
-        bpy.ops.object.duplicate('INVOKE_DEFAULT')
-        bpy.ops.transform.translate('INVOKE_DEFAULT')
+        bpy.ops.bricker.duplicate('INVOKE_DEFAULT')
+        return bpy.ops.transform.translate('INVOKE_DEFAULT')
 
 
 # def register():

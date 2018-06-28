@@ -144,7 +144,7 @@ class BrickModelsPanel(Panel):
             elif cm.useAnimation:
                 if cm.animated:
                     row = col1.row(align=True)
-                    row.operator("bricker.delete", text="Delete Brick Animation", icon="CANCEL")
+                    row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
                     row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
@@ -187,7 +187,7 @@ class BrickModelsPanel(Panel):
                         col.label("Bake To Keyframes).")
                 else:
                     row = col1.row(align=True)
-                    row.operator("bricker.delete", text="Delete Brickified Model", icon="CANCEL")
+                    row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
                     col = layout.column(align=True)
                     col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
@@ -1074,7 +1074,6 @@ class ExportPanel(Panel):
 
         col = layout.column(align=True)
         col.operator("bricker.bake_model", icon="OBJECT_DATA")
-        col.operator("bricker.duplicate_bake", icon="OBJECT_DATA")
         col = layout.column(align=True)
         col.prop(cm, "exportPath", text="")
         col = layout.column(align=True)

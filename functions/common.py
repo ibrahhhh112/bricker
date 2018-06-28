@@ -418,7 +418,7 @@ def delete(objList):
 
 def duplicate(obj, linked=False, link_to_scene=False):
     copy = obj.copy()
-    if not linked:
+    if not linked and copy.data:
         copy.data = copy.data.copy()
     copy.hide = False
     if link_to_scene:

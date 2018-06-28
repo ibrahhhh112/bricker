@@ -21,7 +21,7 @@ Created by Christopher Gearhart
 
 def addKeymaps(km):
     kmi = km.keymap_items.new("bricker.brickify", 'L', 'PRESS', alt=True, shift=True)
-    kmi = km.keymap_items.new("bricker.delete", 'D', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new("bricker.delete_model", 'X', 'PRESS', alt=True, shift=True)
     kmi = km.keymap_items.new("bricker.select_bricks_by_size", 'S', 'PRESS', alt=True)
     kmi = km.keymap_items.new("bricker.select_bricks_by_type", 'S', 'PRESS', shift=True, alt=True)
     kmi = km.keymap_items.new("bricker.split_bricks", 'Y', 'PRESS', shift=True, alt=True)
@@ -31,6 +31,9 @@ def addKeymaps(km):
     kmi = km.keymap_items.new("bricker.change_brick_material", 'M', 'PRESS', shift=True, alt=True)
     kmi = km.keymap_items.new("bricker.set_exposure", 'UP_ARROW', 'PRESS', shift=True, alt=True).properties.side = "TOP"
     kmi = km.keymap_items.new("bricker.set_exposure", 'DOWN_ARROW', 'PRESS', shift=True, alt=True).properties.side = "BOTTOM"
-    kmi = km.keymap_items.new("bricker.duplicate_bake", 'D', 'PRESS', shift=True, alt=True)
+    # Default operator overrides
+    kmi = km.keymap_items.new("bricker.duplicate_move", 'D', 'PRESS', shift=True)
+    kmi = km.keymap_items.new("bricker.delete", 'X', 'PRESS')
+    kmi = km.keymap_items.new("bricker.move_to_layer", 'M', 'PRESS')
 
     kmi = km.keymap_items.new("bricker.initialize", 'I', 'PRESS', shift=True)
