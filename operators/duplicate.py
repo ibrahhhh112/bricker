@@ -110,14 +110,15 @@ class move_to_layer_override(Operator):
                 if bricksCurF is not None and bricksCurF.name != obj.name:
                     bricksCurF.layers = self.layers
 
-class OBJECT_OT_move_to_layer(bpy.types.Operator):
-    """Move to Layer"""
-    bl_idname = "object.move_to_layer"
-    bl_label = "Move to Layer"
+class OBJECT_OT_duplicate_move(bpy.types.Operator):
+    """Duplicate and Move Object"""
+    bl_idname = "object.duplicate_move"
+    bl_label = "Duplicate and Move Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     def invoke(self, context, event):
-        return bpy.ops.object.move_to_layer_override('INVOKE_DEFAULT')
+        bpy.ops.object.duplicate('INVOKE_DEFAULT')
+        bpy.ops.transform.translate('INVOKE_DEFAULT')
 
 
 # def register():

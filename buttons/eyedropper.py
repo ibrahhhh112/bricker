@@ -1,5 +1,5 @@
 """
-    Copyright (C) 2017 Bricks Brought to Life
+    Copyright (C) 2018 Bricks Brought to Life
     http://bblanimation.com/
     chris@bblanimation.com
 

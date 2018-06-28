@@ -14,7 +14,7 @@ developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary and a
 # NOTE: Disable "LEGO Logo" for releases
 
 """
-Copyright (C) 2017 Bricks Brought to Life
+Copyright (C) 2018 Bricks Brought to Life
 http://bblanimation.com/
 chris@bblanimation.com
 
