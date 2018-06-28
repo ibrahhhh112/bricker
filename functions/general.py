@@ -438,7 +438,7 @@ def getSpace():
     return v3d.spaces[0]
 
 
-def getExportPath(cm, fn, ext):
+def getExportPath(cm, fn, ext, frame=-1, subfolder=False):
     path = cm.exportPath
     lastSlash = path.rfind("/")
     path = path[:len(path) if lastSlash == -1 else lastSlash + 1]
@@ -459,9 +459,17 @@ def getExportPath(cm, fn, ext):
     # check to make sure path exists on local machine
     if not os.path.exists(path):
         return path, "Blender could not find the following path: '%(path)s'" % locals()
-    # create full path from path and filename
+    # get full filename
     fn0 = fn if lastSlash in [-1, len(cm.exportPath) - 1] else cm.exportPath[lastSlash + 1:]
-    fullPath = os.path.join(path, fn0 + ext)
+    frame_num = "_%(frame)s" % locals() if frame >= 0 else ""
+    full_fn = fn0 + frame_num + ext
+    # create subfolder
+    if subfolder:
+        path = os.path.join(path, fn0)
+        if not os.path.exists(path):
+            os.makedirs(path)
+    # create full export path
+    fullPath = os.path.join(path, full_fn)
     # ensure target folder has write permissions
     try:
         f = open(fullPath, "w")
