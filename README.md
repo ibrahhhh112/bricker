@@ -19,7 +19,6 @@ Blender add-on for automated generation of Brick sculptures and simulations from
       * Add mode for selecting verts at locations next to bricks and adding bricks there
       * For animation, if last frame's brickFreqMatrix matches current frame's brickFreqMatrix, save time by just keeping that model around for another frame or duplicating it for the next frame or something
       * New feature: SNOT (studs not on top) functionality
-      * Write override for 'object.move_to_layer' that moves all frames from animation to another layer
       * Add 'exclusion' functionality so that one model doesn’t create bricks where another model already did
       * Add many more brick types, including inverted sloped bricks
       * Generate model with bricks and slopes to more closely approximate original mesh

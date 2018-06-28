@@ -82,9 +82,9 @@ class bakeModel(bpy.types.Operator):
         return{"FINISHED"}
 
 
-class duplicateBaked(bpy.types.Operator):
+class duplicateBake(bpy.types.Operator):
     """Duplicate selected objects (selected Bricker bricks/models will be duplicated and baked)"""
-    bl_idname = "bricker.duplicate_baked"
+    bl_idname = "bricker.duplicate_bake"
     bl_label = "Duplicate and Bake"
     bl_options = {"REGISTER"}
 
@@ -111,8 +111,12 @@ class duplicateBaked(bpy.types.Operator):
                 obj0.isBrickifiedObject = False
                 cm, n = getActiveContextInfo(cm_id=obj0.cmlist_id)[1:]
                 obj0.name = "%(n)s_bricks" % locals()
+                obj0.lock_location = [False] * 3
+                obj0.lock_rotation = [False] * 3
+                obj0.lock_scale    = [False] * 3
             obj0.cmlist_id = -1
             newObjs.append(obj0)
         parent_clear(newObjs)
+        select(newObjs, only=True)
         bpy.ops.transform.translate('INVOKE_DEFAULT')
         return{"FINISHED"}

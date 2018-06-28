@@ -426,9 +426,9 @@ class BrickerBrickify(bpy.types.Operator):
                 obj.hide = True
                 obj.hide_render = True
             # lock location, rotation, and scale of created bricks
-            obj.lock_location = [True, True, True]
-            obj.lock_rotation = [True, True, True]
-            obj.lock_scale    = [True, True, True]
+            obj.lock_location = [True] * 3
+            obj.lock_rotation = [True] * 3
+            obj.lock_scale    = [True] * 3
 
             wm.progress_update(curFrame-cm.startFrame)
             print('-'*100)
