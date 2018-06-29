@@ -50,7 +50,6 @@ def drawBrick(cm, bricksDict, key, loc, i, dimensions, zStep, brickSize, split, 
         topExposed, botExposed = setAllBrickExposures(cm, bricksDict, key)
     else:
         topExposed, botExposed = isBrickExposed(cm, bricksDict, key)
-    print(topExposed, botExposed)
 
     # get brick material
     mat = getMaterial(cm, bricksDict, key, brickSize, brick_mats, i)

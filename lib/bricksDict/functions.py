@@ -392,16 +392,19 @@ def setBrickExposure(cm, bricksDict, key=None, loc=None):
     key = key or listToStr(loc)
     # get size of brick and break conditions
     if key not in bricksDict: return None, None
+    # get keys above and below
+    x, y, z = loc
+    keyBelow = listToStr([x, y, z - 1])
+    keyAbove = listToStr([x, y, z + 1])
     # check if brick top or bottom is exposed
-    topExposed = checkExposure(bricksDict, key, 1, obscuringTypes=getTypesObscuringBelow())
-    botExposed = checkExposure(bricksDict, key, -1, obscuringTypes=getTypesObscuringAbove())
+    topExposed = checkExposure(bricksDict, keyAbove, obscuringTypes=getTypesObscuringBelow())
+    botExposed = checkExposure(bricksDict, keyBelow, obscuringTypes=getTypesObscuringAbove())
     bricksDict[key]["top_exposed"] = topExposed
     bricksDict[key]["bot_exposed"] = botExposed
-    print(topExposed, botExposed)
     return topExposed, botExposed
 
 
-def checkExposure(bricksDict, key, direction:int=1, obscuringTypes=[]):
+def checkExposure(bricksDict, key, obscuringTypes=[]):
     try:
         val = bricksDict[key]["val"]
     except KeyError:
