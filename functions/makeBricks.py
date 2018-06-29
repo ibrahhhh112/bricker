@@ -96,7 +96,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     lowestZ = -1
     availableKeys = []
     maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
-    connectThresh = 1 if cm.brickType == "CUSTOM" else cm.connectThresh
+    connectThresh = cm.connectThresh if mergableBrickType(cm) and cm.mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:

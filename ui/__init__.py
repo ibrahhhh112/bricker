@@ -403,24 +403,21 @@ class ModelSettingsPanel(Panel):
         row.prop(cm, "brickHeight")
         row = col.row(align=True)
         row.prop(cm, "gap")
-        row = col.row(align=True)
-        row.prop(cm, "connectThresh")
-        row.active = cm.brickType != "CUSTOM"
-
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        if not cm.useAnimation:
-            row = col.row(align=True)
-            row.prop(cm, "splitModel")
 
         row = col.row(align=True)
         row.label("Randomize:")
         row = col.row(align=True)
         split = row.split(align=True, percentage=0.5)
         col1 = split.column(align=True)
-        col1.prop(cm, "randomLoc", text="Location")
+        col1.prop(cm, "randomLoc", text="Loc")
         col2 = split.column(align=True)
-        col2.prop(cm, "randomRot", text="Rotation")
+        col2.prop(cm, "randomRot", text="Rot")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        if not cm.useAnimation:
+            row = col.row(align=True)
+            row.prop(cm, "splitModel")
 
         row = col.row(align=True)
         row.label("Brick Shell:")
@@ -515,32 +512,21 @@ class BrickTypesPanel(Panel):
         row = col.row(align=True)
         row.prop(cm, "brickType", text="")
 
-        if cm.brickType != "CUSTOM":
+        if mergableBrickType(cm):
+            col = layout.column(align=True)
+            col.label("Max Brick Size:")
+            row = col.row(align=True)
+            row.prop(cm, "maxWidth", text="Width")
+            row.prop(cm, "maxDepth", text="Depth")
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.prop(cm, "legalBricksOnly")
             if cm.brickType == "BRICKS AND PLATES":
-                col = layout.column(align=True)
                 row = col.row(align=True)
                 row.prop(cm, "alignBricks")
                 if cm.alignBricks:
                     row = col.row(align=True)
                     row.prop(cm, "offsetBrickLayers")
-
-            if mergableBrickType(cm):
-                col = layout.column(align=True)
-                col.label("Max Brick Size:")
-                row = col.row(align=True)
-                row.prop(cm, "maxWidth", text="Width")
-                row.prop(cm, "maxDepth", text="Depth")
-                row = col.row(align=True)
-                row.label("Merge Type:")
-                row = col.row(align=True)
-                row.prop(cm, "mergeType", text="")
-                if cm.mergeType == "RANDOM":
-                    row = col.row(align=True)
-                    row.prop(cm, "mergeSeed")
-                row = col.row(align=True)
-                row.prop(cm, "legalBricksOnly")
-                row = col.row(align=True)
-                row.prop(cm, "mergeInconsistentMats")
 
         if cm.brickType == "CUSTOM":
             col = layout.column(align=True)
@@ -562,6 +548,42 @@ class BrickTypesPanel(Panel):
                 col1.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = prop
                 col1 = split.column(align=True)
                 col1.operator("bricker.redraw_custom", icon="FILE_REFRESH", text="").target_prop = prop
+
+
+class MergeSettingsPanel(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "TOOLS"
+    bl_label       = "Merge Settings"
+    bl_idname      = "VIEW3D_PT_tools_Bricker_merge_settings"
+    bl_context     = "objectmode"
+    bl_category    = "Bricker"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        if not settingsCanBeDrawn():
+            return False
+        scn = bpy.context.scene
+        if scn.cmlist_index == -1:
+            return False
+        cm = scn.cmlist[scn.cmlist_index]
+        return mergableBrickType(cm)
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = getActiveContextInfo()
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(cm, "mergeType", text="")
+        if cm.mergeType == "RANDOM":
+            row = col.row(align=True)
+            row.prop(cm, "mergeSeed")
+            row = col.row(align=True)
+            row.prop(cm, "connectThresh")
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(cm, "mergeInconsistentMats")
 
 
 class CustomizeModel(Panel):
