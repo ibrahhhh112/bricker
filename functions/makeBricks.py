@@ -90,6 +90,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
     randS2 = np.random.RandomState(cm.mergeSeed+1)
     randS3 = np.random.RandomState(cm.mergeSeed+2)
 
+    brickSizeStrings = {}
     mats = []
     allMeshes = bmesh.new()
     lowestZ = -1
@@ -160,9 +161,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
                         brickD = bricksDicts[j][key]
                         # skip keys that are already drawn or have attempted merge
                         if brickD["attempted_merge"] or brickD["parent"] not in [None, "self"]:
-                            # remove ignored keys from availableKeys (for attemptMerge)
-                            if key in availableKeys:
-                                availableKeys.remove(key)
+                            # remove ignored key if it exists in availableKeys (for attemptMerge)
+                            remove_item(availableKeys, key)
                             continue
 
                         # initialize loc
@@ -176,7 +176,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
                             numAlignedEdges[j] += getNumAlignedEdges(cm, bricksDict, brickSize, key, loc, zStep)
                             numBricks += 1
                         # add brickSize to cm.brickSizesUsed if not already there
-                        brickSizeStr = listToStr(sorted(brickSize[:2]) + [brickSize[2]])
+                        brickSize = sorted(brickSize[:2]) + [brickSize[2]]
+                        brickSizeStr = listToStr(brickSize)
                         updateBrickSizesAndTypesUsed(cm, brickSizeStr, brickD["type"])
 
                         # print status to terminal and cursor

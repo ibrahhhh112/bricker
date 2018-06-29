@@ -141,6 +141,17 @@ def uniquify2(seq, innerType=list):
     return [innerType(x) for x in set(tuple(x) for x in seq)]
 
 
+# efficient removal from list if unordered
+def remove_item(ls, item):
+    try:
+        i = ls.index(item)
+    except ValueError:
+        return False
+    ls[-1], ls[i] = ls[i], ls[-1]
+    ls.pop()
+    return True
+
+
 def tag_redraw_areas(areaTypes=["ALL"]):
     areaTypes = confirmList(areaTypes)
     for area in bpy.context.screen.areas:
@@ -567,12 +578,12 @@ def updateProgressBars(printStatus, cursorStatus, cur_percent, old_percent, stat
         # print status to terminal
         if cur_percent - old_percent > 0.001 and (cur_percent < 1 or end):
             update_progress(statusType, cur_percent)
-            if cursorStatus:
+            if cursorStatus and ceil(cur_percent*100) != ceil(old_percent*100):
                 wm = bpy.context.window_manager
                 if cur_percent == 0:
                     wm.progress_begin(0, 100)
                 elif cur_percent < 1:
-                    wm.progress_update(cur_percent*100)
+                    wm.progress_update(floor(cur_percent*100))
                 else:
                     wm.progress_end()
             old_percent = cur_percent

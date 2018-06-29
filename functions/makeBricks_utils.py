@@ -166,8 +166,8 @@ def mergeWithAdjacentBricks(cm, brickD, bricksDict, key, keysNotChecked, default
 def updateKeysLists(cm, size, loc, availableKeys, key):
     keysChecked = getKeysInBrick(cm, size, key, loc)
     for k in keysChecked:
-        if k in availableKeys:
-            availableKeys.remove(k)
+        # remove key if it exists in availableKeys
+        remove_item(availableKeys, k)
 
 
 def skipThisRow(cm, timeThrough, lowestZ, z):
@@ -321,5 +321,5 @@ def getMaterial(cm, bricksDict, key, size, brick_mats=None, seedInc=None):
     return mat
 
 def updateBrickSizesAndTypesUsed(cm, sz, typ):
-        cm.brickSizesUsed += sz if cm.brickSizesUsed == "" else ("|" + sz if sz not in cm.brickSizesUsed.split("|") else "")
-        cm.brickTypesUsed += typ if cm.brickTypesUsed == "" else ("|" + str(typ) if typ not in cm.brickTypesUsed.split("|") else "")
+    cm.brickSizesUsed += sz if cm.brickSizesUsed == "" else ("|%(sz)s" % locals() if sz not in cm.brickSizesUsed else "")
+    cm.brickTypesUsed += typ if cm.brickTypesUsed == "" else ("|%(typ)s" % locals() if typ not in cm.brickTypesUsed else "")

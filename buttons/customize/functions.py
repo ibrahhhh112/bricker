@@ -154,13 +154,13 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
             items += [itemFromType(typ) for typ in legalBS[3] if includeSizes == "ALL" or objSize[:2] in legalBS[3][typ] + includeSizes]
             if flatBrickType(cm):
                 items += [itemFromType(typ) for typ in legalBS[1] if includeSizes == "ALL" or objSize[:2] in legalBS[1][typ] + includeSizes]
-    # clean up items
+    # uniquify items
     items = uniquify2(items, innerType=tuple)
-    items.sort(key=lambda k: k[0])
     # remove invalid items
-    for itm in invalidItems:
-        if itm in items:
-            items.remove(itm)
+    for item in invalidItems:
+        remove_item(items, item)
+    # sort items
+    items.sort(key=lambda k: k[0])
     # return items, or null if items was empty
     return items if len(items) > 0 else [("NULL", "Null", "")]
 

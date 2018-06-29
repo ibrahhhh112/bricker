@@ -76,6 +76,8 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
 
 def updateBrickSizes(cm, bricksDict, key, availableKeys, loc, brickSizes, zStep, maxL, height3Only=False, mergeVertical=False, tallType="BRICK", shortType="PLATE"):
     """ update 'brickSizes' with available brick sizes surrounding bricksDict[key] """
+    if not mergeVertical:
+        maxL[2] == 1
     newMax1 = maxL[1]
     newMax2 = maxL[2]
     breakOuter1 = False
@@ -92,10 +94,8 @@ def updateBrickSizes(cm, bricksDict, key, availableKeys, loc, brickSizes, zStep,
                 break
             # else, check vertically
             for k in range(0, maxL[2], zStep):
-                # if not mergeVertical, skip second two iters
-                if not mergeVertical and k > 0: continue
                 # break case 1
-                elif k >= newMax2: break
+                if k >= newMax2: break
                 # break case 2
                 key2 = listToStr([loc[0] + i, loc[1] + j, loc[2] + k])
                 if not brickAvail(cm, bricksDict[key], bricksDict.get(key2)) or key2 not in availableKeys:
@@ -245,9 +245,10 @@ def brickAvail(cm, sourceBrick, brick):
     """ check brick is available to merge """
     if brick is None:
         return False
-
-    # returns True if brick is present, brick isn't drawn already, and brick materials match or mergeInconsistentMats is True, or one of the mats is "" (internal)
-    return brick["draw"] and mergableBrickType(typ=brick["type"], up=False) and not brick["attempted_merge"] and (sourceBrick["mat_name"] == brick["mat_name"] or sourceBrick["mat_name"] == "" or brick["mat_name"] == "" or cm.mergeInconsistentMats or cm.materialType == "NONE")
+    # checks if brick materials can be merged (same material, or mergeInconsistentMats, or one of the mats is "" (internal)
+    matsMergable = "" in [sourceBrick["mat_name"], brick["mat_name"]] or cm.mergeInconsistentMats or sourceBrick["mat_name"] == brick["mat_name"] or cm.materialType == "NONE"
+    # returns True if brick is present, brick isn't drawn already, and brick materials can be merged
+    return brick["draw"] and mergableBrickType(typ=brick["type"], up=False) and not brick["attempted_merge"] and matsMergable
 
 
 def getMostCommonDir(i_s, i_e, norms):
