@@ -170,7 +170,7 @@ class changeBrickType(Operator):
             for obj_name in self.objNamesD[cm_id]:
                 # initialize vars
                 dictKey = getDictKey(obj_name)
-                dictLoc = getDictLoc(dictKey)
+                dictLoc = getDictLoc(bricksDict, dictKey)
                 x0, y0, z0 = dictLoc
                 # get size of current brick (e.g. [2, 4, 1])
                 size = bricksDict[dictKey]["size"]
@@ -212,7 +212,7 @@ class changeBrickType(Operator):
                 bAndPBrick = flatBrickType(cm) and size[2] == 3
 
                 # verify exposure above and below
-                brickLocs = getLocsInBrick(cm, size, dictKey, dictLoc, zStep=3)
+                brickLocs = getLocsInBrick(cm, bricksDict, size, dictKey, dictLoc, zStep=3)
                 for curLoc in brickLocs:
                     bricksDict = verifyBrickExposureAboveAndBelow(scn, cm, curLoc, bricksDict, decriment=3 if bAndPBrick else 1)
                     # add bricks to keysToUpdate

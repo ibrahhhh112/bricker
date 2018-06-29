@@ -58,7 +58,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
     assert loc or key
     keyError = False
-    x, y, z = loc or strToList(key)
+    x, y, z = loc or getDictLoc(key)
     adjKeys = [listToStr([x+1, y, z]),
                listToStr([x-1, y, z]),
                listToStr([x, y+1, z]),
@@ -178,10 +178,11 @@ def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=
         for x in range(brickSize[0]):
             for y in range(brickSize[1]):
                 for z in range(1, curHeight):
-                    newKey = listToStr([loc[0] + x, loc[1] + y, loc[2] + z - dec])
+                    newLoc = [loc[0] + x, loc[1] + y, loc[2] + z - dec]
+                    newKey = listToStr(newLoc)
                     bricksDict[newKey]["parent"] = None
                     bricksDict[newKey]["draw"] = False
-                    setCurBrickVal(bricksDict, strToList(newKey), action="REMOVE")
+                    setCurBrickVal(bricksDict, newLoc, action="REMOVE")
     # adjust brick size if changing type from 1 tall to 3 tall
     elif curHeight == 1 and targetHeight == 3:
         brickSize[2] = 3
@@ -190,7 +191,8 @@ def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=
         for x in range(brickSize[0]):
             for y in range(brickSize[1]):
                 for z in range(1, targetHeight):
-                    newKey = listToStr([loc[0] + x, loc[1] + y, loc[2] + z])
+                    newLoc = [loc[0] + x, loc[1] + y, loc[2] + z]
+                    newKey = listToStr(newLoc)
                     # create new bricksDict entry if it doesn't exist
                     if newKey not in bricksDict:
                         bricksDict = createAddlBricksDictEntry(cm, bricksDict, key, newKey, full_d, x, y, z)
@@ -202,7 +204,7 @@ def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=
                     bricksDict[newKey]["near_face"] = bricksDict[newKey]["near_face"] or brickD["near_face"]
                     bricksDict[newKey]["near_intersection"] = bricksDict[newKey]["near_intersection"] or brickD["near_intersection"].copy()
                     if bricksDict[newKey]["val"] == 0:
-                        setCurBrickVal(bricksDict, strToList(newKey))
+                        setCurBrickVal(bricksDict, newLoc)
     return brickSize
 
 
@@ -213,6 +215,7 @@ def createAddlBricksDictEntry(cm, bricksDict, source_key, key, full_d, x, y, z):
     newCO = tuple(Vector(brickD["co"]) + vec_mult(Vector((x, y, z)), full_d))
     bricksDict[key] = createBricksDictEntry(
         name=              newName,
+        loc=               strToList(key),
         co=                newCO,
         near_face=         brickD["near_face"],
         near_intersection= brickD["near_intersection"].copy(),
@@ -268,7 +271,7 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
         for obj_name in objNamesD[cm_id]:
             # get dict key details of current obj
             dictKey = getDictKey(obj_name)
-            dictLoc = getDictLoc(dictKey)
+            dictLoc = getDictLoc(bricksDict, dictKey)
             siz = bricksDict[dictKey]["size"]
             typ = bricksDict[dictKey]["type"]
             onShell = isOnShell(cm, bricksDict, dictKey, loc=dictLoc, zStep=zStep)

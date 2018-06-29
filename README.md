@@ -24,7 +24,6 @@ Blender add-on for automated generation of Brick sculptures and simulations from
       * Generate model with bricks and slopes to more closely approximate original mesh
       * Transfer matObj functionality to new custom list property
       * Rewrite top and bottom exposure to only include current brick (not exposure of whole brick). Checking exposure of brick then should be function that checks each location in brick
-      * Compute top and bottom exposure when generating bricksDict (then don't bother unless something changes)
       * Add customization for custom object offset, size, and brick scale (amount of bricksDict locations it takes up), default to scale/offset for 1x1 brick with stud
   * Known issues:
       * For models with thin outer shells, Bricker may use color of inside face instead of outside face for brick material (see snapchat hotdog file)

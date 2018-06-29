@@ -361,7 +361,7 @@ def isBrickExposed(cm, bricksDict, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
-    keysInBrick = getKeysInBrick(cm, bricksDict[key]["size"], key)
+    keysInBrick = getKeysInBrick(cm, bricksDict, bricksDict[key]["size"], key)
     topExposed, botExposed = False, False
     # top or bottom exposed if even one location is exposed
     for k in keysInBrick:
@@ -374,7 +374,7 @@ def setAllBrickExposures(cm, bricksDict, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
-    keysInBrick = getKeysInBrick(cm, bricksDict[key]["size"], key)
+    keysInBrick = getKeysInBrick(cm, bricksDict, bricksDict[key]["size"], key)
     topExposed, botExposed = False, False
     # set brick exposures
     for k in keysInBrick:
@@ -388,7 +388,7 @@ def setBrickExposure(cm, bricksDict, key=None, loc=None):
     """ return top and bottom exposure of brick loc/key """
     assert key is not None or loc is not None
     # initialize parameters unspecified
-    loc = loc or strToList(key)
+    loc = loc or getDictLoc(bricksDict, key)
     key = key or listToStr(loc)
     # get size of brick and break conditions
     if key not in bricksDict: return None, None

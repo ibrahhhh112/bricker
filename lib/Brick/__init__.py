@@ -98,7 +98,7 @@ class Bricks:
         """
         # set up unspecified paramaters
         cm = cm or getActiveContextInfo()[1]
-        loc = loc or strToList(key)
+        loc = loc or getDictLoc(bricksDict, key)
         # initialize vars
         size = bricksDict[key]["size"]
         newSize = [1, 1, size[2]]

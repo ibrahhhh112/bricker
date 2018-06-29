@@ -111,9 +111,9 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         default=1000)
     connectThresh = IntProperty(
         name="Connectivity",
-        description="Quality of the model's brick connectivity (higher numbers are slower but better quality)",
+        description="Quality of the model's brick connectivity (higher numbers are slower but bricks will be more interconnected)",
         update=dirtyBuild,
-        min=1, max=50,
+        min=1, max=100,
         default=1)
     smokeDensity = FloatProperty(
         name="Smoke Density",

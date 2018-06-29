@@ -46,7 +46,7 @@ from .mat_utils import *
 
 
 @timed_call('Time Elapsed')
-def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
+def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
     zStep = getZStep(cm)
@@ -66,7 +66,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
     denom = sum([len(keysDict[z0]) for z0 in keysDict.keys()])
     # store first key to active keys
     if cm.activeKey[0] == -1 and len(keys) > 0:
-        loc = strToList(keys[0])
+        loc = getDictLoc(bricksDict, keys[0])
         cm.activeKey = loc
 
     # get brick group
@@ -164,7 +164,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
                             continue
 
                         # initialize loc
-                        loc = strToList(key)
+                        loc = getDictLoc(bricksDict, key)
 
                         # merge current brick with available adjacent bricks
                         brickSize = mergeWithAdjacentBricks(cm, brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, mergeVertical=mergeVertical)
@@ -173,17 +173,13 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
                         if connectThresh > 1:
                             numAlignedEdges[j] += getNumAlignedEdges(cm, bricksDict, brickSize, key, loc, zStep)
                             numBricks += 1
-                        # add brickSize to cm.brickSizesUsed if not already there
-                        brickSize = sorted(brickSize[:2]) + [brickSize[2]]
-                        brickSizeStr = listToStr(brickSize)
-                        updateBrickSizesAndTypesUsed(cm, brickSizeStr, brickD["type"])
 
                         # print status to terminal and cursor
                         cur_percent = (i / denom)
                         old_percent = updateProgressBars(printStatus, cursorStatus, cur_percent, old_percent, "Merging")
 
                         # remove keys in new brick from availableKeys (for attemptMerge)
-                        updateKeysLists(cm, brickSize, loc, availableKeys, key)
+                        updateKeysLists(cm, bricksDict, brickSize, loc, availableKeys, key)
 
                     if connectThresh > 1:
                         # if no aligned edges / bricks found, skip to next z level
@@ -199,6 +195,17 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
                     for k3 in bricksDicts[optimalTest]:
                         bricksDict[k3] = bricksDicts[optimalTest][k3]
 
+        # update cm.brickSizesUsed and cm.brickTypesUsed
+        if (action == "CREATE" and cm.splitModel) or (action == "UPDATE_MODEL" and cm.lastSplitModel):
+            for key in keys:
+                if brickD["parent"] not in [None, "self"]:
+                    continue
+                brickSize = bricksDict[key]["size"]
+                if brickSize is None:
+                    continue
+                brickSizeStr = listToStr(sorted(brickSize[:2]) + [brickSize[2]])
+                updateBrickSizesAndTypesUsed(cm, brickSizeStr, bricksDict[key]["type"])
+
         # end 'Merging' progress bar
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Merging", end=True)
 
@@ -209,7 +216,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
     for i, k2 in enumerate(keys):
         if bricksDict[k2]["parent"] != "self" or not bricksDict[k2]["draw"]:
             continue
-        loc = strToList(k2)
+        loc = getDictLoc(bricksDict, k2)
         # create brick based on the current brick info
         drawBrick(cm, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, randS1, randS2, randS3)
         # print status to terminal and cursor

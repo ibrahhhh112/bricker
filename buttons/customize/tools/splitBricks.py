@@ -146,7 +146,7 @@ class splitBricks(Operator):
                 for obj_name in self.objNamesD[cm_id]:
                     # get dict key details of current obj
                     dictKey = getDictKey(obj_name)
-                    dictLoc = getDictLoc(dictKey)
+                    dictLoc = getDictLoc(bricksDict, dictKey)
                     x0, y0, z0 = dictLoc
                     # get size of current brick (e.g. [2, 4, 1])
                     brickSize = bricksDict[dictKey]["size"]

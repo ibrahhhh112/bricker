@@ -199,7 +199,7 @@ def addColumnSupports(cm, bricksDict, keys):
     """
     step = cm.colStep + cm.colThickness
     for key in keys:
-        x,y,z = strToList(key)
+        x,y,z = getDictLoc(bricksDict, key)
         if (x % step in range(cm.colThickness) and
             y % step in range(cm.colThickness) and
             isInternal(bricksDict, key)
@@ -214,7 +214,7 @@ def addLatticeSupports(cm, bricksDict, keys):
     """
     step = cm.latticeStep
     for key in keys:
-        x,y,z = strToList(key)
+        x,y,z = getDictLoc(bricksDict, key)
         if x % step == 0 and (not cm.alternateXY or z % 2 == 0):
             if isInternal(bricksDict, key):
                 bricksDict[key]["draw"] = True
@@ -555,12 +555,13 @@ def getThreshold(cm):
     """ returns threshold (draw bricks if returned val >= threshold) """
     return 1.01 - (cm.shellThickness / 100)
 
-def createBricksDictEntry(name:str, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, bType:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
+def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, bType:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
     """
     create an entry in the dictionary of brick locations
 
     Keyword Arguments:
     name              -- name of the brick object
+    loc               -- strToList(key)
     val               -- location of brick in model (0: outside of model, 0.00-1.00: number of bricks away from shell / 100, 1: on shell)
     draw              -- draw the brick in 3D space
     co                -- 1x1 brick centered at this location
@@ -583,6 +584,7 @@ def createBricksDictEntry(name:str, val:float=0, draw:bool=False, co:tuple=(0, 0
 
     """
     return {"name":name,
+            "loc":loc,
             "val":val,
             "draw":draw,
             "co":co,
@@ -666,6 +668,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                 # create bricksDict entry for current brick
                 bricksDict[bKey] = createBricksDictEntry(
                     name= 'Bricker_%(n)s_brick__%(bKey)s' % locals(),
+                    loc= strToList(bKey),
                     val= brickFreqMatrix[x][y][z],
                     draw= draw,
                     co= co,

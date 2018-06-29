@@ -324,10 +324,10 @@ def gammaCorrect(rgba, val):
 def getKeysDict(bricksDict, keys=None):
     """ get dictionary of bricksDict keys based on z value """
     keys = keys or list(bricksDict.keys())
-    keys.sort(key=lambda x: (strToList(x)[0], strToList(x)[1]))
+    keys.sort(key=lambda x: (getDictLoc(bricksDict, x)[0], getDictLoc(bricksDict, x)[1]))
     keysDict = {}
     for k0 in keys:
-        z = strToList(k0)[2]
+        z = getDictLoc(bricksDict, k0)[2]
         if bricksDict[k0]["draw"]:
             if z in keysDict:
                 keysDict[z].append(k0)
@@ -347,22 +347,22 @@ def createdWithUnsupportedVersion(cm):
     return cm.version[:3] != bpy.props.bricker_version[:3]
 
 
-def getLocsInBrick(cm, size, key, loc=None, zStep=None):
+def getLocsInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
     zStep = zStep or getZStep(cm)
-    x0, y0, z0 = loc or strToList(key)
+    x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
-def getKeysInBrick(cm, size, key, loc=None, zStep=None):
+def getKeysInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
     zStep = zStep or getZStep(cm)
-    x0, y0, z0 = loc or strToList(key)
+    x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return ["{x},{y},{z}".format(x=x0 + x, y=y0 + y, z=z0 + z) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
 def isOnShell(cm, bricksDict, key, loc=None, zStep=None, shellDepth=1):
     """ check if any locations in brick are on the shell """
     size = bricksDict[key]["size"]
-    brickKeys = getKeysInBrick(cm, size=size, key=key, loc=loc, zStep=zStep)
+    brickKeys = getKeysInBrick(cm, bricksDict, size, key, loc, zStep)
     for k in brickKeys:
         if bricksDict[k]["val"] >= 1 - (shellDepth - 1) / 100:
             return True
@@ -374,12 +374,16 @@ def getDictKey(name):
     dictKey = name.split("__")[-1]
     return dictKey
 
-def getDictLoc(dictKey):
-    return strToList(dictKey)
+def getDictLoc(bricksDict, key):
+    try:
+        loc = bricksDict[key]["loc"]
+    except KeyError:
+        loc = strToList(key)
+    return loc
 
 
 def getBrickCenter(cm, bricksDict, key, loc=None, zStep=None):
-    brickKeys = getKeysInBrick(cm, size=bricksDict[key]["size"], key=key, loc=loc, zStep=zStep)
+    brickKeys = getKeysInBrick(cm, bricksDict, size=bricksDict[key]["size"], key=key, loc=loc, zStep=zStep)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
     return coord_ave

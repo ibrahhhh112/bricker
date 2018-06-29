@@ -86,7 +86,7 @@ class drawAdjacent(Operator):
 
             # get dict key details of current obj
             dictKey = getDictKey(obj.name)
-            dictLoc = getDictLoc(dictKey)
+            dictLoc = getDictLoc(self.bricksDict, dictKey)
             x0,y0,z0 = dictLoc
             # get size of current brick (e.g. [2, 4, 1])
             objSize = self.bricksDict[dictKey]["size"]
@@ -158,7 +158,7 @@ class drawAdjacent(Operator):
 
             # initialize vars for self.adjDKLs setup
             dictKey = getDictKey(obj.name)
-            x,y,z = getDictLoc(dictKey)
+            x,y,z = getDictLoc(self.bricksDict, dictKey)
             objSize = self.bricksDict[dictKey]["size"]
             sX, sY, sZ = objSize[0], objSize[1], objSize[2] // getZStep(cm)
             self.adjDKLs = [[],[],[],[],[],[]]
@@ -268,6 +268,7 @@ class drawAdjacent(Operator):
             co = self.getNewCoord(cm, co0, dimensions, side, newBrickHeight)
             self.bricksDict[adjacent_key] = createBricksDictEntry(
                 name=              'Bricker_%(n)s_brick__%(adjacent_key)s' % locals(),
+                loc=               strToList(adjacent_key),
                 co=                co,
                 near_face=         self.bricksDict[dictKey]["near_face"],
                 near_intersection= self.bricksDict[dictKey]["near_intersection"].copy(),
@@ -294,7 +295,7 @@ class drawAdjacent(Operator):
                 brickKeys = [listToStr([x0, y0, z0 + z]) for z in range((getZStep(cm) + 2) % 4 if side in [4, 5] else 1)]
                 for k in brickKeys:
                     self.bricksDict[k]["draw"] = False
-                    setCurBrickVal(self.bricksDict, strToList(k), action="REMOVE")
+                    setCurBrickVal(self.bricksDict, getDictLoc(bricksDict, k), action="REMOVE")
                     self.bricksDict[k]["size"] = None
                     self.bricksDict[k]["parent"] = None
                     self.bricksDict[k]["bot_exposed"] = None
@@ -335,7 +336,7 @@ class drawAdjacent(Operator):
             adjBrickD["type"] = targetType
             adjBrickD["flipped"] = self.bricksDict[dictKey]["flipped"]
             adjBrickD["rotated"] = self.bricksDict[dictKey]["rotated"]
-            setCurBrickVal(self.bricksDict, strToList(adjacent_key))
+            setCurBrickVal(self.bricksDict, getDictLoc(self.bricksDict, adjacent_key))
             adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"]
             adjBrickD["size"] = [1, 1, newBrickHeight if side in [4, 5] else getZStep(cm)]
             adjBrickD["parent"] = "self"

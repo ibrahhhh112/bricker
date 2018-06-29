@@ -118,7 +118,7 @@ def updateBrickSizes(cm, bricksDict, key, availableKeys, loc, brickSizes, zStep,
 def attemptMerge(cm, bricksDict, key, availableKeys, defaultSize, zStep, randState, preferLargest=False, mergeVertical=True, targetType=None, height3Only=False):
     """ attempt to merge bricksDict[key] with adjacent bricks """
     # get loc from key
-    loc = strToList(key)
+    loc = getDictLoc(bricksDict, key)
     brickSizes = [defaultSize]
     tallType = getTallType(cm, bricksDict[key], targetType)
     shortType = getShortType(cm, bricksDict[key], targetType)
@@ -137,7 +137,7 @@ def attemptMerge(cm, bricksDict, key, availableKeys, defaultSize, zStep, randSta
     bricksDict[key]["size"] = brickSize
 
     # set attributes for merged brick keys
-    keysInBrick = getKeysInBrick(cm, brickSize, key, loc, zStep)
+    keysInBrick = getKeysInBrick(cm, bricksDict, brickSize, key, loc, zStep)
     for k in keysInBrick:
         bricksDict[k]["attempted_merge"] = True
         bricksDict[k]["parent"] = "self" if k == key else key
@@ -154,7 +154,7 @@ def attemptMerge(cm, bricksDict, key, availableKeys, defaultSize, zStep, randSta
 
 def getNumAlignedEdges(cm, bricksDict, size, key, loc, zStep=None):
     numAlignedEdges = 0
-    locs = getLocsInBrick(cm, size, key, loc, 1)
+    locs = getLocsInBrick(cm, bricksDict, size, key, loc, 1)
     gotOne = False
 
     for l in locs:
