@@ -102,9 +102,7 @@ def verifyBrickExposureAboveAndBelow(scn, cm, origLoc, bricksDict, decriment=0, 
             continue
         parent_key = k if bricksDict[k]["parent"] == "self" else bricksDict[k]["parent"]
         if parent_key is not None:
-            topExposed, botExposed = getBrickExposure(cm, bricksDict, k, loc=dictLoc)
-            bricksDict[parent_key]["top_exposed"] = topExposed
-            bricksDict[parent_key]["bot_exposed"] = botExposed
+            setAllBrickExposures(cm, bricksDict, parent_key)
     return bricksDict
 
 
@@ -210,8 +208,6 @@ def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=
 
 def createAddlBricksDictEntry(cm, bricksDict, source_key, key, full_d, x, y, z):
     brickD = bricksDict[source_key]
-    cm.numBricksGenerated += 1
-    j = cm.numBricksGenerated
     n = cm.source_name
     newName = "Bricker_%(n)s_brick__%(key)s" % locals()
     newCO = tuple(Vector(brickD["co"]) + vec_mult(Vector((x, y, z)), full_d))

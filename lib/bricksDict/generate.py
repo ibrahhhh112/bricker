@@ -637,7 +637,6 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     cm.activeKey = (-1, -1, -1)
 
     # create bricks dictionary with brickFreqMatrix values
-    i = 0
     bricksDict = {}
     threshold = getThreshold(cm)
     brickType = cm.brickType  # prevents cm.brickType update function from running over and over in for loop
@@ -654,7 +653,6 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                 # initialize variables
                 bKey = "{x},{y},{z}".format(x=x, y=y, z=z)
                 co = coordMatrix[x][y][z].to_tuple() if noOffset else (Vector(coordMatrix[x][y][z]) - source_details.mid).to_tuple()
-                i += 1
 
                 # get material from nearest face intersection point
                 nf = faceIdxMatrix[x][y][z]["idx"] if type(faceIdxMatrix[x][y][z]) == dict else None
@@ -681,7 +679,14 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                     flipped= flipped,
                     rotated= rotated,
                 )
-    cm.numBricksGenerated = i
+
+    # if buildIsDirty, this is done in drawBrick
+    if not cm.buildIsDirty:
+        # set exposure of brick locs
+        for key in bricksDict.keys():
+            if not bricksDict[key]["draw"]:
+                continue
+            setBrickExposure(cm, bricksDict, key)
 
     # return list of created Brick objects
     return bricksDict

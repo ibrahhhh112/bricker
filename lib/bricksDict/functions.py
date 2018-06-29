@@ -30,6 +30,7 @@ import bpy
 # Addon imports
 from ...functions import *
 from ..Brick import Bricks
+from ..Brick.legal_brick_sizes import *
 
 
 def getMatAtFaceIdx(obj, face_idx):
@@ -354,3 +355,57 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
                     dimensions["width"] + dimensions["gap"],
                     dimensions["height"]+ dimensions["gap"]))
     return source, source_details, dimensions, brickScale, customData
+
+
+def isBrickExposed(cm, bricksDict, key=None, loc=None):
+    assert key is not None or loc is not None
+    # initialize vars
+    key = key or listToStr(loc)
+    keysInBrick = getKeysInBrick(cm, bricksDict[key]["size"], key)
+    topExposed, botExposed = False, False
+    # top or bottom exposed if even one location is exposed
+    for k in keysInBrick:
+        if bricksDict[k]["top_exposed"]: topExposed = True
+        if bricksDict[k]["bot_exposed"]: botExposed = True
+    return topExposed, botExposed
+
+
+def setAllBrickExposures(cm, bricksDict, key=None, loc=None):
+    assert key is not None or loc is not None
+    # initialize vars
+    key = key or listToStr(loc)
+    keysInBrick = getKeysInBrick(cm, bricksDict[key]["size"], key)
+    topExposed, botExposed = False, False
+    # set brick exposures
+    for k in keysInBrick:
+        curTopExposed, curBotExposed = setBrickExposure(cm, bricksDict, k)
+        if curTopExposed: topExposed = True
+        if curBotExposed: botExposed = True
+    return topExposed, botExposed
+
+
+def setBrickExposure(cm, bricksDict, key=None, loc=None):
+    """ return top and bottom exposure of brick loc/key """
+    assert key is not None or loc is not None
+    # initialize parameters unspecified
+    loc = loc or strToList(key)
+    key = key or listToStr(loc)
+    # get size of brick and break conditions
+    if key not in bricksDict: return None, None
+    # check if brick top or bottom is exposed
+    topExposed = checkExposure(bricksDict, key, 1, obscuringTypes=getTypesObscuringBelow())
+    botExposed = checkExposure(bricksDict, key, -1, obscuringTypes=getTypesObscuringAbove())
+    bricksDict[key]["top_exposed"] = topExposed
+    bricksDict[key]["bot_exposed"] = botExposed
+    print(topExposed, botExposed)
+    return topExposed, botExposed
+
+
+def checkExposure(bricksDict, key, direction:int=1, obscuringTypes=[]):
+    try:
+        val = bricksDict[key]["val"]
+    except KeyError:
+        return True
+    parent_key = getParentKey(bricksDict, key)
+    typ = bricksDict[parent_key]["type"]
+    return val == 0 or typ not in obscuringTypes

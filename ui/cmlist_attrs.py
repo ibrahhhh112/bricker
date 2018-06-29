@@ -570,7 +570,6 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     brickSizesUsed = StringProperty(default="")  # list of brickSizes used separated by | (e.g. '5,4,3|7,4,5|8,6,5')
     brickTypesUsed = StringProperty(default="")  # list of brickTypes used separated by | (e.g. 'PLATE|BRICK|STUD')
     modelCreatedOnFrame = IntProperty(default=-1)
-    numBricksGenerated = IntProperty(default=-1)
     isSmoke = BoolProperty(default=False)
     hasCustomObj1 = BoolProperty(default=False)
     hasCustomObj2 = BoolProperty(default=False)

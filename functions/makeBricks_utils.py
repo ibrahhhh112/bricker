@@ -47,12 +47,10 @@ def drawBrick(cm, bricksDict, key, loc, i, dimensions, zStep, brickSize, split, 
     brickD = bricksDict[key]
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or cm.buildIsDirty:
-        topExposed, botExposed = getBrickExposure(cm, bricksDict, key, loc)
-        brickD["top_exposed"] = topExposed
-        brickD["bot_exposed"] = botExposed
+        topExposed, botExposed = setAllBrickExposures(cm, bricksDict, key)
     else:
-        topExposed = brickD["top_exposed"]
-        botExposed = brickD["bot_exposed"]
+        topExposed, botExposed = isBrickExposed(cm, bricksDict, key)
+    print(topExposed, botExposed)
 
     # get brick material
     mat = getMaterial(cm, bricksDict, key, brickSize, brick_mats, i)

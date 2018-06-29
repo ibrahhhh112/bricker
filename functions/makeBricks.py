@@ -114,9 +114,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=No
         for key in keys:
             bricksDict[key]["parent"] = "self"
             bricksDict[key]["size"] = size.copy()
-            topExposed, botExposed = getBrickExposure(cm, bricksDict, key)
-            bricksDict[key]["top_exposed"] = topExposed
-            bricksDict[key]["bot_exposed"] = botExposed
+            setAllBrickExposures(cm, bricksDict, key)
             setFlippedAndRotated(bricksDict, key, [key])
             if bricksDict[key]["type"] == "SLOPE" and cm.brickType == "SLOPES":
                 setBrickTypeForSlope(bricksDict, key, [key])

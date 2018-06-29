@@ -123,9 +123,7 @@ class drawAdjacent(Operator):
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.zPos or self.zNeg:
-                topExposed, botExposed = getBrickExposure(cm, self.bricksDict, dictKey, loc=dictLoc)
-                self.bricksDict[dictKey]["top_exposed"] = topExposed
-                self.bricksDict[dictKey]["bot_exposed"] = botExposed
+                setAllBrickExposures(cm, self.bricksDict, dictKey)
                 keysToUpdate.append(dictKey)
 
             # draw created bricks
@@ -260,8 +258,6 @@ class drawAdjacent(Operator):
         # if key doesn't exist in bricksDict, create it
         if not adjBrickD:
             n = cm.source_name
-            cm.numBricksGenerated += 1
-            j = cm.numBricksGenerated
             newDictLoc = adjDictLoc.copy()
             if side in [0, 2, 4]:  # positive directions
                 newDictLoc[side//2] -= 1
@@ -346,9 +342,7 @@ class drawAdjacent(Operator):
             adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or self.bricksDict[dictKey]["near_face"]
             adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or self.bricksDict[dictKey]["near_intersection"].copy()
-            topExposed, botExposed = getBrickExposure(cm, self.bricksDict, adjacent_key)
-            adjBrickD["top_exposed"] = topExposed
-            adjBrickD["bot_exposed"] = botExposed
+            setAllBrickExposures(cm, self.bricksDict, adjacent_key)
             adjBrickD["created_from"] = dictKey
             keysToMerge.append(adjacent_key)
             # set adjBricksCreated to target brick type for current side

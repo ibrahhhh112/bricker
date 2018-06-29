@@ -27,7 +27,6 @@ import bpy
 
 # Addon imports
 from .functions import *
-from ..Brick.legal_brick_sizes import *
 from ...functions import *
 
 
@@ -145,64 +144,12 @@ def attemptMerge(cm, bricksDict, key, availableKeys, defaultSize, zStep, randSta
         # set brick type if necessary
         if flatBrickType(cm):
             bricksDict[k]["type"] = shortType if brickSize[2] == 1 else tallType
-    # set exposure of current [merged] brick
-    topExposed, botExposed = getBrickExposure(cm, bricksDict, key)
-    bricksDict[key]["top_exposed"] = topExposed
-    bricksDict[key]["bot_exposed"] = botExposed
     # set flipped and rotated
     setFlippedAndRotated(bricksDict, key, keysInBrick)
     if bricksDict[key]["type"] == "SLOPE" and cm.brickType == "SLOPES":
         setBrickTypeForSlope(bricksDict, key, keysInBrick)
 
     return brickSize
-
-
-def getBrickExposure(cm, bricksDict, key=None, loc=None):
-    """ return top and bottom exposure of brick at 'key' """
-    assert key is not None or loc is not None
-    # initialize vars
-    topExposed = False
-    botExposed = False
-    zStep = getZStep(cm)
-    # initialize parameters unspecified
-    loc = loc or strToList(key)
-    key = key or listToStr(loc)
-
-    # get size of brick and break conditions
-    if key not in bricksDict: return None, None
-    size = bricksDict[key]["size"]
-    if size is None: return None, None
-
-    # set z-indices
-    idxZb = loc[2] - 1
-    idxZa = loc[2] + (size[2] if flatBrickType(cm) else 1)
-
-    # Iterate through brick locs in size to check top and bottom exposure
-    keysInBrick = getKeysInBrick(cm, size, key, loc, zStep)
-    for k in keysInBrick:
-        x, y, _ = strToList(k)
-        # don't check keys where keys above are in current brick
-        if bricksDict[k]["val"] != 1 and not (flatBrickType(cm) and size[2] == 3):
-            continue
-        # check if brick top or bottom is exposed
-        k0 = "{x},{y},{z}".format(x=x, y=y, z=idxZa)
-        curTopExposed = checkExposure(bricksDict, k0, 1, obscuringTypes=getTypesObscuringBelow())
-        if curTopExposed: topExposed = True
-        k1 = "{x},{y},{z}".format(x=x, y=y, z=idxZb)
-        curBotExposed = checkExposure(bricksDict, k1, -1, obscuringTypes=getTypesObscuringAbove())
-        if curBotExposed: botExposed = True
-
-    return topExposed, botExposed
-
-
-def checkExposure(bricksDict, key, direction:int=1, obscuringTypes=[]):
-    try:
-        val = bricksDict[key]["val"]
-    except KeyError:
-        return True
-    parent_key = getParentKey(bricksDict, key)
-    typ = bricksDict[parent_key]["type"]
-    return val == 0 or typ not in obscuringTypes
 
 
 def getNumAlignedEdges(cm, bricksDict, size, key, loc, zStep=None):
