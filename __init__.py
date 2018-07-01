@@ -92,6 +92,9 @@ def register():
     # define legal brick sizes (key:height, val:[width,depth])
     bpy.props.Bricker_legal_brick_sizes = getLegalBrickSizes()
 
+    # Add attribute for Bricker Instructions addon
+    bpy.types.Scene.isBrickerInstalled = BoolProperty(default=True)
+
     # bpy.types.Scene.Bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
     #     description="Snap to brick dimensions",
@@ -125,6 +128,7 @@ def unregister():
     del Scn.cmlist
     # bpy.types.VIEW3D_HT_header.remove(Bricker_snap_button)
     # del Scn.Bricker_snapping
+    del Scn.isBrickerInstalled
     del Scn.Bricker_copy_from_id
     del Scn.Bricker_last_active_object_name
     del Scn.Bricker_active_object_name

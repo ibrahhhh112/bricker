@@ -77,13 +77,6 @@ def updateBevel(self, context):
         pass
 
 
-def updateStartAndStopFrames(self, context):
-    scn, cm, _ = getActiveContextInfo()
-    if cm.useAnimation:
-        cm.startFrame = scn.frame_start
-        cm.stopFrame = scn.frame_end
-
-
 def updateParentExposure(self, context):
     scn, cm, _ = getActiveContextInfo()
     if not (cm.modelCreated or cm.animated):
@@ -168,8 +161,10 @@ def getCMProps():
             "hiddenUndersideDetail",
             "exposedUndersideDetail",
             "circleVerts",
+            "loopCut",
             "gap",
             "mergeSeed",
+            "connectThresh",
             "randomLoc",
             "randomRot",
             "brickType",
@@ -205,7 +200,9 @@ def getCMProps():
             "mergeInconsistentMats",
             "randomMatSeed",
             "useUVMap",
+            "uvImageName",
             "useNormals",
+            "verifyExposure",
             "insidenessRayCastDir",
             "castDoubleCheckRays",
             "startFrame",
@@ -230,6 +227,17 @@ def matchProperties(cmTo, cmFrom, bh=False):
         cm_attrs.remove("bevelWidth")
         cm_attrs.remove("bevelSegments")
         cm_attrs.remove("bevelProfile")
+    # match material properties for Random/ABS Plastic Snapping
+    matObjNamesFrom = ["Bricker_{}_RANDOM_mats".format(cmFrom.id), "Bricker_{}_ABS_mats".format(cmFrom.id)]
+    matObjNamesTo   = ["Bricker_{}_RANDOM_mats".format(cmTo.id), "Bricker_{}_ABS_mats".format(cmTo.id)]
+    for i in range(2):
+        matObjFrom = bpy.data.objects.get(matObjNamesFrom[i])
+        matObjTo = bpy.data.objects.get(matObjNamesTo[i])
+        if matObjFrom is None or matObjTo is None:
+            continue
+        matObjTo.data.materials.clear(1)
+        for mat in matObjFrom.data.materials:
+            matObjTo.data.materials.append(mat)
     # match properties from 'cmFrom' to 'cmTo'
     for attr in cm_attrs:
         oldVal = getattr(cmFrom, attr)

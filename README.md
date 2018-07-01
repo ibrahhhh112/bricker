@@ -20,10 +20,9 @@ Blender add-on for automated generation of Brick sculptures and simulations from
       * For animation, if last frame's brickFreqMatrix matches current frame's brickFreqMatrix, save time by just keeping that model around for another frame or duplicating it for the next frame or something
       * New feature: SNOT (studs not on top) functionality
       * Add 'exclusion' functionality so that one model doesn’t create bricks where another model already did
-      * Add many more brick types, including inverted sloped bricks
+      * Add many more brick types, including inverted slopes
       * Generate model with bricks and slopes to more closely approximate original mesh
       * Transfer matObj functionality to new custom list property
-      * Rewrite top and bottom exposure to only include current brick (not exposure of whole brick). Checking exposure of brick then should be function that checks each location in brick
       * Add customization for custom object offset, size, and brick scale (amount of bricksDict locations it takes up), default to scale/offset for 1x1 brick with stud
   * Known issues:
       * For models with thin outer shells, Bricker may use color of inside face instead of outside face for brick material (see snapchat hotdog file)

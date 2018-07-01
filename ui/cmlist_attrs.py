@@ -83,7 +83,6 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     useAnimation = BoolProperty(
         name="Use Animation",
         description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
-        update=updateStartAndStopFrames,
         default=False)
 
     # BASIC MODEL SETTINGS
