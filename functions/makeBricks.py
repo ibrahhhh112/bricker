@@ -196,15 +196,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         bricksDict[k3] = bricksDicts[optimalTest][k3]
 
         # update cm.brickSizesUsed and cm.brickTypesUsed
-        if (action == "CREATE" and cm.splitModel) or (action == "UPDATE_MODEL" and cm.lastSplitModel):
-            for key in keys:
-                if brickD["parent"] not in [None, "self"]:
-                    continue
-                brickSize = bricksDict[key]["size"]
-                if brickSize is None:
-                    continue
-                brickSizeStr = listToStr(sorted(brickSize[:2]) + [brickSize[2]])
-                updateBrickSizesAndTypesUsed(cm, brickSizeStr, bricksDict[key]["type"])
+        for key in keys:
+            if bricksDict[key]["parent"] not in [None, "self"]:
+                continue
+            brickSize = bricksDict[key]["size"]
+            if brickSize is None:
+                continue
+            brickSizeStr = listToStr(sorted(brickSize[:2]) + [brickSize[2]])
+            updateBrickSizesAndTypesUsed(cm, brickSizeStr, bricksDict[key]["type"])
 
         # end 'Merging' progress bar
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Merging", end=True)

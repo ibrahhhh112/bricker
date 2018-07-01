@@ -452,29 +452,35 @@ def adjustBFM(brickFreqMatrix, axes=""):
     xL = len(brickFreqMatrix)
     yL = len(brickFreqMatrix[0])
     zL = len(brickFreqMatrix[0][0])
-    for x in range(xL):
-        for y in range(yL):
-            for z in range(zL):
-                # if current location is inside (-1) and adjacent location is out of bounds, current location is shell (1)
-                if (brickFreqMatrix[x][y][z] == -1 and
-                    (("z" not in axes and
-                      (z in [0, zL-1] or
-                       brickFreqMatrix[x][y][z+1] == 0 or
-                       brickFreqMatrix[x][y][z-1] == 0)) or
-                     ("y" not in axes and
-                      (y in [0, yL-1] or
-                       brickFreqMatrix[x][y+1][z] == 0 or
-                       brickFreqMatrix[x][y-1][z] == 0)) or
-                     ("x" not in axes and
-                      (x in [0, xL-1] or
-                       brickFreqMatrix[x+1][y][z] == 0 or
-                       brickFreqMatrix[x-1][y][z] == 0))
-                  )):
-                    brickFreqMatrix[x][y][z] = 1
-                    # TODO: set faceIdxMatrix value to nearest shell value using some sort of built in nearest poly to point function
-                # continue if curLoc is boundary loc
-                if (x in [0, xL-1] or y in [0, yL-1] or z in [0, zL-1]):
-                    continue
+    if axes != "xyz":
+        for x in range(xL):
+            for y in range(yL):
+                for z in range(zL):
+                    # if current location is inside (-1) and adjacent location is out of bounds, current location is shell (1)
+                    if (brickFreqMatrix[x][y][z] == -1 and
+                        (("z" not in axes and
+                          (z in [0, zL-1] or
+                           brickFreqMatrix[x][y][z+1] == 0 or
+                           brickFreqMatrix[x][y][z-1] == 0)) or
+                         ("y" not in axes and
+                          (y in [0, yL-1] or
+                           brickFreqMatrix[x][y+1][z] == 0 or
+                           brickFreqMatrix[x][y-1][z] == 0)) or
+                         ("x" not in axes and
+                          (x in [0, xL-1] or
+                           brickFreqMatrix[x+1][y][z] == 0 or
+                           brickFreqMatrix[x-1][y][z] == 0))
+                      )):
+                        brickFreqMatrix[x][y][z] = 1
+                        # TODO: set faceIdxMatrix value to nearest shell value using some sort of built in nearest poly to point function
+
+    # iterate through all values except boundaries
+    for x in range(1, xL - 1):
+        for y in range(1, yL - 1):
+            for z in range(1, zL - 1):
+                # # continue if curLoc is boundary loc
+                # if (x in [0, xL-1] or y in [0, yL-1] or z in [0, zL-1]):
+                #     continue
                 # # If inside location (-1) intersects outside location (0), make it ouside (0)
                 # if (brickFreqMatrix[x][y][z] == -1 and
                 #     (brickFreqMatrix[x+1][y][z] == 0 or
@@ -494,17 +500,11 @@ def adjustBFM(brickFreqMatrix, axes=""):
                     brickFreqMatrix[x][y][z-1] != 0):
                     brickFreqMatrix[x][y][z] = -1
 
-    # mark outside brickFreqMatrix values not adjacent to an inside value for removal
     for x in range(xL):
         for y in range(yL):
             for z in range(zL):
-                if (brickFreqMatrix[x][y][z] == 0 and
-                    (x == xL - 1 or brickFreqMatrix[x+1][y][z] in [0, None]) and
-                    (x == 0 or      brickFreqMatrix[x-1][y][z] in [0, None]) and
-                    (y == yL - 1 or brickFreqMatrix[x][y+1][z] in [0, None]) and
-                    (y == 0 or      brickFreqMatrix[x][y-1][z] in [0, None]) and
-                    (z == zL - 1 or brickFreqMatrix[x][y][z+1] in [0, None]) and
-                    (z == 0 or      brickFreqMatrix[x][y][z-1] in [0, None])):
+                # mark outside brickFreqMatrix values for removal
+                if brickFreqMatrix[x][y][z] == 0:
                     brickFreqMatrix[x][y][z] = None
 
 
@@ -536,10 +536,7 @@ def updateInternals(brickFreqMatrix, cm=None, faceIdxMatrix=None):
                                    (x, y, z+1),
                                    (x, y, z-1)]
                     for idx in idxsToCheck:
-                        try:
-                            curVal = brickFreqMatrix[idx[0]][idx[1]][idx[2]]
-                        except IndexError:
-                            continue
+                        curVal = brickFreqMatrix[idx[0]][idx[1]][idx[2]]
                         if curVal == j0:
                             brickFreqMatrix[x][y][z] = j
                             if faceIdxMatrix: faceIdxMatrix[x][y][z] = faceIdxMatrix[idx[0]][idx[1]][idx[2]]
