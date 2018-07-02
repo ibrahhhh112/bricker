@@ -41,13 +41,13 @@ class Bricks:
         cm = cm or getActiveContextInfo()[1]
 
         # create brick mesh
-        if type in ["BRICK", "PLATE"] or "CUSTOM" in type:
+        if type in ("BRICK", "PLATE") or "CUSTOM" in type:
             brickBM = makeStandardBrick(dimensions=dimensions, brickSize=size, type=type, circleVerts=circleVerts, detail=undersideDetail, stud=stud, cm=cm)
-        elif type in ["CYLINDER", "CONE", "STUD", "STUD_HOLLOW"]:
+        elif type in ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW"):
             brickBM = makeRound1x1(dimensions=dimensions, circleVerts=circleVerts, type=type, detail=undersideDetail, cm=cm)
-        elif type in ["TILE", "TILE_GRILL"]:
+        elif type in ("TILE", "TILE_GRILL"):
             brickBM = makeTile(dimensions=dimensions, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail, cm=cm)
-        elif type in ["SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"]:
+        elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
             # determine brick direction
             directions = ["X+", "Y+", "X-", "Y-"]
             maxIdx = size.index(max(size[:2]))
@@ -59,7 +59,7 @@ class Bricks:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
         # create list of brick bmesh variations
-        if logo and stud and (type in ["BRICK", "PLATE", "STUD"] or type == "SLOPE" and max(size[:2]) != 1):
+        if logo and stud and (type in ("BRICK", "PLATE", "STUD") or type == "SLOPE" and max(size[:2]) != 1):
             bms = makeLogoVariations(cm, dimensions, size, directions[maxIdx] if type == "SLOPE" else "", all_vars, logo, logo_type, logo_details, logo_inset)
         else:
             bms = [bmesh.new()]
@@ -119,7 +119,7 @@ class Bricks:
         for x0 in range(x, x + size[0]):
             for y0 in range(y, y + size[1]):
                 for z0 in range(z, z + size[2], zStep):
-                    curKey = listToStr([x0,y0,z0])
+                    curKey = listToStr((x0,y0,z0))
                     bricksDict[curKey]["size"] = newSize.copy()
                     bricksDict[curKey]["type"] = "BRICK" if newSize[2] == 3 else "PLATE"
                     bricksDict[curKey]["parent"] = "self"

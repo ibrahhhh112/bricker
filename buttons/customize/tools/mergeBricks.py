@@ -143,7 +143,7 @@ class mergeBricks(Operator):
 
         for key in keys:
             # skip keys already merged to another brick
-            if bricksDict[key]["parent"] not in [None, "self"]:
+            if bricksDict[key]["parent"] not in (None, "self"):
                 continue
             # attempt to merge current brick with other bricks in keys, according to available brick types
             brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)

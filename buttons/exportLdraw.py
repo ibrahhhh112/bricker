@@ -102,7 +102,7 @@ class exportLdraw(Operator):
                         idx = 0
                         idx -= 2 if bricksDict[key]["flipped"] else 0
                         idx -= 1 if bricksDict[key]["rotated"] else 0
-                        idx += 2 if (size[:2] in [[1, 2], [1, 3], [1, 4], [2, 3]] and not bricksDict[key]["rotated"]) or size[:2] == [2, 4] else 0
+                        idx += 2 if (size[:2] in ([1, 2], [1, 3], [1, 4], [2, 3]) and not bricksDict[key]["rotated"]) or size[:2] == [2, 4] else 0
                     else:
                         idx = 1
                     idx += 1 if size[1] > size[0] else 0
@@ -113,9 +113,9 @@ class exportLdraw(Operator):
                     mat = getMaterial(cm, bricksDict, key, size)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
-                    if rgba in [None, ""] and mat_name not in absMatCodes.keys() and bpy.data.materials.get(mat_name) is not None:
+                    if rgba in (None, "") and mat_name not in absMatCodes.keys() and bpy.data.materials.get(mat_name) is not None:
                         rgba = getMaterialColor(mat_name)
-                    if rgba not in [None, ""] and mat_name not in absMatCodes.keys():
+                    if rgba not in (None, "") and mat_name not in absMatCodes.keys():
                         mat_name = findNearestBrickColorName(rgba)
                     if mat_name in absMatCodes.keys():
                         color = absMatCodes[mat_name]
@@ -124,8 +124,8 @@ class exportLdraw(Operator):
                     # get part number and ldraw file name for brick
                     parts = legalBricks[size[2]][typ]
                     for i,part in enumerate(parts):
-                        if parts[i]["s"] in [size[:2], size[1::-1]]:
-                            part = parts[i]["pt2" if typ == "SLOPE" and size[:2] in [[4, 2], [2, 4], [3, 2], [2, 3]] and bricksDict[key]["rotated"] else "pt"]
+                        if parts[i]["s"] in (size[:2], size[1::-1]):
+                            part = parts[i]["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and bricksDict[key]["rotated"] else "pt"]
                             break
                     brickFile = "%(part)s.dat" % locals()
                     # offset the coordinate and round to ensure appropriate Ldraw location
@@ -153,11 +153,11 @@ class exportLdraw(Operator):
         if brickD["type"] == "SLOPE":
             if idx == 0:
                 loc.x -= ((size[0] - 1) * 20) / 2
-            elif idx in [1, -3]:
+            elif idx in (1, -3):
                 loc.y += ((size[1] - 1) * 20) / 2
-            elif idx in [2, -2]:
+            elif idx in (2, -2):
                 loc.x += ((size[0] - 1) * 20) / 2
-            elif idx in [3, -1]:
+            elif idx in (3, -1):
                 loc.y -= ((size[1] - 1) * 20) / 2
         loc.z = loc.z * (h / (dimensions["height"] + dimensions["gap"]))
         if brickD["type"] == "SLOPE" and size == [1, 1, 3]:

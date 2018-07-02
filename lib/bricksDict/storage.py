@@ -38,7 +38,7 @@ def getBricksDict(dType="MODEL", source=None, source_details=None, dimensions=No
     cm = cm or scn.cmlist[scn.cmlist_index]
     loadedFromCache = False
     # if bricksDict can be pulled from cache
-    if not matrixReallyIsDirty(cm) and not (cm.BFMCache in [None, ""] and bricker_bfm_cache.get(cm.id) is None) and not (cm.animIsDirty and "ANIM" in dType):
+    if not matrixReallyIsDirty(cm) and not (cm.BFMCache in (None, "") and bricker_bfm_cache.get(cm.id) is None) and not (cm.animIsDirty and "ANIM" in dType):
         # try getting bricksDict from light cache, then deep cache
         bricksDict = bricker_bfm_cache.get(cm.id) or json.loads(cm.BFMCache)
         loadedFromCache = True
@@ -90,9 +90,9 @@ def deepToLightCache(bricker_bfm_cache):
 def cacheBricksDict(action, cm, bricksDict, curFrame=None):
     """ store bricksDict in light python cache for future access """
     scn = bpy.context.scene
-    if action in ["CREATE", "UPDATE_MODEL"]:
+    if action in ("CREATE", "UPDATE_MODEL"):
         bricker_bfm_cache[cm.id] = bricksDict
-    elif action in ["ANIMATE", "UPDATE_ANIM"]:
+    elif action in ("ANIMATE", "UPDATE_ANIM"):
         if (cm.id not in bricker_bfm_cache.keys() or
            type(bricker_bfm_cache[cm.id]) != dict):
             bricker_bfm_cache[cm.id] = {}

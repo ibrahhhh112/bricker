@@ -26,13 +26,13 @@ def makeSquare(coord1:Vector, coord2:Vector, face:bool=True, flipNormal:bool=Fal
 
     # create square with normal facing +x direction
     if coord1.x == coord2.x:
-        v1, v2, v3, v4 = [bme.verts.new((coord1.x, y, z)) for y in [coord1.y, coord2.y] for z in [coord1.z, coord2.z]]
+        v1, v2, v3, v4 = [bme.verts.new((coord1.x, y, z)) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
     # create square with normal facing +y direction
     elif coord1.y == coord2.y:
-        v1, v2, v3, v4 = [bme.verts.new((x, coord1.y, z)) for x in [coord1.x, coord2.x] for z in [coord1.z, coord2.z]]
+        v1, v2, v3, v4 = [bme.verts.new((x, coord1.y, z)) for x in (coord1.x, coord2.x) for z in (coord1.z, coord2.z)]
     # create square with normal facing +z direction
     else:
-        v1, v2, v3, v4 = [bme.verts.new((x, y, coord1.z)) for x in [coord1.x, coord2.x] for y in [coord1.y, coord2.y]]
+        v1, v2, v3, v4 = [bme.verts.new((x, y, coord1.z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y)]
     vList = [v1, v3, v4, v2]
 
     # create face
@@ -67,7 +67,7 @@ def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:boo
     bme = bme or bmesh.new()
 
     # create vertices
-    vList = [bme.verts.new((x, y, z)) for x in [coord1.x, coord2.x] for y in [coord1.y, coord2.y] for z in [coord1.z, coord2.z]]
+    vList = [bme.verts.new((x, y, z)) for x in (coord1.x, coord2.x) for y in (coord1.y, coord2.y) for z in (coord1.z, coord2.z)]
 
     # create faces
     v1, v2, v3, v4, v5, v6, v7, v8 = vList

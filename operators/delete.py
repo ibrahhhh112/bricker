@@ -154,7 +154,7 @@ class BRICKER_OT_delete_override(Operator):
                 for x in range(x0, x0 + objSize[0]):
                     for y in range(y0, y0 + objSize[1]):
                         for z in range(z0, z0 + (objSize[2]//zStep)):
-                            curKey = listToStr([x, y, z])
+                            curKey = listToStr((x, y, z))
                             deletedKeys.append(curKey)
                             # reset bricksDict values
                             bricksDict[curKey]["draw"] = False
@@ -234,7 +234,7 @@ class BRICKER_OT_delete_override(Operator):
                         # add key to simple bricksDict for drawing
                         keysToUpdate.append(k0)
             # top of bricks below are now exposed
-            k0 = listToStr([x, y, z - 1])
+            k0 = listToStr((x, y, z - 1))
             if k0 in bricksDict and bricksDict[k0]["draw"]:
                 k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
                 if not bricksDict[k1]["top_exposed"]:
@@ -242,7 +242,7 @@ class BRICKER_OT_delete_override(Operator):
                     # add key to simple bricksDict for drawing
                     keysToUpdate.append(k1)
             # bottom of bricks above are now exposed
-            k0 = listToStr([x, y, z + 1])
+            k0 = listToStr((x, y, z + 1))
             if k0 in bricksDict and bricksDict[k0]["draw"]:
                 k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
                 if not bricksDict[k1]["bot_exposed"]:

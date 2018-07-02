@@ -261,7 +261,7 @@ class AnimationPanel(Panel):
             self.appliedMods = False
             if source:
                 for mod in source.modifiers:
-                    if mod.type in ["CLOTH", "SOFT_BODY"] and mod.show_viewport:
+                    if mod.type in ("CLOTH", "SOFT_BODY") and mod.show_viewport:
                         self.appliedMods = True
                         t = mod.type
                         if mod.point_cache.frame_end < cm.stopFrame:
@@ -534,7 +534,7 @@ class BrickTypesPanel(Panel):
         elif cm.lastSplitModel:
             col.label("Custom Brick Objects:")
         if cm.brickType == "CUSTOM" or cm.lastSplitModel:
-            for prop in ["customObjectName1", "customObjectName2", "customObjectName3"]:
+            for prop in ("customObjectName1", "customObjectName2", "customObjectName3"):
                 if prop[-1] == "2" and cm.brickType == "CUSTOM":
                     col.label("Distance Offset:")
                     row = col.row(align=True)
@@ -1033,7 +1033,7 @@ class BrickDetailsPanel(Panel):
             layout.label("Matrix not available")
             return
         try:
-            dictKey = listToStr(list(cm.activeKey))
+            dictKey = listToStr(tuple(cm.activeKey))
             brickD = bricksDict[dictKey]
         except Exception as e:
             layout.label("No brick details available")

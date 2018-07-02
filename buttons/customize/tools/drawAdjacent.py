@@ -238,7 +238,7 @@ class drawAdjacent(Operator):
     def getNewCoord(self, cm, co, dimensions, side, newBrickHeight):
         full_d = [dimensions["width"], dimensions["width"], dimensions["height"]]
         co = list(co)
-        if side in [0, 2, 4]:  # positive directions
+        if side in (0, 2, 4):  # positive directions
             co[side//2] += full_d[side//2]
         else:                  # negative directions
             co[side//2] -= full_d[side//2] * (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
@@ -259,7 +259,7 @@ class drawAdjacent(Operator):
         if not adjBrickD:
             n = cm.source_name
             newDictLoc = adjDictLoc.copy()
-            if side in [0, 2, 4]:  # positive directions
+            if side in (0, 2, 4):  # positive directions
                 newDictLoc[side//2] -= 1
             else:                  # negative directions
                 newDictLoc[side//2] += (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
@@ -271,7 +271,7 @@ class drawAdjacent(Operator):
                 loc=               strToList(adjacent_key),
                 co=                co,
                 near_face=         self.bricksDict[dictKey]["near_face"],
-                near_intersection= self.bricksDict[dictKey]["near_intersection"].copy(),
+                near_intersection= tuple(self.bricksDict[dictKey]["near_intersection"]),
                 mat_name=          self.bricksDict[dictKey]["mat_name"],
             )
             adjBrickD = self.bricksDict[adjacent_key]
@@ -292,7 +292,7 @@ class drawAdjacent(Operator):
             elif adjBrickD["created_from"] == dictKey:
                 # update bricksDict values for brick being removed
                 x0, y0, z0 = adjDictLoc
-                brickKeys = [listToStr([x0, y0, z0 + z]) for z in range((getZStep(cm) + 2) % 4 if side in [4, 5] else 1)]
+                brickKeys = [listToStr((x0, y0, z0 + z)) for z in range((getZStep(cm) + 2) % 4 if side in (4, 5) else 1)]
                 for k in brickKeys:
                     self.bricksDict[k]["draw"] = False
                     setCurBrickVal(self.bricksDict, getDictLoc(bricksDict, k), action="REMOVE")
@@ -314,7 +314,7 @@ class drawAdjacent(Operator):
             if checkTwoMoreAbove:
                 x0, y0, z0 = adjDictLoc
                 for z in range(1, 3):
-                    newKey = listToStr([x0, y0, z0 + z])
+                    newKey = listToStr((x0, y0, z0 + z))
                     # if brick drawn in next loc and not just rerunning based on new direction selection
                     if (newKey in self.bricksDict and self.bricksDict[newKey]["draw"] and
                         (not self.isBrickAlreadyCreated(brickNum, side) or
@@ -326,10 +326,10 @@ class drawAdjacent(Operator):
                         self.adjBricksCreated[side][brickNum] = False
                         adjBrickD["draw"] = False
                         return False
-                    elif side in [4, 5]:
+                    elif side in (4, 5):
                         keysToMerge.append(newKey)
             # update dictionary of locations above brick
-            if flatBrickType(cm.brickType) and side in [4, 5]:
+            if flatBrickType(cm.brickType) and side in (4, 5):
                 updateBrickSizeAndDict(dimensions, cm, self.bricksDict, [1, 1, newBrickHeight], adjacent_key, adjDictLoc, dec=2 if side == 5 else 0, curType=curType, targetType=targetType, createdFrom=dictKey)
             # update dictionary location of adjacent brick created
             adjBrickD["draw"] = True
@@ -338,7 +338,7 @@ class drawAdjacent(Operator):
             adjBrickD["rotated"] = self.bricksDict[dictKey]["rotated"]
             setCurBrickVal(self.bricksDict, getDictLoc(self.bricksDict, adjacent_key))
             adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"]
-            adjBrickD["size"] = [1, 1, newBrickHeight if side in [4, 5] else getZStep(cm)]
+            adjBrickD["size"] = [1, 1, newBrickHeight if side in (4, 5) else getZStep(cm)]
             adjBrickD["parent"] = "self"
             adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or self.bricksDict[dictKey]["near_face"]

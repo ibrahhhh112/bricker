@@ -36,7 +36,7 @@ from ....functions import *
 def addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
     # initialize vars
     if hollow is None:
-        add_beams = brickSize[2] == 3 and (sum(brickSize[:2]) > 4 or min(brickSize[:2]) == 1 and max(brickSize[:2]) == 3) and detail in ["MEDIUM", "HIGH"]
+        add_beams = brickSize[2] == 3 and (sum(brickSize[:2]) > 4 or min(brickSize[:2]) == 1 and max(brickSize[:2]) == 3) and detail in ("MEDIUM", "HIGH")
     if hollow is None:
         hollow = brickSize[2] == 1 or min(brickSize[:2]) != 1
     bAndPBrick = flatBrickType(cm.brickType) and brickSize[2] == 3
@@ -52,8 +52,8 @@ def addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d,
     allTopVerts = []
     startX = -1 if brickSize[0] == 1 else 0
     startY = -1 if brickSize[1] == 1 else 0
-    startX = 1 if type == "SLOPE" and brickSize[:2] in [[3, 1], [4, 1]] else startX
-    startY = 1 if type == "SLOPE" and brickSize[:2] in [[1, 3], [1, 4]] else startY
+    startX = 1 if type == "SLOPE" and brickSize[:2] in ([3, 1], [4, 1]) else startX
+    startY = 1 if type == "SLOPE" and brickSize[:2] in ([1, 3], [1, 4]) else startY
     # add supports for each appropriate underside location
     for xNum in range(startX, brickSize[0] - 1):
         for yNum in range(startY, brickSize[1] - 1):
@@ -74,7 +74,7 @@ def addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d,
             if not add_beams:
                 continue
             if minS % 2 == 0 and (brickSize[0] > brickSize[1] or minS > 2):
-                if brickSize[0] == 3 or xNum % 2 == 1 or (brickSize == [8, 1, 3] and xNum in [0, brickSize[0] - 2]):
+                if brickSize[0] == 3 or xNum % 2 == 1 or (brickSize == [8, 1, 3] and xNum in (0, brickSize[0] - 2)):
                     # initialize x, y
                     x1 = tubeX - (dimensions["support_width"] / 2)
                     x2 = tubeX + (dimensions["support_width"] / 2)
@@ -94,7 +94,7 @@ def addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d,
                             cubeVerts2 = makeCube(Vector((x1, y3, z1)), Vector((x2, y4, z2)), sides=curSides, bme=bme)
                             allTopVerts += cubeVerts2[4:]
             if minS % 2 == 0 and (brickSize[1] > brickSize[0] or minS > 2):
-                if brickSize[1] == 3 or yNum % 2 == 1 or (brickSize == [1, 8, 3] and yNum in [0, brickSize[1] - 2]):
+                if brickSize[1] == 3 or yNum % 2 == 1 or (brickSize == [1, 8, 3] and yNum in (0, brickSize[1] - 2)):
                     # initialize x, y
                     x1 = tubeX + r
                     x2 = tubeX + d.x * min([minS, 4]) - thick.x - (0 if xNum >= brickSize[0] - 3 else dimensions["tube_thickness"])
@@ -201,7 +201,7 @@ def connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, e
     for xNum in range(sX):
         vertDpos = vertsDofDs[str(xNum) + "," + str(yNum)]
         vertDneg = vertsDofDs[str(xNum) + "," + str(0)]
-        for sign, vertD, dir, func in [["+", vertDpos, 1, math.ceil], ["-", vertDneg, -1, math.floor]]:
+        for sign, vertD, dir, func in (["+", vertDpos, 1, math.ceil], ["-", vertDneg, -1, math.floor]):
             side = "Y%(sign)s" % locals()
             verts = vertD["-%(sign)s" % locals()]
             if xNum > 0:
@@ -224,7 +224,7 @@ def connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, e
     for yNum in range(sY):
         vertDpos = vertsDofDs[str(xNum) + "," + str(yNum)]
         vertDneg = vertsDofDs[str(0) + "," + str(yNum)]
-        for sign, vertD, dir, func in [["+", vertDpos, -1, math.floor], ["-", vertDneg, 1, math.ceil]]:
+        for sign, vertD, dir, func in (["+", vertDpos, -1, math.floor], ["-", vertDneg, 1, math.ceil]):
             side = "X%(sign)s" % locals()
             verts = vertD["%(sign)s-" % locals()]
             if yNum > 0:
@@ -244,7 +244,7 @@ def connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, e
                 for v in verts[::dir][:func(len(verts)/2) + (1 if dir == -1 else 0)]:
                     joinVerts[side].append(v)
     for item in joinVerts:
-        step0 = -step if item in ["Y+", "X-"] else step
+        step0 = -step if item in ("Y+", "X-") else step
         bme.faces.new(joinVerts[item][::step0])
 
     if 1 in brickSize[:2]:

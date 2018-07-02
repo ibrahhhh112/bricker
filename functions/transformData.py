@@ -41,7 +41,7 @@ def storeTransformData(cm, obj, offsetBy=None):
         # cm.modelLoc = listToStr(obj.matrix_world.to_translation().to_tuple())
         lastMode = obj.rotation_mode
         obj.rotation_mode = "XYZ"
-        cm.modelRot = listToStr(tuple(obj.rotation_euler))
+        cm.modelRot = listToStr(obj.rotation_euler.to_tuple())
         cm.modelScale = listToStr(obj.scale.to_tuple())
         obj.rotation_mode = lastMode
     elif obj is None:

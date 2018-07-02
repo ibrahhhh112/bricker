@@ -49,7 +49,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int
         bme         -- bmesh object in which to create verts
 
     """
-    assert detail in ["FLAT", "LOW", "MEDIUM", "HIGH"]
+    assert detail in ("FLAT", "LOW", "MEDIUM", "HIGH")
     # create new bmesh object
     bme = bmesh.new() if not bme else bme
     cm = cm or getActiveContextInfo()[1]
@@ -98,7 +98,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int
         if max(brickSize[:2]) > 1:
             addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d, scalar, thick, bme)
         # add small inner cylinders inside brick
-        if detail in ["MEDIUM", "HIGH"]:
+        if detail in ("MEDIUM", "HIGH"):
             edgeXp = [v15] + (bottomVerts["X+"][::-1] if drawTickMarks else []) + [v14]
             edgeXn = [v16] + (bottomVerts["X-"][::-1] if drawTickMarks else []) + [v13]
             edgeYp = [v15] + (bottomVerts["Y+"][::-1] if drawTickMarks else []) + [v16]

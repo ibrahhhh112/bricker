@@ -59,5 +59,9 @@ class BrickerPreferences(AddonPreferences):
         col = layout.column(align=True)
         row = col.row(align=True)
 
+        # draw addon prefs
+        prefs = bpy.props.bricker_preferences
+        row.prop(prefs, "printStatus")
+
         # updater draw function
         addon_updater_ops.update_settings_ui(self,context)

@@ -83,10 +83,10 @@ class setExposure(Operator):
                     objSize = bricksDict[dictKey]["size"]
 
                     # set top as exposed
-                    if self.side in ["TOP", "BOTH"]:
+                    if self.side in ("TOP", "BOTH"):
                         bricksDict[dictKey]["top_exposed"] = not bricksDict[dictKey]["top_exposed"]
                     # set bottom as exposed
-                    if self.side in ["BOTTOM", "BOTH"]:
+                    if self.side in ("BOTTOM", "BOTH"):
                         bricksDict[dictKey]["bot_exposed"] = not bricksDict[dictKey]["bot_exposed"]
                     # add curKey to simple bricksDict for drawing
                     keysToUpdate.append(dictKey)

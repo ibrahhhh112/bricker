@@ -186,6 +186,7 @@ def setObjOrigin(obj, loc):
     #     v.co += obj.location - loc
     # obj.location = loc
     scn = bpy.context.scene
+    ct = time.time()
     old_loc = tuple(scn.cursor_location)
     scn.cursor_location = loc
     select(obj, active=True, only=True)
@@ -238,7 +239,7 @@ def flatBrickType(bt):
 
 def mergableBrickType(cm=None, typ=None, up=False):
     if typ is not None:
-        return typ in ["PLATE", "BRICK", "SLOPE"] or (up and typ == "CYLINDER")
+        return typ in ("PLATE", "BRICK", "SLOPE") or (up and typ == "CYLINDER")
     elif cm is not None:
         return "PLATE" in cm.brickType or "BRICK" in cm.brickType or "SLOPE" in cm.brickType or (up and ("CYLINDER" in cm.brickType))
     else:
@@ -275,7 +276,7 @@ def brick_materials_loaded():
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
-    return listToStr([cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes])
+    return listToStr((cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes))
 
 
 def matrixReallyIsDirty(cm):
@@ -287,7 +288,7 @@ def vecToStr(vec, separate_by=","):
 
 
 def listToStr(lst, separate_by=","):
-    assert type(lst) in [list, tuple]
+    assert type(lst) in (list, tuple)
     return separate_by.join(map(str, lst))
 
 
@@ -328,9 +329,9 @@ def getKeysDict(bricksDict, keys=None):
     for k0 in keys:
         z = getDictLoc(bricksDict, k0)[2]
         if bricksDict[k0]["draw"]:
-            if z in keysDict:
+            try:
                 keysDict[z].append(k0)
-            else:
+            except KeyError:
                 keysDict[z] = [k0]
     return keysDict
 
@@ -338,7 +339,7 @@ def getKeysDict(bricksDict, keys=None):
 def getParentKey(bricksDict, key):
     if key not in bricksDict:
         return None
-    parent_key = key if bricksDict[key]["parent"] in ["self", None] else bricksDict[key]["parent"]
+    parent_key = key if bricksDict[key]["parent"] in ("self", None) else bricksDict[key]["parent"]
     return parent_key
 
 
@@ -413,8 +414,8 @@ def getNormalDirection(normal, maxDist=0.77):
 
 
 def getFlipRot(dir):
-    flip = dir in ["X-", "Y-"]
-    rot = dir in ["Y+", "Y-"]
+    flip = dir in ("X-", "Y-")
+    rot = dir in ("Y+", "Y-")
     return flip, rot
 
 
@@ -462,7 +463,7 @@ def getExportPath(cm, fn, ext, frame=-1, subfolder=False):
     if not os.path.exists(path):
         return path, "Blender could not find the following path: '%(path)s'" % locals()
     # get full filename
-    fn0 = fn if lastSlash in [-1, len(cm.exportPath) - 1] else cm.exportPath[lastSlash + 1:]
+    fn0 = fn if lastSlash in (-1, len(cm.exportPath) - 1) else cm.exportPath[lastSlash + 1:]
     frame_num = "_%(frame)s" % locals() if frame >= 0 else ""
     full_fn = fn0 + frame_num + ext
     # create subfolder

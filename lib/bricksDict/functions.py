@@ -394,8 +394,8 @@ def setBrickExposure(bricksDict, key=None, loc=None):
     if key not in bricksDict: return None, None
     # get keys above and below
     x, y, z = loc
-    keyBelow = listToStr([x, y, z - 1])
-    keyAbove = listToStr([x, y, z + 1])
+    keyBelow = listToStr((x, y, z - 1))
+    keyAbove = listToStr((x, y, z + 1))
     # check if brick top or bottom is exposed
     topExposed = checkExposure(bricksDict, keyAbove, obscuringTypes=getTypesObscuringBelow())
     botExposed = checkExposure(bricksDict, keyBelow, obscuringTypes=getTypesObscuringAbove())

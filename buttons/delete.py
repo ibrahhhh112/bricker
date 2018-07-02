@@ -178,7 +178,7 @@ class BrickerDelete(bpy.types.Operator):
                 setObjOrigin(source, pivot_point)
                 # rotate source
                 if cm.useLocalOrient and not cm.useAnimation:
-                    source.rotation_euler = brickRot or Euler(tuple(r))
+                    source.rotation_euler = brickRot or Euler(r)
                 else:
                     rotateBy = Euler(tuple(r))
                     # if source.parent is not None:

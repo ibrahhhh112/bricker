@@ -28,7 +28,7 @@ import bpy
 # Addon imports
 from .mesh_generators import *
 from .get_brick_dimensions import *
-from ...functions.common import * 
+from ...functions.common import *
 from ...functions.general import *
 from ...functions.makeBricks_utils import *
 
@@ -90,7 +90,7 @@ def test_brick_generators():
     cm.brickType = "BRICKS AND PLATES"
     dimensions = get_brick_dimensions(height=0.5, zScale=getZStep(cm))
     offset = -1.875
-    for detail in ["FLAT", "LOW", "MEDIUM", "HIGH"]:
+    for detail in ("FLAT", "LOW", "MEDIUM", "HIGH"):
         offset += 0.75
         # STANDARD BRICKS
         newObjFromBmesh(1,  makeStandardBrick(dimensions, brickSize=[1,1,3], type=cm.brickType, circleVerts=16, detail=detail), "1x1 " + detail, loc=(offset,   0,0))
@@ -107,8 +107,8 @@ def test_brick_generators():
         newObjFromBmesh(6,  makeRound1x1(dimensions, circleVerts=16, type="STUD_HOLLOW", detail=detail), "1x1 Stud2 "  + detail, loc=(offset,-1.5,0))
         # SLOPE BRICKS
         i = 0
-        for posNeg in ["+", "-"]:
-            for j in [-1, 1]:
+        for posNeg in ("+", "-"):
+            for j in (-1, 1):
                 direction = ("X" if j == 1 else "Y") + posNeg
                 newObjFromBmesh(16 + i, makeSlope(dimensions, brickSize=[1,1][::j] + [3], direction=direction, circleVerts=16, detail=detail), "1x1 Slope "  + detail, loc=[-6,   offset][::j]               + [0])
                 newObjFromBmesh(16 + i, makeSlope(dimensions, brickSize=[2,1][::j] + [3], direction=direction, circleVerts=16, detail=detail), "2x1 Slope "  + detail, loc=[-5.5, offset][::j]               + [0])

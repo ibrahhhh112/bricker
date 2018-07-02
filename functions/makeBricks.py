@@ -148,7 +148,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 if connectThresh > 1:
                     bricksDictsBase = {}
                     for k4 in availableKeysBase:
-                        bricksDictsBase[k4] = deepcopy(bricksDict[k4])
+                        bricksDictsBase[k4] = bricksDict[k4]
                     bricksDicts = [deepcopy(bricksDictsBase) for j in range(connectThresh)]
                     numAlignedEdges = [0 for idx in range(connectThresh)]
                 else:
@@ -165,7 +165,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         i += 1 / connectThresh
                         brickD = bricksDicts[j][key]
                         # skip keys that are already drawn or have attempted merge
-                        if brickD["attempted_merge"] or brickD["parent"] not in [None, "self"]:
+                        if brickD["attempted_merge"] or brickD["parent"] not in (None, "self"):
                             # remove ignored key if it exists in availableKeys (for attemptMerge)
                             remove_item(availableKeys, key)
                             continue
@@ -204,7 +204,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
         # update cm.brickSizesUsed and cm.brickTypesUsed
         for key in keys:
-            if bricksDict[key]["parent"] not in [None, "self"]:
+            if bricksDict[key]["parent"] not in (None, "self"):
                 continue
             brickSize = bricksDict[key]["size"]
             if brickSize is None:

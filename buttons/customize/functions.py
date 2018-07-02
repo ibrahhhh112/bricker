@@ -59,12 +59,12 @@ def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
     assert loc or key
     keyError = False
     x, y, z = loc or getDictLoc(bricksDict, key)
-    adjKeys = [listToStr([x+1, y, z]),
-               listToStr([x-1, y, z]),
-               listToStr([x, y+1, z]),
-               listToStr([x, y-1, z]),
-               listToStr([x, y, z+1]),
-               listToStr([x, y, z-1])]
+    adjKeys = [listToStr((x+1, y, z)),
+               listToStr((x-1, y, z)),
+               listToStr((x, y+1, z)),
+               listToStr((x, y-1, z)),
+               listToStr((x, y, z+1)),
+               listToStr((x, y, z-1))]
     adjBrickVals = []
     for key in adjKeys.copy():
         try:
@@ -148,7 +148,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
             if objSize in objSizes:
                 continue
             objSizes.append(objSize)
-            if objSize[2] not in [1, 3]: raise Exception("Custom Error Message: objSize not in [1, 3]")
+            if objSize[2] not in (1, 3): raise Exception("Custom Error Message: objSize not in (1, 3)")
             # build items
             items += [itemFromType(typ) for typ in legalBS[3] if includeSizes == "ALL" or objSize[:2] in legalBS[3][typ] + includeSizes]
             if flatBrickType(brickType):
@@ -213,13 +213,13 @@ def createAddlBricksDictEntry(cm, bricksDict, source_key, key, full_d, x, y, z):
     brickD = bricksDict[source_key]
     n = cm.source_name
     newName = "Bricker_%(n)s_brick__%(key)s" % locals()
-    newCO = tuple(Vector(brickD["co"]) + vec_mult(Vector((x, y, z)), full_d))
+    newCO = (Vector(brickD["co"]) + vec_mult(Vector((x, y, z)), full_d)).to_tuple()
     bricksDict[key] = createBricksDictEntry(
         name=              newName,
         loc=               strToList(key),
         co=                newCO,
         near_face=         brickD["near_face"],
-        near_intersection= brickD["near_intersection"].copy(),
+        near_intersection= tuple(brickD["near_intersection"]),
         mat_name=          brickD["mat_name"],
     )
     return bricksDict

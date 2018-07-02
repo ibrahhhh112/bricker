@@ -88,7 +88,7 @@ class BrickerBrickify(bpy.types.Operator):
             previously_model_created = cm.modelCreated
             self.runBrickify(context)
         except KeyboardInterrupt:
-            if self.action in ["CREATE", "ANIMATE"]:
+            if self.action in ("CREATE", "ANIMATE"):
                 for n in self.createdObjects:
                     obj = bpy.data.objects.get(n)
                     if obj:
@@ -439,7 +439,7 @@ class BrickerBrickify(bpy.types.Operator):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
-        updateCursor = action in ["CREATE", "UPDATE_MODEL"]
+        updateCursor = action in ("CREATE", "UPDATE_MODEL")
         if bricksDict is None:
             # multiply brickScale by offset distance
             brickScale2 = brickScale if cm.brickType != "CUSTOM" else vec_mult(brickScale, Vector(cm.distOffset))
@@ -506,7 +506,7 @@ class BrickerBrickify(bpy.types.Operator):
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False
 
-        if self.action in ["CREATE", "ANIMATE"]:
+        if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
             if groupExists(Bricker_bricks_gn):
                 self.report({"WARNING"}, "Brickified Model already created.")
@@ -533,13 +533,13 @@ class BrickerBrickify(bpy.types.Operator):
                 self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
                 return False
 
-        if self.action in ["ANIMATE", "UPDATE_ANIM"]:
+        if self.action in ("ANIMATE", "UPDATE_ANIM"):
             # verify start frame is less than stop frame
             if cm.startFrame > cm.stopFrame:
                 self.report({"ERROR"}, "Start frame must be less than or equal to stop frame (see animation tab below).")
                 return False
 
-        if self.action in ["UPDATE_MODEL"]:
+        if self.action == "UPDATE_MODEL":
             # make sure 'Bricker_[source name]_bricks' group exists
             if not groupExists(Bricker_bricks_gn):
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
@@ -648,7 +648,7 @@ class BrickerBrickify(bpy.types.Operator):
         for mod in self.source.modifiers:
             if mod.type == "ARMATURE":
                 cm.armature = True
-            elif mod.type in ["CLOTH", "SOFT_BODY"]:
+            elif mod.type in ("CLOTH", "SOFT_BODY"):
                 soft_body = True
                 point_cache = mod.point_cache
             elif mod.type == "SMOKE":

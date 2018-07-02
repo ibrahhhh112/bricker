@@ -192,7 +192,7 @@ class changeBrickType(Operator):
 
                 # verify locations above are not obstructed
                 if targetBrickType in getBrickTypes(height=3) and size[2] == 1:
-                    aboveKeys = [listToStr([x0 + x, y0 + y, z0 + z]) for z in range(1, 3) for y in range(size[1]) for x in range(size[0])]
+                    aboveKeys = [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(1, 3) for y in range(size[1]) for x in range(size[0])]
                     obstructed = False
                     for curKey in aboveKeys:
                         if curKey in bricksDict and bricksDict[curKey]["draw"]:
@@ -220,7 +220,7 @@ class changeBrickType(Operator):
                 for curLoc in brickLocs:
                     bricksDict = verifyBrickExposureAboveAndBelow(scn, cm, curLoc, bricksDict, decriment=3 if bAndPBrick else 1)
                     # add bricks to keysToUpdate
-                    keysToUpdate += [getParentKey(bricksDict, listToStr([x0 + x, y0 + y, z0 + z])) for z in [-1, 0, 3 if bAndPBrick else 1] for y in range(size[1]) for x in range(size[0])]
+                    keysToUpdate += [getParentKey(bricksDict, listToStr((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if bAndPBrick else 1) for y in range(size[1]) for x in range(size[0])]
                 objNamesToSelect += [bricksDict[listToStr(loc)]["name"] for loc in brickLocs]
 
             # uniquify keysToUpdate and remove null keys

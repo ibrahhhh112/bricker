@@ -216,9 +216,9 @@ def applyModifiers(obj, only=None, exclude=["SMOKE"], curFrame=None):
     select(obj, active=True, only=True)
     # apply modifiers
     for mod in obj.modifiers:
-        # only = ["SUBSURF", "ARMATURE", "SOLIDIFY", "MIRROR", "ARRAY", "BEVEL", "BOOLEAN", "SKIN", "OCEAN", "FLUID_SIMULATION"]
+        # only = ("SUBSURF", "ARMATURE", "SOLIDIFY", "MIRROR", "ARRAY", "BEVEL", "BOOLEAN", "SKIN", "OCEAN", "FLUID_SIMULATION")
         if (only is None or mod.type in only) and (exclude is None or mod.type not in exclude) and mod.show_viewport:
-            # if curFrame and mod.type in ["CLOTH", "SOFT_BODY", "ARMATURE"]:
+            # if curFrame and mod.type in ("CLOTH", "SOFT_BODY", "ARMATURE"):
             #     pass
             try:
                 with Suppressor():

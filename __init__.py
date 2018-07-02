@@ -65,6 +65,7 @@ def register():
 
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False
+    bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
 
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
 
@@ -80,7 +81,6 @@ def register():
     # bpy.types.Object.rigid_body_settings = PointerProperty(type=Bricker_RigidBodySettings)
 
     bpy.types.Scene.Bricker_runningBlockingOperation = BoolProperty(default=False)
-    bpy.types.Scene.Bricker_printTimes = BoolProperty(default=False)
 
     bpy.types.Scene.Bricker_last_layers = StringProperty(default="")
     bpy.types.Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
@@ -134,7 +134,6 @@ def unregister():
     del Scn.Bricker_active_object_name
     del Scn.Bricker_last_cmlist_index
     del Scn.Bricker_last_layers
-    del Scn.Bricker_printTimes
     del Scn.Bricker_runningBlockingOperation
     del bpy.types.Material.num_averaged
     del bpy.types.Object.cmlist_id

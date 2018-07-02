@@ -44,9 +44,9 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
     Keyword Arguments:
         dimensions  -- dictionary containing brick dimensions
         brickSize   -- size of brick (e.g. 2x3 slope -> [2, 3, 3])
-        direction   -- direction slant faces in ["X+", "X-", "Y+", "Y-"]
+        direction   -- direction slant faces in ("X+", "X-", "Y+", "Y-")
         circleVerts -- number of vertices per circle of cylinders
-        detail      -- level of brick detail (options: ["FLAT", "LOW", "MEDIUM", "HIGH"])
+        detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
         stud        -- create stud on top of brick
         cm          -- cmlist item of model
         bme         -- bmesh object in which to create verts
@@ -137,7 +137,7 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
     elif detail == "FLAT":
         bme.faces.new((v10, v9, v1, v2))
     else:
-        addBlockSupports = adjustedBrickSize[0] in [3, 4] and adjustedBrickSize[1] == 1
+        addBlockSupports = adjustedBrickSize[0] in (3, 4) and adjustedBrickSize[1] == 1
         # add inside square at end of slope
         coord1 = Vector(( d.x * scalar.x - thick.x,
                          -d.y + thick.y,
@@ -147,7 +147,7 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
                          -d.z + thick.z))
         v13, v14, v15, v16 = makeSquare(coord1, coord2, flipNormal=True, bme=bme)
         # add verts next to inside square at end of slope
-        if adjustedBrickSize[0] in [3, 4]:
+        if adjustedBrickSize[0] in (3, 4):
             x = d.x * scalar.x + (thick.x * (adjustedBrickSize[0] - 3))
             x -= (dimensions["tube_thickness"] + dimensions["stud_radius"]) * (adjustedBrickSize[0] - 2)
             v17 = bme.verts.new((x, coord1.y, coord2.z))
@@ -161,11 +161,11 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
         coord1.xy += thick.xy
         coord2 = vec_mult(d, [1, scalar.y, 1])
         coord2.yz -= thick.yz
-        v19, v20, v21, v22, v23, v24, v25, v26 = makeCube(coord1, coord2, [1 if detail not in ["MEDIUM", "HIGH"] and not addBlockSupports else 0, 0, 0, 1, 0, 0], flipNormals=True, bme=bme)
+        v19, v20, v21, v22, v23, v24, v25, v26 = makeCube(coord1, coord2, [1 if detail not in ("MEDIUM", "HIGH") and not addBlockSupports else 0, 0, 0, 1, 0, 0], flipNormals=True, bme=bme)
         # connect side faces from verts created above
         bme.faces.new((v18, v25, v21))
         bme.faces.new((v22, v24, v17))
-        if adjustedBrickSize[0] in [3, 4]:
+        if adjustedBrickSize[0] in (3, 4):
             bme.faces.new((v14, v15, v18, v21))
             bme.faces.new((v16, v13,  v22, v17))
         else:
@@ -214,16 +214,16 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
         bme.faces.new((v1, v2, v20, v19))
 
         # add supports
-        addSupports(cm, dimensions, height, adjustedBrickSize, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in [[1, 2], [2, 1]])
+        addSupports(cm, dimensions, height, adjustedBrickSize, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in ([1, 2], [2, 1]))
         # add inner cylinders
-        if detail in ["MEDIUM", "HIGH"]:
+        if detail in ("MEDIUM", "HIGH"):
             addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, v23, v31 if addBlockSupports else v24, v34 if addBlockSupports else v25, v26, bme, loopCut=cm.loopCut)
 
 
     # # translate slope to adjust for flipped brick
     for v in bme.verts:
-        v.co.y -= d.y * (scalar.y - 1) if direction in ["X-", "Y+"] else 0
-        v.co.x -= d.x * (scalar.x - 1) if direction in ["X-", "Y-"] else 0
+        v.co.y -= d.y * (scalar.y - 1) if direction in ("X-", "Y+") else 0
+        v.co.x -= d.x * (scalar.x - 1) if direction in ("X-", "Y-") else 0
     # rotate slope to the appropriate orientation
     mult = directions.index(direction)
     bmesh.ops.rotate(bme, verts=bme.verts, cent=(0, 0, 0), matrix=Matrix.Rotation(math.radians(90) * mult, 3, 'Z'))

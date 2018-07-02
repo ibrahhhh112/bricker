@@ -169,7 +169,7 @@ def updateKeysLists(cm, bricksDict, size, loc, availableKeys, key):
 
 def skipThisRow(cm, timeThrough, lowestZ, z):
     if timeThrough == 0:  # first time
-        if (z - cm.offsetBrickLayers - lowestZ) % 3 in [1, 2]:
+        if (z - cm.offsetBrickLayers - lowestZ) % 3 in (1, 2):
             return True
     else:  # second time
         if (z - cm.offsetBrickLayers - lowestZ) % 3 == 0:
@@ -252,8 +252,8 @@ def getBrickData(cm, brickD, rand, dimensions, brickSize, undersideDetail, logoT
                                       logo_scale if custom_logo_used else None,
                                       logo_type, useStud, cm.circleVerts,
                                       brickD["type"], cm.loopCut, dimensions["gap"],
-                                      brickD["flipped"] if brickD["type"] in ["SLOPE", "SLOPE_INVERTED"] else None,
-                                      brickD["rotated"] if brickD["type"] in ["SLOPE", "SLOPE_INVERTED"] else None))
+                                      brickD["flipped"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
+                                      brickD["rotated"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None))
 
     # check for bmesh in cache
     bms = bricker_bm_cache.get(bm_cache_string)
