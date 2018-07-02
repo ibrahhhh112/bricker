@@ -258,6 +258,10 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     useNormals = cm.useNormals
     insidenessRayCastDir = cm.insidenessRayCastDir
     castDoubleCheckRays = cm.castDoubleCheckRays
+    # initialize Matix sizes
+    xL = len(brickFreqMatrix)
+    yL = len(brickFreqMatrix[0])
+    zL = len(brickFreqMatrix[0][0])
 
 
     # initialize values used for printing status
@@ -275,13 +279,13 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     percent0 = 0
     if "x" in axes:
         miniDist = Vector((0.00015, 0.0, 0.0))
-        for z in range(len(brickFreqMatrix[0][0])):
+        for z in range(zL):
             # # print status to terminal
-            percent0 = printCurStatus(0, z, len(brickFreqMatrix[0][0]), percent0)
-            for y in range(len(brickFreqMatrix[0])):
+            percent0 = printCurStatus(0, z, zL, percent0)
+            for y in range(yL):
                 nextIntersection = None
                 i = 0
-                for x in range(len(brickFreqMatrix)):
+                for x in range(xL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].x + dist.x + miniDist.x < nextIntersection.x:
                         brickFreqMatrix[x][y][z] = val
@@ -295,13 +299,13 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     percent1 = percent0
     if "y" in axes:
         miniDist = Vector((0.0, 0.00015, 0.0))
-        for z in range(len(brickFreqMatrix[0][0])):
+        for z in range(zL):
             # print status to terminal
-            percent1 = printCurStatus(percent0, z, len(brickFreqMatrix[0][0]), percent1)
-            for x in range(len(brickFreqMatrix)):
+            percent1 = printCurStatus(percent0, z, zL, percent1)
+            for x in range(xL):
                 nextIntersection = None
                 i = 0
-                for y in range(len(brickFreqMatrix[0])):
+                for y in range(yL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].y + dist.y + miniDist.y < nextIntersection.y:
                         if brickFreqMatrix[x][y][z] == 0:
@@ -317,13 +321,13 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     percent2 = percent1
     if "z" in axes:
         miniDist = Vector((0.0, 0.0, 0.00015))
-        for x in range(len(brickFreqMatrix)):
+        for x in range(xL):
             # print status to terminal
-            percent2 = printCurStatus(percent1, x, len(brickFreqMatrix), percent2)
-            for y in range(len(brickFreqMatrix[0])):
+            percent2 = printCurStatus(percent1, x, xL, percent2)
+            for y in range(yL):
                 nextIntersection = None
                 i = 0
-                for z in range(len(brickFreqMatrix[0][0])):
+                for z in range(zL):
                     # skip current loc if casting ray is unnecessary (sets outside vals to last found val)
                     if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].z + dist.z + miniDist.z < nextIntersection.z:
                         if brickFreqMatrix[x][y][z] == 0:
@@ -480,22 +484,24 @@ def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
                         brickFreqMatrix[x][y][z] = 1
                         # TODO: set faceIdxMatrix value to nearest shell value using some sort of built in nearest poly to point function
 
+    # # iterate through all values except boundaries
+    # for x in range(1, xL - 1):
+    #     for y in range(1, yL - 1):
+    #         for z in range(1, zL - 1):
+    #             # If inside location (-1) intersects outside location (0), make it ouside (0)
+    #             if (brickFreqMatrix[x][y][z] == -1 and
+    #                 (brickFreqMatrix[x+1][y][z] == 0 or
+    #                  brickFreqMatrix[x-1][y][z] == 0 or
+    #                  brickFreqMatrix[x][y+1][z] == 0 or
+    #                  brickFreqMatrix[x][y-1][z] == 0 or
+    #                  brickFreqMatrix[x][y][z+1] == 0 or
+    #                  brickFreqMatrix[x][y][z-1] == 0)):
+    #                 brickFreqMatrix[x][y][z] = 0
+
     # iterate through all values except boundaries
     for x in range(1, xL - 1):
         for y in range(1, yL - 1):
             for z in range(1, zL - 1):
-                # # continue if curLoc is boundary loc
-                # if (x in (0, xL-1) or y in (0, yL-1) or z in (0, zL-1)):
-                #     continue
-                # # If inside location (-1) intersects outside location (0), make it ouside (0)
-                # if (brickFreqMatrix[x][y][z] == -1 and
-                #     (brickFreqMatrix[x+1][y][z] == 0 or
-                #      brickFreqMatrix[x-1][y][z] == 0 or
-                #      brickFreqMatrix[x][y+1][z] == 0 or
-                #      brickFreqMatrix[x][y-1][z] == 0 or
-                #      brickFreqMatrix[x][y][z+1] == 0 or
-                #      brickFreqMatrix[x][y][z-1] == 0)):
-                #     brickFreqMatrix[x][y][z] = 0
                 # If shell location (1) does not intersect outside location (0), make it inside (-1)
                 if brickFreqMatrix[x][y][z] == 1:
                     if (brickFreqMatrix[x+1][y][z] != 0 and
@@ -522,12 +528,12 @@ def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
         gotOne = False
         newShellVals = []
         for x, y, z in shellVals:
-            idxsToCheck = [(x+1, y, z),
+            idxsToCheck = ((x+1, y, z),
                            (x-1, y, z),
                            (x, y+1, z),
                            (x, y-1, z),
                            (x, y, z+1),
-                           (x, y, z-1)]
+                           (x, y, z-1))
             for idx in idxsToCheck:
                 curVal = brickFreqMatrix[idx[0]][idx[1]][idx[2]]
                 if curVal == -1:

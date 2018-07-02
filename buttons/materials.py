@@ -111,7 +111,7 @@ class BrickerApplyMaterial(bpy.types.Operator):
             lastSplitModel = cm.lastSplitModel
 
             for brick in bricks:
-                if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(cm, bricksDict, brick.name.split("__")[-1], zStep=zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
+                if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
                     if len(brick.material_slots) == 0:
                         # Assign material to object data
                         brick.data.materials.append(mat)

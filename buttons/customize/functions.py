@@ -275,7 +275,7 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             dictLoc = getDictLoc(bricksDict, dictKey)
             siz = bricksDict[dictKey]["size"]
             typ = bricksDict[dictKey]["type"]
-            onShell = isOnShell(cm, bricksDict, dictKey, loc=dictLoc, zStep=zStep)
+            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=zStep)
 
             # get current brick object
             curObj = bpy.data.objects.get(obj_name)

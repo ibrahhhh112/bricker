@@ -66,7 +66,7 @@ class exportLdraw(Operator):
         legalBricks = getLegalBricks()
         absMatCodes = getAbsPlasticMatCodes()
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [scn.frame_current]:
-            path, errorMsg = getExportPath(cm, n, ".ldr", frame=frame, subfolder=cm.animated)
+            path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
             if errorMsg is not None:
                 self.report({"WARNING"}, errorMsg)
                 continue
@@ -145,7 +145,7 @@ class exportLdraw(Operator):
         brickD = bricksDict[key]
         size = brickD["size"]
         zStep = getZStep(cm)
-        loc = getBrickCenter(cm, bricksDict, key, zStep=zStep)
+        loc = getBrickCenter(bricksDict, key, zStep=zStep)
         dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
         h = 8 * zStep
         loc.x = loc.x * (20 / (dimensions["width"] + dimensions["gap"]))

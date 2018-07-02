@@ -512,7 +512,7 @@ class BrickTypesPanel(Panel):
         row = col.row(align=True)
         row.prop(cm, "brickType", text="")
 
-        if mergableBrickType(cm):
+        if mergableBrickType(cm.brickType):
             col = layout.column(align=True)
             col.label("Max Brick Size:")
             row = col.row(align=True)
@@ -567,7 +567,7 @@ class MergeSettingsPanel(Panel):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        return mergableBrickType(cm)
+        return mergableBrickType(cm.brickType)
 
     def draw(self, context):
         layout = self.layout
@@ -1026,7 +1026,7 @@ class BrickDetailsPanel(Panel):
         row.prop(cm, "activeKey", text="")
 
         if cm.animated:
-            bricksDict, _ = getBricksDict(dType="ANIM", cm=cm, curFrame=getAnimAdjustedFrame(cm, scn.frame_current))
+            bricksDict, _ = getBricksDict(dType="ANIM", cm=cm, curFrame=getAnimAdjustedFrame(cm, scn.frame_current, cm.lastStartFrame, cm.lastStopFrame))
         elif cm.modelCreated:
             bricksDict, _ = getBricksDict(cm=cm)
         if bricksDict is None:

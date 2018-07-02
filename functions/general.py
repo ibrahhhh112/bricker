@@ -65,20 +65,6 @@ def centerMeshOrigin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def ensureObjNamesUnique(scn, throwError=False):
-    cm = getActiveContextInfo()[1]
-    # for object in scene
-    for obj_name in scn.objects.keys():
-        if obj_name != cm.source_name:
-            continue
-        elif throwError:
-            raise Exception("[Bricker] ")
-            break
-        # rename object if not part of a model or animation
-        obj = bpy.data.objects.get(obj_name)
-        if obj: obj.name = "%(obj_name)s.001" % locals()
-
-
 def safeUnlink(obj, hide=True, protect=True):
     scn = bpy.context.scene
     safeScn = getSafeScn()
@@ -170,11 +156,11 @@ def bounds(obj, local=False, use_adaptive_domain=True):
     return info
 
 
-def getAnimAdjustedFrame(cm, frame):
-    if frame < cm.lastStartFrame:
-        curFrame = cm.lastStartFrame
-    elif frame > cm.lastStopFrame:
-        curFrame = cm.lastStopFrame
+def getAnimAdjustedFrame(frame, startFrame, stopFrame):
+    if frame < startFrame:
+        curFrame = startFrame
+    elif frame > stopFrame:
+        curFrame = stopFrame
     else:
         curFrame = frame
     return curFrame
@@ -237,13 +223,8 @@ def flatBrickType(bt):
     return "PLATE" in bt or "STUD" in bt
 
 
-def mergableBrickType(cm=None, typ=None, up=False):
-    if typ is not None:
-        return typ in ("PLATE", "BRICK", "SLOPE") or (up and typ == "CYLINDER")
-    elif cm is not None:
-        return "PLATE" in cm.brickType or "BRICK" in cm.brickType or "SLOPE" in cm.brickType or (up and ("CYLINDER" in cm.brickType))
-    else:
-        return False
+def mergableBrickType(typ, up=False):
+    return "PLATE" in typ or "BRICK" in typ or "SLOPE" in typ or (up and typ == "CYLINDER")
 
 
 def getTallType(brickD, targetType=None):
@@ -346,8 +327,7 @@ def createdWithUnsupportedVersion(cm):
     return cm.version[:3] != bpy.props.bricker_version[:3]
 
 
-def getLocsInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
-    zStep = zStep or getZStep(cm)
+def getLocsInBrick(bricksDict, size, zStep, key, loc=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
@@ -357,7 +337,7 @@ def getKeysInBrick(bricksDict, size, zStep, key, loc=None):
     return [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
-def isOnShell(cm, bricksDict, key, loc=None, zStep=None, shellDepth=1):
+def isOnShell(bricksDict, key, loc=None, zStep=None, shellDepth=1):
     """ check if any locations in brick are on the shell """
     size = bricksDict[key]["size"]
     brickKeys = getKeysInBrick(bricksDict, size, zStep, key, loc)
@@ -380,7 +360,7 @@ def getDictLoc(bricksDict, key):
     return loc
 
 
-def getBrickCenter(cm, bricksDict, key, loc=None, zStep=None):
+def getBrickCenter(bricksDict, key, loc=None, zStep=None):
     brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key, loc=loc)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
@@ -440,8 +420,8 @@ def getSpace():
     return v3d.spaces[0]
 
 
-def getExportPath(cm, fn, ext, frame=-1, subfolder=False):
-    path = cm.exportPath
+def getExportPath(fn, ext, basePath, frame=-1, subfolder=False):
+    path = basePath
     lastSlash = path.rfind("/")
     path = path[:len(path) if lastSlash == -1 else lastSlash + 1]
     blendPath = bpy.path.abspath("//") or "/tmp/"
@@ -462,7 +442,7 @@ def getExportPath(cm, fn, ext, frame=-1, subfolder=False):
     if not os.path.exists(path):
         return path, "Blender could not find the following path: '%(path)s'" % locals()
     # get full filename
-    fn0 = fn if lastSlash in (-1, len(cm.exportPath) - 1) else cm.exportPath[lastSlash + 1:]
+    fn0 = fn if lastSlash in (-1, len(basePath) - 1) else basePath[lastSlash + 1:]
     frame_num = "_%(frame)s" % locals() if frame >= 0 else ""
     full_fn = fn0 + frame_num + ext
     # create subfolder

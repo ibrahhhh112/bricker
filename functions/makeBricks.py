@@ -105,7 +105,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     availableKeys = []
     bricksCreated = []
     maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
-    connectThresh = cm.connectThresh if mergableBrickType(cm) and cm.mergeType == "RANDOM" else 1
+    connectThresh = cm.connectThresh if mergableBrickType(cm.brickType) and cm.mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:
@@ -114,7 +114,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     numIters = 2 if cm.brickType == "BRICKS AND PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksDict values
-    if not cm.customized and not (mergableBrickType(cm, up=zStep == 1) and (cm.maxDepth != 1 or cm.maxWidth != 1)):
+    if not cm.customized and not (mergableBrickType(cm.brickType, up=zStep == 1) and (cm.maxDepth != 1 or cm.maxWidth != 1)):
         size = [1, 1, zStep]
         updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
         availableKeys = keys
@@ -240,11 +240,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # iterate through keys
         old_percent = 0
         for i, key in enumerate(keys):
-            # print status to terminal and cursor
-            old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict), old_percent, "Linking to Scene")
-
             if bricksDict[key]["parent"] != "self" or not bricksDict[key]["draw"]:
                 continue
+            # print status to terminal and cursor
+            old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict), old_percent, "Linking to Scene")
+            # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
             # create vert group for bevel mod (assuming only logo verts are selected):

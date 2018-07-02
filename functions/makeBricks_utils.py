@@ -73,7 +73,7 @@ def drawBrick(cm, bricksDict, key, loc, i, dimensions, zStep, brickSize, split, 
     randomRotMatrix = getRandomRotMatrix(cm.randomRot, randS2, brickSize, m) if cm.randomRot > 0 else None
     # get brick location
     locOffset = getRandomLoc(cm.randomLoc, randS2, dimensions["width"], dimensions["height"]) if cm.randomLoc > 0 else Vector((0, 0, 0))
-    brickLoc = getBrickCenter(cm, bricksDict, key, loc, zStep) + locOffset
+    brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
 
     if split:
         brick = bpy.data.objects.get(brickD["name"])
@@ -318,5 +318,7 @@ def getMaterial(cm, bricksDict, key, size, brick_mats=None, seedInc=None):
     return mat
 
 def updateBrickSizesAndTypesUsed(cm, sz, typ):
-    cm.brickSizesUsed += sz if cm.brickSizesUsed == "" else ("|%(sz)s" % locals() if sz not in cm.brickSizesUsed else "")
-    cm.brickTypesUsed += typ if cm.brickTypesUsed == "" else ("|%(typ)s" % locals() if typ not in cm.brickTypesUsed else "")
+    bsu = cm.brickSizesUsed
+    btu = cm.brickTypesUsed
+    cm.brickSizesUsed += sz if bsu == "" else ("|%(sz)s" % locals() if sz not in bsu else "")
+    cm.brickTypesUsed += typ if btu == "" else ("|%(typ)s" % locals() if typ not in btu else "")

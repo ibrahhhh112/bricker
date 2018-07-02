@@ -221,7 +221,6 @@ class BrickerDelete(bpy.types.Operator):
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
         # link source to scene
         if source not in list(scn.objects):
-            # ensureObjNamesUnique(scn)
             safeLink(source)
         # set source layers to brick layers
         if modelType == "MODEL":

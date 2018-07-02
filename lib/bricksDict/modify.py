@@ -160,7 +160,7 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
 
 def getNumAlignedEdges(cm, bricksDict, size, key, loc, zStep=None):
     numAlignedEdges = 0
-    locs = getLocsInBrick(cm, bricksDict, size, key, loc, 1)
+    locs = getLocsInBrick(cm, bricksDict, size, 1, key, loc)
     gotOne = False
 
     for l in locs:
@@ -203,7 +203,7 @@ def brickAvail(bricksDict, sourceKey, targetKey, mergeInconsistentMats, material
     # checks if brick materials can be merged (same material, or mergeInconsistentMats, or one of the mats is "" (internal)
     matsMergable = "" in (sourceBrick["mat_name"], brick["mat_name"]) or mergeInconsistentMats or sourceBrick["mat_name"] == brick["mat_name"] or materialType == "NONE"
     # returns True if brick is present, brick isn't drawn already, and brick materials can be merged
-    return brick["draw"] and mergableBrickType(typ=brick["type"], up=False) and not brick["attempted_merge"] and matsMergable
+    return brick["draw"] and mergableBrickType(brick["type"], up=False) and not brick["attempted_merge"] and matsMergable
 
 
 def getMostCommonDir(i_s, i_e, norms):

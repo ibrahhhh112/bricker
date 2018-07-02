@@ -49,7 +49,7 @@ class exportModelData(Operator):
     def execute(self, context):
         try:
             scn, cm, n = getActiveContextInfo()
-            path, errorMsg = getExportPath(cm, n, ".py", frame=scn.frame_current if cm.animated else -1)
+            path, errorMsg = getExportPath(n, ".py", cm.exportPath, frame=scn.frame_current if cm.animated else -1)
             if errorMsg is not None:
                 self.report({"WARNING"}, errorMsg)
                 return {"CANCELLED"}
