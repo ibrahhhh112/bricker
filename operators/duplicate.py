@@ -66,6 +66,7 @@ class duplicate_override(bpy.types.Operator):
     def duplicate_objects(self):
         scn = bpy.context.scene
         newBrickerObjs = []
+        lockBools = (False, False, False)
         # set isBrick/isBrickifiedObject to False
         for obj in self.objects:
             obj0 = duplicate(obj, link_to_scene=True)
@@ -80,9 +81,9 @@ class duplicate_override(bpy.types.Operator):
                 obj0.isBrickifiedObject = False
                 cm, n = getActiveContextInfo(cm_id=obj0.cmlist_id)[1:]
                 obj0.name = "%(n)s_bricks" % locals()
-                obj0.lock_location = [False] * 3
-                obj0.lock_rotation = [False] * 3
-                obj0.lock_scale    = [False] * 3
+                obj0.lock_location = lockBools
+                obj0.lock_rotation = lockBools
+                obj0.lock_scale    = lockBools
             obj0.cmlist_id = -1
             newBrickerObjs.append(obj0)
         if len(newBrickerObjs) > 0:

@@ -115,16 +115,9 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
     noMoreChecks = False
     outsideL = []
     # set axis of direction
-    if direction[0] > 0:
-        axes = "XYZ"
-    elif direction[1] > 0:
-        axes = "YZX"
-    else:
-        axes = "ZXY"
+    axes = "XYZ" if direction[0] > 0 else ("YZX" if direction[1] > 0 else "ZXY")
     # run initial intersection check
-    # ct = time.time()
     intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj, point, direction, miniDist, edgeLen=edgeLen)
-    # stopWatch(1, time.time()-ct, precision=5)
     if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
         outsideL.append(0)
         if intersections%2 == 0 and not (useNormals and firstDirection > 0):
@@ -141,7 +134,7 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
         dir1 = Vector((direction[1], direction[2], direction[0]))
         miniDist0 = Vector((miniDist[2], miniDist[0], miniDist[1]))
         miniDist1 = Vector((miniDist[1], miniDist[2], miniDist[0]))
-        dirs = [[dir0, miniDist0], [dir1, miniDist1]]
+        dirs = ((dir0, miniDist0), (dir1, miniDist1))
         for i in range(2):
             if axes[i+1] in insidenessRayCastDir:
                 outsideL.append(0)
@@ -178,13 +171,13 @@ def updateBFMatrix(scn, x0, y0, z0, coordMatrix, faceIdxMatrix, brickFreqMatrix,
         # define brick as inside shell
         brickFreqMatrix[x0][y0][z0] = -1
     if edgeIntersects:
-        if (origInside and brickShell == "INSIDE") or (not origInside and brickShell == "OUTSIDE") or brickShell == "INSIDE AND OUTSIDE":
+        if (brickShell == "INSIDE" and origInside) or (brickShell == "OUTSIDE" and not origInside) or brickShell == "INSIDE AND OUTSIDE":
             # define brick as part of shell
             brickFreqMatrix[x0][y0][z0] = 1
             # set or update nearest face to brick
             if type(faceIdxMatrix[x0][y0][z0]) != dict or faceIdxMatrix[x0][y0][z0]["dist"] > firstIntersection["dist"]:
                 faceIdxMatrix[x0][y0][z0] = firstIntersection
-        if (not origInside and brickShell == "INSIDE") or (origInside and brickShell == "OUTSIDE") or brickShell == "INSIDE AND OUTSIDE":
+        if (brickShell == "INSIDE" and not origInside) or (brickShell == "OUTSIDE" and origInside) or brickShell == "INSIDE AND OUTSIDE":
             # define brick as part of shell
             brickFreqMatrix[x1][y1][z1] = 1
             # set or update nearest face to brick
@@ -210,8 +203,8 @@ def addColumnSupports(bricksDict, keys, thickness, step):
         if not isInternal(bricksDict, key):
             continue
         x,y,z = getDictLoc(bricksDict, key)
-        if (x % step in range(colThickness) and
-            y % step in range(colThickness)):
+        if (x % step < colThickness and
+            y % step < colThickness):
             bricksDict[key]["draw"] = True
 
 def addLatticeSupports(bricksDict, keys, step, alternateXY):
@@ -242,7 +235,7 @@ def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
     if clearExisting:
         zStep = getZStep(cm)
         # set all bricks as unmerged
-        Bricks.splitAll(bricksDict, keys=keys, cm=cm)
+        Bricks.splitAll(bricksDict, zStep, keys=keys)
         # clear internal
         for key in keys:
             if isInternal(bricksDict, key):
@@ -364,7 +357,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     sr = (1 - s) * (0.3086 or 0.2125)
     sg = (1 - s) * (0.6094 or 0.7154)
     sb = (1 - s) * (0.0820 or 0.0721)
-    sat_mat = Matrix([[sr + s, sr, sr], [sg, sg + s, sg], [sb, sb, sb + s]])
+    sat_mat = Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))
     step = cm.smokeStep
 
     # get starting and ending idx
@@ -379,11 +372,11 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
             return brickFreqMatrix, colorMatrix
         start_percent = vec_div(adapt_min - full_min, full_dist)
         end_percent   = vec_div(adapt_max - full_min, full_dist)
-        s_idx = [len(faceIdxMatrix) * start_percent.x, len(faceIdxMatrix[0]) * start_percent.y, len(faceIdxMatrix[0][0]) * start_percent.z]
-        e_idx = [len(faceIdxMatrix) * end_percent.x,   len(faceIdxMatrix[0]) * end_percent.y,   len(faceIdxMatrix[0][0]) * end_percent.z]
+        s_idx = (len(faceIdxMatrix) * start_percent.x, len(faceIdxMatrix[0]) * start_percent.y, len(faceIdxMatrix[0][0]) * start_percent.z)
+        e_idx = (len(faceIdxMatrix) * end_percent.x,   len(faceIdxMatrix[0]) * end_percent.y,   len(faceIdxMatrix[0][0]) * end_percent.z)
     else:
-        s_idx = [0, 0, 0]
-        e_idx = [len(faceIdxMatrix), len(faceIdxMatrix[0]), len(faceIdxMatrix[0][0])]
+        s_idx = (0, 0, 0)
+        e_idx = (len(faceIdxMatrix), len(faceIdxMatrix[0]), len(faceIdxMatrix[0][0]))
 
     # get number of iterations from s_idx to e_idx for x, y, z
     d = Vector((int(e_idx[0]) - int(s_idx[0]), int(e_idx[1]) - int(s_idx[1]), int(e_idx[2]) - int(s_idx[2])))
@@ -416,9 +409,9 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 x0 = x - int(s_idx[0])
                 y0 = y - int(s_idx[1])
                 z0 = z - int(s_idx[2])
-                xn = [int(xn0 * x0), int(xn0 * (x0 + 1))]
-                yn = [int(yn0 * y0), int(yn0 * (y0 + 1))]
-                zn = [int(zn0 * z0), int(zn0 * (z0 + 1))]
+                xn = (int(xn0 * x0), int(xn0 * (x0 + 1)))
+                yn = (int(yn0 * y0), int(yn0 * (y0 + 1)))
+                zn = (int(zn0 * z0), int(zn0 * (z0 + 1)))
                 xn[1] += 1 if xn[1] - xn[0] == 0 else 0
                 yn[1] += 1 if yn[1] - yn[0] == 0 else 0
                 zn[1] += 1 if zn[1] - zn[0] == 0 else 0

@@ -92,9 +92,9 @@ def setCurBrickVal(bricksDict, loc, action="ADD"):
 def verifyBrickExposureAboveAndBelow(scn, cm, origLoc, bricksDict, decriment=0, zNeg=False, zPos=False):
     dictLocs = []
     if not zNeg:
-        dictLocs.append([origLoc[0], origLoc[1], origLoc[2] + decriment])
+        dictLocs.append((origLoc[0], origLoc[1], origLoc[2] + decriment))
     if not zPos:
-        dictLocs.append([origLoc[0], origLoc[1], origLoc[2] - 1])
+        dictLocs.append((origLoc[0], origLoc[1], origLoc[2] - 1))
     # double check exposure of bricks above/below new adjacent brick
     for dictLoc in dictLocs:
         k = listToStr(dictLoc)

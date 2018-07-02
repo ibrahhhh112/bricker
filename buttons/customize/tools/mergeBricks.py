@@ -76,6 +76,8 @@ class mergeBricks(Operator):
                 bricksDict = self.bricksDicts[cm_id]
                 allSplitKeys = []
                 cm.customized = True
+                brickType = cm.brickType
+                zStep = getZStep(cm)
 
                 # iterate through cm_ids of selected objects
                 for obj_name in self.objNamesD[cm_id]:
@@ -84,7 +86,7 @@ class mergeBricks(Operator):
                     x0, y0, z0 = getDictLoc(bricksDict, dictKey)
 
                     # split brick in matrix
-                    splitKeys = Bricks.split(bricksDict, dictKey, cm=cm)
+                    splitKeys = Bricks.split(bricksDict, dictKey, zStep, brickType)
                     allSplitKeys += splitKeys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))

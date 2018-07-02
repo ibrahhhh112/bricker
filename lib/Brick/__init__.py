@@ -60,7 +60,7 @@ class Bricks:
 
         # create list of brick bmesh variations
         if logo and stud and (type in ("BRICK", "PLATE", "STUD") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = makeLogoVariations(cm, dimensions, size, directions[maxIdx] if type == "SLOPE" else "", all_vars, logo, logo_type, logo_details, logo_inset)
+            bms = makeLogoVariations(dimensions, size, directions[maxIdx] if type == "SLOPE" else "", all_vars, logo, logo_type, logo_details, logo_inset, cm.brickType, cm.logoDetail, cm.logoScale)
         else:
             bms = [bmesh.new()]
 
@@ -76,34 +76,30 @@ class Bricks:
         return bms
 
     @staticmethod
-    def splitAll(bricksDict, keys=None, cm=None):
-        cm = cm or getActiveContextInfo()[1]
+    def splitAll(bricksDict, zStep, keys=None):
         keys = keys or list(bricksDict.keys())
         for key in keys:
             # set all bricks as unmerged
             if bricksDict[key]["draw"]:
                 bricksDict[key]["parent"] = "self"
-                bricksDict[key]["size"] = [1, 1, getZStep(cm)]
+                bricksDict[key]["size"] = [1, 1, zStep]
 
-    def split(bricksDict, key, loc=None, cm=None, v=True, h=True):
+    def split(bricksDict, key, zStep, brickType, loc=None, v=True, h=True):
         """split brick vertically and/or horizontally
 
         Keyword Arguments:
         bricksDict -- Matrix of bricks in model
         key        -- key for brick in matrix
         loc        -- xyz location of brick in matrix
-        cm         -- cmlist item of model
         v          -- split brick vertically
         h          -- split brick horizontally
         """
         # set up unspecified paramaters
-        cm = cm or getActiveContextInfo()[1]
         loc = loc or getDictLoc(bricksDict, key)
         # initialize vars
         size = bricksDict[key]["size"]
         newSize = [1, 1, size[2]]
-        zStep = getZStep(cm)
-        if flatBrickType(cm.brickType):
+        if flatBrickType(brickType):
             if not v:
                 zStep = 3
             else:
@@ -147,7 +143,7 @@ def getRotAdd(direction, size):
     return rot_add
 
 
-def makeLogoVariations(cm, dimensions, size, direction, all_vars, logo, logo_type, logo_details, logo_inset):
+def makeLogoVariations(dimensions, size, direction, all_vars, logo, logo_type, logo_details, logo_inset, brickType, logoDetail, logoScale):
     # get logo rotation angle based on size of brick
     rot_vars = getNumRots(direction, size)
     rot_mult = 90 if size[0] == 1 and size[1] == 1 else 180
@@ -165,8 +161,8 @@ def makeLogoVariations(cm, dimensions, size, direction, all_vars, logo, logo_typ
     # create new bmeshes for each logo variation
     bms = [bmesh.new() for zRot in zRots]
     # get loc offsets
-    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(cm.brickType) and size[2] == 3 else 0)
-    lw = dimensions["logo_width"] * (0.78 if cm.logoDetail == "LEGO" else cm.logoScale)
+    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(brickType) and size[2] == 3 else 0)
+    lw = dimensions["logo_width"] * (0.78 if logoDetail == "LEGO" else logoScale)
     distMax = max(logo_details.dist.xy)
     zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logo_inset * 2)
     xyOffset = dimensions["width"] + dimensions["gap"]

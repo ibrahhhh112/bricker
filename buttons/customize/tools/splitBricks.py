@@ -151,7 +151,7 @@ class splitBricks(Operator):
                     # get size of current brick (e.g. [2, 4, 1])
                     brickSize = bricksDict[dictKey]["size"]
                     bricksDict[dictKey]["type"] = "BRICK" if brickSize == 3 else "PLATE"
-                    zStep = getZStep(cm)
+                    zStep = getZStep(cm)  # get zStep after brick type set
 
                     # skip 1x1 bricks
                     if brickSize[0] + brickSize[1] + brickSize[2] / zStep == 3:
@@ -159,7 +159,7 @@ class splitBricks(Operator):
 
                     if self.vertical or self.horizontal:
                         # split the bricks in the matrix and set size of active brick's bricksDict entries to 1x1x[lastZSize]
-                        splitKeys = Bricks.split(bricksDict, dictKey, loc=dictLoc, cm=cm, v=self.vertical, h=self.horizontal)
+                        splitKeys = Bricks.split(bricksDict, dictKey, zStep, cm.brickType, loc=dictLoc, v=self.vertical, h=self.horizontal)
                         # append new splitKeys to keysToUpdate
                         keysToUpdate += splitKeys
                     else:

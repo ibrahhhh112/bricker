@@ -80,10 +80,11 @@ def makeTile(dimensions:dict, brickSize:list, circleVerts:int=None, type:str=Non
         v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, sides, bme=bme)
 
     # make verts for slit
+    slit_depth = Vector([dimensions["slit_depth"]]*2)
     coord1 = -d
-    coord1.xy += Vector([dimensions["slit_depth"]]*2)
+    coord1.xy += slit_depth
     coord2 = Vector((d_scaled.x, d_scaled.y, -d.z + dimensions["slit_height"]))
-    coord2.xy -= Vector([dimensions["slit_depth"]]*2)
+    coord2.xy -= slit_depth
     v9, v10, v11, v12, v13, v14, v15, v16 = makeCube(coord1, coord2, [0, 1 if detail == "FLAT" and "GRILL" not in type else 0, 1, 1, 1, 1], bme=bme)
     # connect slit to outer cube
     bme.faces.new((v14, v4, v1, v13))

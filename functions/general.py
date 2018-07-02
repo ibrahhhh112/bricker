@@ -301,8 +301,7 @@ def strToList(string, item_type=int, split_on=","):
 
 
 def strToTuple(string, item_type=int, split_on=","):
-    tup = tuple(strToList(string, item_type, split_on))
-    return tup
+    return tuple(strToList(string, item_type, split_on))
 
 
 def isUnique(lst):
@@ -355,7 +354,7 @@ def getLocsInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
 
 def getKeysInBrick(bricksDict, size, zStep, key, loc=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
-    return ["{x},{y},{z}".format(x=x0 + x, y=y0 + y, z=z0 + z) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
+    return [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
 def isOnShell(cm, bricksDict, key, loc=None, zStep=None, shellDepth=1):

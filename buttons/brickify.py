@@ -415,9 +415,9 @@ class BrickerBrickify(bpy.types.Operator):
                 obj.hide = True
                 obj.hide_render = True
             # lock location, rotation, and scale of created bricks
-            obj.lock_location = [True] * 3
-            obj.lock_rotation = [True] * 3
-            obj.lock_scale    = [True] * 3
+            obj.lock_location = (True, True, True)
+            obj.lock_rotation = (True, True, True)
+            obj.lock_scale    = (True, True, True)
 
             wm.progress_update(curFrame-cm.startFrame)
             print('-'*100)
@@ -620,9 +620,9 @@ class BrickerBrickify(bpy.types.Operator):
             select(obj, active=obj)
         # if model contains armature, lock the location, rotation, and scale of created bricks object
         if not cm.splitModel and cm.armature:
-            obj.lock_location = [True, True, True]
-            obj.lock_rotation = [True, True, True]
-            obj.lock_scale    = [True, True, True]
+            obj.lock_location = (True, True, True)
+            obj.lock_rotation = (True, True, True)
+            obj.lock_scale    = (True, True, True)
 
     @classmethod
     def getLogo(self, scn, cm, dimensions):
