@@ -82,7 +82,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
     brick_mats = []
     if cm.materialType == "RANDOM":
-        matObj = getMatObject(cm, typ="RANDOM")
+        matObj = getMatObject(cm.id, typ="RANDOM")
         brick_mats = list(matObj.data.materials.keys())
 
     # initialize random states
@@ -90,19 +90,26 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     randS2 = np.random.RandomState(cm.mergeSeed+1)
     randS3 = np.random.RandomState(cm.mergeSeed+2)
 
+    # initialize variables
     brickSizeStrings = {}
+    buildIsDirty = cm.buildIsDirty
+    brickType = cm.brickType
+    maxWidth = cm.maxWidth
+    maxDepth = cm.maxDepth
+    legalBricksOnly = cm.legalBricksOnly
+    mergeInconsistentMats = cm.mergeInconsistentMats
+    materialType = cm.materialType
     mats = []
     allMeshes = bmesh.new()
     lowestZ = -1
     availableKeys = []
+    bricksCreated = []
     maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
     connectThresh = cm.connectThresh if mergableBrickType(cm) and cm.mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:
         mats.append(internalMat)
-    # initialize bricksCreated
-    bricksCreated = []
     # set number of times to run through all keys
     numIters = 2 if cm.brickType == "BRICKS AND PLATES" else 1
     i = 0
@@ -116,7 +123,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             bricksDict[key]["size"] = size.copy()
             setAllBrickExposures(cm, bricksDict, key)
             setFlippedAndRotated(bricksDict, key, [key])
-            if bricksDict[key]["type"] == "SLOPE" and cm.brickType == "SLOPES":
+            if bricksDict[key]["type"] == "SLOPE" and brickType == "SLOPES":
                 setBrickTypeForSlope(bricksDict, key, [key])
     else:
         # initialize progress bar around cursor
@@ -167,7 +174,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         loc = getDictLoc(bricksDict, key)
 
                         # merge current brick with available adjacent bricks
-                        brickSize = mergeWithAdjacentBricks(cm, brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, mergeVertical=mergeVertical)
+                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=mergeVertical)
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:

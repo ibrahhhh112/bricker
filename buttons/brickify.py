@@ -220,9 +220,6 @@ class BrickerBrickify(bpy.types.Operator):
         if self.action == "UPDATE_MODEL" and not updateCanRun("MODEL"):
             return{"FINISHED"}
 
-        # if self.action == "UPDATE_MODEL":
-        #     getSafeScn().update()
-
         if (matrixDirty or self.action != "UPDATE_MODEL") and cm.customized:
             cm.customized = False
 
@@ -270,10 +267,6 @@ class BrickerBrickify(bpy.types.Operator):
 
         # get sourceDup_details and dimensions
         sourceDup_details, dimensions = getDetailsAndBounds(sourceDup)
-
-        if self.action == "CREATE":
-            # set sourceDup model height for display in UI
-            cm.modelHeight = sourceDup_details.dist.z
 
         # get parent object
         parent = bpy.data.objects.get(Bricker_parent_on)
@@ -386,10 +379,6 @@ class BrickerBrickify(bpy.types.Operator):
             # update refLogo
             logo_details, refLogo = self.getLogo(scn, cm, dimensions)
 
-            if self.action == "ANIMATE":
-                # set source model height for display in UI
-                cm.modelHeight = source_details.dist.z
-
             # set up parent for this layer
             # TODO: Remove these from memory in the delete function, or don't use them at all
             p_name = "%(Bricker_parent_on)s_f_%(curFrame)s" % locals()
@@ -450,7 +439,7 @@ class BrickerBrickify(bpy.types.Operator):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
-        updateCursor = action in ["CREATE", "UPDATE_MODEL"]  # evaluates to boolean value
+        updateCursor = action in ["CREATE", "UPDATE_MODEL"]
         if bricksDict is None:
             # multiply brickScale by offset distance
             brickScale2 = brickScale if cm.brickType != "CUSTOM" else vec_mult(brickScale, Vector(cm.distOffset))
@@ -512,7 +501,7 @@ class BrickerBrickify(bpy.types.Operator):
                 self.report({"WARNING"}, "ABS Plastic Materials must be installed from Blender Market")
                 return False
             # ensure ABS Plastic materials UI list is populated
-            matObj = getMatObject(cm, typ="ABS")
+            matObj = getMatObject(cm.id, typ="ABS")
             if len(matObj.data.materials) == 0:
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False
@@ -637,7 +626,7 @@ class BrickerBrickify(bpy.types.Operator):
 
     @classmethod
     def getLogo(self, scn, cm, dimensions):
-        if cm.brickType == "CUSTOM":
+        if cm.brickType == "CUSTOM" or cm.logoDetail == "NONE":
             refLogo = None
             logo_details = None
         else:

@@ -97,7 +97,7 @@ class drawAdjacent(Operator):
             # check all 6 directions for action to be executed
             for i in range(6):
                 # if checking beneath obj, check 3 keys below instead of 1 key below
-                if i == 5 and flatBrickType(cm):
+                if i == 5 and flatBrickType(cm.brickType):
                     newBrickHeight = self.getNewBrickHeight(targetType)
                     decriment = newBrickHeight - 1
                 # if action should be executed (value changed in direction prop)
@@ -329,7 +329,7 @@ class drawAdjacent(Operator):
                     elif side in [4, 5]:
                         keysToMerge.append(newKey)
             # update dictionary of locations above brick
-            if flatBrickType(cm) and side in [4, 5]:
+            if flatBrickType(cm.brickType) and side in [4, 5]:
                 updateBrickSizeAndDict(dimensions, cm, self.bricksDict, [1, 1, newBrickHeight], adjacent_key, adjDictLoc, dec=2 if side == 5 else 0, curType=curType, targetType=targetType, createdFrom=dictKey)
             # update dictionary location of adjacent brick created
             adjBrickD["draw"] = True

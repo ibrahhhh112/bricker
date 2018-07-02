@@ -103,7 +103,7 @@ class Bricks:
         size = bricksDict[key]["size"]
         newSize = [1, 1, size[2]]
         zStep = getZStep(cm)
-        if flatBrickType(cm):
+        if flatBrickType(cm.brickType):
             if not v:
                 zStep = 3
             else:
@@ -165,7 +165,7 @@ def makeLogoVariations(cm, dimensions, size, direction, all_vars, logo, logo_typ
     # create new bmeshes for each logo variation
     bms = [bmesh.new() for zRot in zRots]
     # get loc offsets
-    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(cm) and size[2] == 3 else 0)
+    zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(cm.brickType) and size[2] == 3 else 0)
     lw = dimensions["logo_width"] * (0.78 if cm.logoDetail == "LEGO" else cm.logoScale)
     distMax = max(logo_details.dist.xy)
     zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logo_inset * 2)

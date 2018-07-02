@@ -165,6 +165,10 @@ class changeBrickType(Operator):
             keysToUpdate = []
             updateHasCustomObjs(cm, targetBrickType)
             cm.customized = True
+            brickType = cm.brickType
+            brickHeight = cm.brickHeight
+            gap = cm.gap
+            zStep = getZStep(cm)
 
             # iterate through names of selected objects
             for obj_name in self.objNamesD[cm_id]:
@@ -204,12 +208,12 @@ class changeBrickType(Operator):
                 bricksDict[dictKey]["rotated"] = False if min(size[:2]) == 1 and max(size[:2]) > 1 else self.rotateBrick
 
                 # update height of brick if necessary, and update dictionary accordingly
-                if flatBrickType(cm):
-                    dimensions = Bricks.get_dimensions(cm.brickHeight, getZStep(cm), cm.gap)
+                if flatBrickType(brickType):
+                    dimensions = Bricks.get_dimensions(brickHeight, zStep, gap)
                     size = updateBrickSizeAndDict(dimensions, cm, bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
 
                 # check if brick spans 3 matrix locations
-                bAndPBrick = flatBrickType(cm) and size[2] == 3
+                bAndPBrick = flatBrickType(brickType) and size[2] == 3
 
                 # verify exposure above and below
                 brickLocs = getLocsInBrick(cm, bricksDict, size, dictKey, dictLoc, zStep=3)

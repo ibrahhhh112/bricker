@@ -32,7 +32,7 @@ from ..functions import *
 def addMaterialToList(self, context):
     scn, cm, n = getActiveContextInfo()
     typ = "RANDOM" if cm.materialType == "RANDOM" else "ABS"
-    matObj = getMatObject(cm, typ=typ)
+    matObj = getMatObject(cm.id, typ=typ)
     numMats = len(matObj.data.materials)
     mat = bpy.data.materials.get(cm.targetMaterial)
     brick_mats_installed = hasattr(scn, "isBrickMaterialsInstalled") and scn.isBrickMaterialsInstalled

@@ -106,8 +106,9 @@ def distance(c1, c2, aWt=1):
 def findNearestColorName(rgba, cm, colorNames):
     mindiff = None
     mincolorname = ""
+    transWeight = cm.transparentWeight
     for colorName in colorNames:
-        diff = distance(rgba, colorNames[colorName], cm.transparentWeight)
+        diff = distance(rgba, colorNames[colorName], transWeight)
         if mindiff is None or diff < mindiff:
             mindiff = diff
             mincolorname = colorName

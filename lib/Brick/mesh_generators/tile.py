@@ -55,7 +55,7 @@ def makeTile(dimensions:dict, brickSize:list, circleVerts:int=None, type:str=Non
 
     # get halfScale
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, dimensions["height"] / 2))
-    d.z = d.z * (brickSize[2] if flatBrickType(cm) else 1)
+    d.z = d.z * (brickSize[2] if flatBrickType(cm.brickType) else 1)
     # get scalar for d in positive xyz directions
     scalar = Vector((brickSize[0] * 2 - 1,
                      brickSize[1] * 2 - 1,

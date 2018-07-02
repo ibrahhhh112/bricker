@@ -151,17 +151,17 @@ def addEdgeSplitMod(obj):
     eMod.split_angle = math.radians(44)
 
 
-def mergeWithAdjacentBricks(cm, brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, mergeVertical=True):
-    if brickD["size"] is None or cm.buildIsDirty:
+def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=True):
+    if brickD["size"] is None or buildIsDirty:
         preferLargest = brickD["val"] > 0 and brickD["val"] < 1
-        brickSize = attemptMerge(cm, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
+        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
     else:
         brickSize = brickD["size"]
     return brickSize
 
 
 def updateKeysLists(cm, bricksDict, size, loc, availableKeys, key):
-    keysChecked = getKeysInBrick(cm, bricksDict, size, key, loc)
+    keysChecked = getKeysInBrick(bricksDict, size, getZStep(cm), key, loc)
     for k in keysChecked:
         # remove key if it exists in availableKeys
         remove_item(availableKeys, k)
@@ -294,7 +294,7 @@ def getMaterial(cm, bricksDict, key, size, brick_mats=None, seedInc=None):
         mat = bpy.data.materials.get(cm.materialName)
     elif cm.materialType == "SOURCE":
         # get most frequent material in brick size
-        keysInBrick = getKeysInBrick(cm, bricksDict, size, key)
+        keysInBrick = getKeysInBrick(bricksDict, size, getZStep(cm), key)
         for key0 in keysInBrick:
             curBrickD = bricksDict[key0]
             if curBrickD["val"] >= highestVal:

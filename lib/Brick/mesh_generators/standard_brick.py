@@ -53,12 +53,12 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int
     # create new bmesh object
     bme = bmesh.new() if not bme else bme
     cm = cm or getActiveContextInfo()[1]
-    bAndPBrick = flatBrickType(cm) and brickSize[2] == 3
+    bAndPBrick = flatBrickType(cm.brickType) and brickSize[2] == 3
     height = dimensions["height"] * (3 if bAndPBrick else 1)
 
     # get halfScale
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, dimensions["height"] / 2))
-    d.z = d.z * (brickSize[2] if flatBrickType(cm) else 1)
+    d.z = d.z * (brickSize[2] if flatBrickType(cm.brickType) else 1)
     # get scalar for d in positive xyz directions
     scalar = Vector((brickSize[0] * 2 - 1,
                      brickSize[1] * 2 - 1,

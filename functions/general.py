@@ -221,8 +221,7 @@ def getBricks(cm=None, typ=None):
     return bricks
 
 
-def getMatObject(cm=None, typ="RANDOM"):
-    cm = cm or getActiveContextInfo()[1]
+def getMatObject(cm_id, typ="RANDOM"):
     mat_n = cm.id
     Bricker_mat_on = "Bricker_%(mat_n)s_%(typ)s_mats" % locals()
     matObj = bpy.data.objects.get(Bricker_mat_on)
@@ -233,8 +232,8 @@ def getBrickTypes(height):
     return bpy.props.Bricker_legal_brick_sizes[height].keys()
 
 
-def flatBrickType(cm):
-    return "PLATE" in cm.brickType or "STUD" in cm.brickType
+def flatBrickType(bt):
+    return "PLATE" in bt or "STUD" in bt
 
 
 def mergableBrickType(cm=None, typ=None, up=False):
@@ -246,11 +245,11 @@ def mergableBrickType(cm=None, typ=None, up=False):
         return False
 
 
-def getTallType(cm, brickD, targetType=None):
+def getTallType(brickD, targetType=None):
     return targetType if targetType in getBrickTypes(height=3) else (brickD["type"] if brickD["type"] in getBrickTypes(height=3) else "BRICK")
 
 
-def getShortType(cm, brickD, targetType=None):
+def getShortType(brickD, targetType=None):
     return targetType if targetType in getBrickTypes(height=1) else (brickD["type"] if brickD["type"] in getBrickTypes(height=1) else "PLATE")
 
 
@@ -310,7 +309,7 @@ def isUnique(lst):
 
 
 def getZStep(cm):
-    return 1 if flatBrickType(cm) else 3
+    return 1 if flatBrickType(cm.brickType) else 3
 
 
 def gammaCorrect(rgba, val):
@@ -353,8 +352,7 @@ def getLocsInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
-def getKeysInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
-    zStep = zStep or getZStep(cm)
+def getKeysInBrick(bricksDict, size, zStep, key, loc=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return ["{x},{y},{z}".format(x=x0 + x, y=y0 + y, z=z0 + z) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
@@ -362,7 +360,7 @@ def getKeysInBrick(cm, bricksDict, size, key, loc=None, zStep=None):
 def isOnShell(cm, bricksDict, key, loc=None, zStep=None, shellDepth=1):
     """ check if any locations in brick are on the shell """
     size = bricksDict[key]["size"]
-    brickKeys = getKeysInBrick(cm, bricksDict, size, key, loc, zStep)
+    brickKeys = getKeysInBrick(bricksDict, size, zStep, key, loc)
     for k in brickKeys:
         if bricksDict[k]["val"] >= 1 - (shellDepth - 1) / 100:
             return True
@@ -383,7 +381,7 @@ def getDictLoc(bricksDict, key):
 
 
 def getBrickCenter(cm, bricksDict, key, loc=None, zStep=None):
-    brickKeys = getKeysInBrick(cm, bricksDict, size=bricksDict[key]["size"], key=key, loc=loc, zStep=zStep)
+    brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key, loc=loc)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
     return coord_ave

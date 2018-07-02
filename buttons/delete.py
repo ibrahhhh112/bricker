@@ -230,8 +230,6 @@ class BrickerDelete(bpy.types.Operator):
             bGroup = bpy.data.groups.get(Bricker_bricks_gn + "_f_" + str(cm.lastStartFrame))
         if bGroup and len(bGroup.objects) > 0:
             source.layers = list(bGroup.objects[0].layers)
-        # reset cm properties
-        cm.modelHeight = -1
         # reset source properties
         source.name = n
         source.cmlist_id = -1

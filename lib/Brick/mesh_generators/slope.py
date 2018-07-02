@@ -65,7 +65,7 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
     assert direction in directions
 
     # get halfScale
-    bAndPBrick = flatBrickType(cm) and brickSize[2] == 3
+    bAndPBrick = flatBrickType(cm.brickType) and brickSize[2] == 3
     height = dimensions["height"] * (3 if bAndPBrick else 1)
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, height / 2))
     # get scalar for d in positive xyz directions

@@ -229,9 +229,9 @@ def createNewMaterial(model_name, rgba, rgba_vals, includeTransparency, curFrame
     return mat_name
 
 
-def getUVImage(scn, cm, obj, face_idx):
+def getUVImage(scn, obj, face_idx, uvImageName):
     """ returns UV image (priority to user settings, then face index, then first one found in object """
-    image = bpy.data.images.get(cm.uvImageName)
+    image = bpy.data.images.get(uvImageName)
     image = image if image is not None and image.has_data else None
     if image is None and obj.data.uv_textures.active:
         face_im = obj.data.uv_textures.active.data[face_idx].image
@@ -239,14 +239,14 @@ def getUVImage(scn, cm, obj, face_idx):
     return image
 
 
-def getUVPixelColor(scn, cm, obj, face_idx, point, uv_images):
+def getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImageName):
     """ get RGBA value for point in UV image at specified face index """
     if face_idx is None:
         return None
     # get closest material using UV map
     face = obj.data.polygons[face_idx]
     # get uv_texture image for face
-    image = getUVImage(scn, cm, obj, face_idx)
+    image = getUVImage(scn, obj, face_idx, uvImageName)
     if image is None:
         return None
     # get uv coordinate based on nearest face intersection
@@ -277,14 +277,14 @@ def getMaterialColor(matName):
     return [r, g, b, a]
 
 
-def getBrickRGBA(scn, cm, obj, face_idx, point, uv_images):
+def getBrickRGBA(scn, obj, face_idx, point, uv_images, uvImageName=None):
     """ returns RGBA value for brick """
     if face_idx is None:
         return None
     # get material based on rgba value of UV image at face index
     if uv_images:
         origMatName = ""
-        rgba = getUVPixelColor(scn, cm, obj, face_idx, point, uv_images)
+        rgba = getUVPixelColor(scn, obj, face_idx, point, uv_images)
     else:
         # get closest material using material slot of face
         origMatName = getMatAtFaceIdx(obj, face_idx)
@@ -361,7 +361,7 @@ def isBrickExposed(cm, bricksDict, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
-    keysInBrick = getKeysInBrick(cm, bricksDict, bricksDict[key]["size"], key)
+    keysInBrick = getKeysInBrick(bricksDict, bricksDict[key]["size"], getZStep(cm), key)
     topExposed, botExposed = False, False
     # top or bottom exposed if even one location is exposed
     for k in keysInBrick:
@@ -374,17 +374,17 @@ def setAllBrickExposures(cm, bricksDict, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
-    keysInBrick = getKeysInBrick(cm, bricksDict, bricksDict[key]["size"], key)
+    keysInBrick = getKeysInBrick(bricksDict, bricksDict[key]["size"], getZStep(cm), key)
     topExposed, botExposed = False, False
     # set brick exposures
     for k in keysInBrick:
-        curTopExposed, curBotExposed = setBrickExposure(cm, bricksDict, k)
+        curTopExposed, curBotExposed = setBrickExposure(bricksDict, k)
         if curTopExposed: topExposed = True
         if curBotExposed: botExposed = True
     return topExposed, botExposed
 
 
-def setBrickExposure(cm, bricksDict, key=None, loc=None):
+def setBrickExposure(bricksDict, key=None, loc=None):
     """ return top and bottom exposure of brick loc/key """
     assert key is not None or loc is not None
     # initialize parameters unspecified

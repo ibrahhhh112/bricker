@@ -58,7 +58,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
     assert loc or key
     keyError = False
-    x, y, z = loc or getDictLoc(key)
+    x, y, z = loc or getDictLoc(bricksDict, key)
     adjKeys = [listToStr([x+1, y, z]),
                listToStr([x-1, y, z]),
                listToStr([x, y+1, z]),
@@ -132,6 +132,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     invalidItems = []
     for cm_id in objNamesD.keys():
         cm = getItemByID(scn.cmlist, cm_id)
+        brickType = cm.brickType
         bricksDict = bricksDicts[cm_id]
         objSizes = []
         # check that customObjects are valid
@@ -150,7 +151,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
             if objSize[2] not in [1, 3]: raise Exception("Custom Error Message: objSize not in [1, 3]")
             # build items
             items += [itemFromType(typ) for typ in legalBS[3] if includeSizes == "ALL" or objSize[:2] in legalBS[3][typ] + includeSizes]
-            if flatBrickType(cm):
+            if flatBrickType(brickType):
                 items += [itemFromType(typ) for typ in legalBS[1] if includeSizes == "ALL" or objSize[:2] in legalBS[1][typ] + includeSizes]
     # uniquify items
     items = uniquify2(items, innerType=tuple)

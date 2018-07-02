@@ -66,7 +66,7 @@ def makeRound1x1(dimensions:dict, circleVerts:int=None, type:str="CYLINDER", det
     detail = "MEDIUM" if type == "STUD_HOLLOW" else detail
 
     # set brick height and thickness
-    height = dimensions["height"] if not flatBrickType(cm) or "STUD" in type else dimensions["height"] * 3
+    height = dimensions["height"] if not flatBrickType(cm.brickType) or "STUD" in type else dimensions["height"] * 3
     thick = Vector([dimensions["thickness"]] * 3)
 
     # create outer cylinder

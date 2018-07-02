@@ -75,12 +75,13 @@ def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundTy
         if intersections == 0:
             firstDirection = direction.dot(normal)
         if edgeLen != 0:
+            dist = (location-point).length
             # get first and last intersection (used when getting materials of nearest (first or last intersected) face)
-            if (location-point).length <= edgeLen2:
+            if dist <= edgeLen2:
                 if intersections == 0:
                     edgeIntersects = True
-                    firstIntersection = {"idx":index, "dist":(location-point).length, "loc":location, "normal":normal}
-                lastIntersection = {"idx":index, "dist":edgeLen - (location-point).length, "loc":location, "normal":normal}
+                    firstIntersection = {"idx":index, "dist":dist, "loc":location, "normal":normal}
+                lastIntersection = {"idx":index, "dist":edgeLen - dist, "loc":location, "normal":normal}
 
             # set nextIntersection
             if nextIntersection is None:
@@ -89,9 +90,13 @@ def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundTy
         location = VectorRound(location, 5, roundType=roundType)
         orig = location + miniDist
 
-    return intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects
+    if edgeLen != 0:
+        return intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects
+    else:
+        return intersections, firstDirection
 
-def rayObjIntersections(scn, cm, point, direction, miniDist:Vector, edgeLen, obj):
+
+def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, useNormals, insidenessRayCastDir, castDoubleCheckRays):
     """
     cast ray(s) from point in direction to determine insideness and whether edge intersects obj within edgeLen
 
@@ -117,36 +122,38 @@ def rayObjIntersections(scn, cm, point, direction, miniDist:Vector, edgeLen, obj
     else:
         axes = "ZXY"
     # run initial intersection check
+    # ct = time.time()
     intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj, point, direction, miniDist, edgeLen=edgeLen)
-    if cm.insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in cm.insidenessRayCastDir:
+    # stopWatch(1, time.time()-ct, precision=5)
+    if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
         outsideL.append(0)
-        if intersections%2 == 0 and not (cm.useNormals and firstDirection > 0):
+        if intersections%2 == 0 and not (useNormals and firstDirection > 0):
             outsideL[0] = 1
-        elif cm.castDoubleCheckRays:
+        elif castDoubleCheckRays:
             # double check vert is inside mesh
-            count, firstDirection,_,_,_,_ = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
-            if count%2 == 0 and not (cm.useNormals and firstDirection > 0):
+            count, firstDirection = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
+            if count%2 == 0 and not (useNormals and firstDirection > 0):
                 outsideL[0] = 1
 
     # run more checks
-    if cm.insidenessRayCastDir != "HIGH EFFICIENCY":
+    if insidenessRayCastDir != "HIGH EFFICIENCY":
         dir0 = Vector((direction[2], direction[0], direction[1]))
         dir1 = Vector((direction[1], direction[2], direction[0]))
         miniDist0 = Vector((miniDist[2], miniDist[0], miniDist[1]))
         miniDist1 = Vector((miniDist[1], miniDist[2], miniDist[0]))
         dirs = [[dir0, miniDist0], [dir1, miniDist1]]
         for i in range(2):
-            if axes[i+1] in cm.insidenessRayCastDir:
+            if axes[i+1] in insidenessRayCastDir:
                 outsideL.append(0)
                 direction = dirs[i][0]
                 miniDist = dirs[i][1]
-                count, firstDirection,_,_,_,_ = castRays(obj, point, direction, miniDist)
-                if count%2 == 0 and not (cm.useNormals and firstDirection > 0):
+                count, firstDirection = castRays(obj, point, direction, miniDist)
+                if count%2 == 0 and not (useNormals and firstDirection > 0):
                     outsideL[len(outsideL) - 1] = 1
-                elif cm.castDoubleCheckRays:
+                elif castDoubleCheckRays:
                     # double check vert is inside mesh
-                    count, firstDirection,_,_,_,_ = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
-                    if count%2 == 0 and not (cm.useNormals and firstDirection > 0):
+                    count, firstDirection = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
+                    if count%2 == 0 and not (useNormals and firstDirection > 0):
                         outsideL[len(outsideL) - 1] = 1
 
     # find average of outsideL and set outside accordingly (<0.5 is False, >=0.5 is True)
@@ -155,7 +162,7 @@ def rayObjIntersections(scn, cm, point, direction, miniDist:Vector, edgeLen, obj
     # return helpful information
     return not outside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection
 
-def updateBFMatrix(scn, cm, x0, y0, z0, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x1, y1, z1, miniDist, inside=None):
+def updateBFMatrix(scn, x0, y0, z0, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x1, y1, z1, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays):
     """ update brickFreqMatrix[x0][y0][z0] based on results from rayObjIntersections """
     orig = coordMatrix[x0][y0][z0]
     try:
@@ -166,7 +173,7 @@ def updateBFMatrix(scn, cm, x0, y0, z0, coordMatrix, faceIdxMatrix, brickFreqMat
     ray = rayEnd - orig
     edgeLen = ray.length
 
-    origInside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection = rayObjIntersections(scn, cm, orig, ray, miniDist, edgeLen, source)
+    origInside, edgeIntersects, intersections, nextIntersection, firstIntersection, lastIntersection = rayObjIntersections(scn, orig, ray, miniDist, edgeLen, source, useNormals, insidenessRayCastDir, castDoubleCheckRays)
     if origInside and brickFreqMatrix[x0][y0][z0] == 0:
         # define brick as inside shell
         brickFreqMatrix[x0][y0][z0] = -1
@@ -191,36 +198,37 @@ def isInternal(bricksDict, key):
     val = bricksDict[key]["val"]
     return (val > 0 and val < 1) or val == -1
 
-def addColumnSupports(cm, bricksDict, keys):
+def addColumnSupports(bricksDict, keys, thickness, step):
     """ update bricksDict internal entries to draw columns
-    cm         -- active cmlist object
     bricksDict -- dictionary with brick information at each lattice coordinate
     keys       -- keys to test in bricksDict
+    thickness  -- thickness of the columns
+    step       -- distance between columns
     """
-    step = cm.colStep + cm.colThickness
+    step = step + thickness
     for key in keys:
+        if not isInternal(bricksDict, key):
+            continue
         x,y,z = getDictLoc(bricksDict, key)
-        if (x % step in range(cm.colThickness) and
-            y % step in range(cm.colThickness) and
-            isInternal(bricksDict, key)
-           ):
+        if (x % step in range(colThickness) and
+            y % step in range(colThickness)):
             bricksDict[key]["draw"] = True
 
-def addLatticeSupports(cm, bricksDict, keys):
+def addLatticeSupports(bricksDict, keys, step, alternateXY):
     """ update bricksDict internal entries to draw lattice supports
-    cm         -- active cmlist object
-    bricksDict -- dictionary with brick information at each lattice coordinate
-    keys       -- keys to test in bricksDict
+    bricksDict  -- dictionary with brick information at each lattice coordinate
+    keys        -- keys to test in bricksDict
+    step        -- distance between lattice supports
+    alternateXY -- alternate x-beams and y-beams for each Z-axis level
     """
-    step = cm.latticeStep
     for key in keys:
+        if not isInternal(bricksDict, key):
+            continue
         x,y,z = getDictLoc(bricksDict, key)
-        if x % step == 0 and (not cm.alternateXY or z % 2 == 0):
-            if isInternal(bricksDict, key):
-                bricksDict[key]["draw"] = True
-        elif y % step == 0 and (not cm.alternateXY or z % 2 == 1):
-            if isInternal(bricksDict, key):
-                bricksDict[key]["draw"] = True
+        if x % step == 0 and (not alternateXY or z % 2 == 0):
+            bricksDict[key]["draw"] = True
+        elif y % step == 0 and (not alternateXY or z % 2 == 1):
+            bricksDict[key]["draw"] = True
 
 def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
     """ update bricksDict internal entries
@@ -229,7 +237,7 @@ def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
     keys          -- keys to test in bricksDict
     clearExisting -- set draw for all internal bricks to False before adding supports
     """
-    if keys == "ALL": keys = list(bricksDict.keys())
+    if keys == "ALL": keys = bricksDict.keys()
     # clear extisting internal structure
     if clearExisting:
         zStep = getZStep(cm)
@@ -241,10 +249,10 @@ def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
                 bricksDict[key]["draw"] = False
     # Draw column supports
     if cm.internalSupports == "COLUMNS":
-        addColumnSupports(cm, bricksDict, keys)
+        addColumnSupports(bricksDict, keys, cm.colThickness, cm.colStep)
     # draw lattice supports
     elif cm.internalSupports == "LATTICE":
-        addLatticeSupports(cm, bricksDict, keys)
+        addLatticeSupports(bricksDict, keys, cm.latticeStep, cm.alternateXY)
 
 def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", cursorStatus=False):
     """ returns new brickFreqMatrix """
@@ -253,6 +261,11 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", c
     axes = axes.lower()
     dist = coordMatrix[1][1][1] - coordMatrix[0][0][0]
     highEfficiency = cm.insidenessRayCastDir in ["HIGH EFFICIENCY", "XYZ"] and not cm.verifyExposure
+    # runs update functions only once
+    useNormals = cm.useNormals
+    insidenessRayCastDir = cm.insidenessRayCastDir
+    castDoubleCheckRays = cm.castDoubleCheckRays
+
 
     # initialize values used for printing status
     denom = (len(brickFreqMatrix[0][0]) + len(brickFreqMatrix[0]) + len(brickFreqMatrix))/100
@@ -280,7 +293,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", c
                     if i == 2 and highEfficiency and nextIntersection is not None and coordMatrix[x][y][z].x + dist.x + miniDist.x < nextIntersection.x:
                         brickFreqMatrix[x][y][z] = val
                         continue
-                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, cm, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x+1, y, z, miniDist)
+                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x+1, y, z, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
                     i = 0 if edgeIntersects else (2 if i == 1 else 1)
                     val = brickFreqMatrix[x][y][z]
                     if intersections == 0:
@@ -302,7 +315,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", c
                             brickFreqMatrix[x][y][z] = val
                         if brickFreqMatrix[x][y][z] == val:
                             continue
-                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, cm, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y+1, z, miniDist)
+                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y+1, z, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
                     i = 0 if edgeIntersects else (2 if i == 1 else 1)
                     val = brickFreqMatrix[x][y][z]
                     if intersections == 0:
@@ -325,20 +338,17 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", c
                         if brickFreqMatrix[x][y][z] == val:
                             continue
                     # cast rays and update brickFreqMatrix
-                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, cm, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y, z+1, miniDist)
+                    intersections, nextIntersection, edgeIntersects = updateBFMatrix(scn, x, y, z, coordMatrix, faceIdxMatrix, brickFreqMatrix, brickShell, source, x, y, z+1, miniDist, useNormals, insidenessRayCastDir, castDoubleCheckRays)
                     i = 0 if edgeIntersects else (2 if i == 1 else 1)
                     val = brickFreqMatrix[x][y][z]
                     if intersections == 0:
                         break
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, axes=axes)
+    adjustBFM(brickFreqMatrix, faceIdxMatrix=faceIdxMatrix, axes=axes)
 
     # print status to terminal
     updateProgressBars(True, cursorStatus, 1, 0, "Shell", end=True)
-
-    # update internals of brickFreqMatrix
-    updateInternals(brickFreqMatrix, cm=cm, faceIdxMatrix=faceIdxMatrix)
 
     return brickFreqMatrix
 
@@ -387,12 +397,17 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, curso
     zn0 = domain_res[2] / d.z
     denom = d.x * d.y * d.z
 
+    # initialize variables
+    flameIntensity = cm.flameIntensity
+    flameColor = cm.flameColor
+    smokeDensity = cm.smokeDensity
+
     # set up brickFreqMatrix values
     for x in range(int(s_idx[0]), int(e_idx[0])):
+        # print status to terminal
+        old_percent = updateProgressBars(True, cursorStatus, (x * y * z) / denom, old_percent, "Shell")
         for y in range(int(s_idx[1]), int(e_idx[1])):
             for z in range(int(s_idx[2]), int(e_idx[2])):
-                # print status to terminal
-                old_percent = updateProgressBars(True, cursorStatus, (x * y * z) / denom, old_percent, "Shell")
                 d_acc = 0
                 f_acc = 0
                 cs_acc = Vector((0, 0, 0))
@@ -420,7 +435,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, curso
                             d_acc += d
                             f_acc += f
                             cs_acc += d * Vector((color_grid[cur_idx * 4], color_grid[cur_idx * 4 + 1], color_grid[cur_idx * 4 + 2]))
-                            cf_acc += Vector(f * cm.flameIntensity * (cm.flameColor * f))
+                            cf_acc += Vector(f * flameIntensity * (flameColor * f))
                             ave_denom += 1
                 d_ave = d_acc / ave_denom
                 f_ave = f_acc / ave_denom
@@ -432,23 +447,21 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, curso
                 c_ave += brightness
                 # add saturation
                 c_ave = c_ave * sat_mat
-                brickFreqMatrix[x][y][z] = 0 if alpha < (1 - cm.smokeDensity) else 1
+                brickFreqMatrix[x][y][z] = 0 if alpha < (1 - smokeDensity) else 1
                 colorMatrix[x][y][z] = list(c_ave) + [alpha]
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, False)
+    adjustBFM(brickFreqMatrix, axes=False)
 
     # end progress bar
     updateProgressBars(True, cursorStatus, 1, 0, "Shell", end=True)
 
-    # update internals of brickFreqMatrix
-    updateInternals(brickFreqMatrix, cm)
-
     return brickFreqMatrix, colorMatrix
 
 
-def adjustBFM(brickFreqMatrix, axes=""):
+def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
     """ adjust brickFreqMatrix values """
+    shellVals = []
     xL = len(brickFreqMatrix)
     yL = len(brickFreqMatrix[0])
     zL = len(brickFreqMatrix[0][0])
@@ -491,66 +504,53 @@ def adjustBFM(brickFreqMatrix, axes=""):
                 #      brickFreqMatrix[x][y][z-1] == 0)):
                 #     brickFreqMatrix[x][y][z] = 0
                 # If shell location (1) does not intersect outside location (0), make it inside (-1)
-                if (brickFreqMatrix[x][y][z] == 1 and
-                    brickFreqMatrix[x+1][y][z] != 0 and
-                    brickFreqMatrix[x-1][y][z] != 0 and
-                    brickFreqMatrix[x][y+1][z] != 0 and
-                    brickFreqMatrix[x][y-1][z] != 0 and
-                    brickFreqMatrix[x][y][z+1] != 0 and
-                    brickFreqMatrix[x][y][z-1] != 0):
-                    brickFreqMatrix[x][y][z] = -1
+                if brickFreqMatrix[x][y][z] == 1:
+                    if (brickFreqMatrix[x+1][y][z] != 0 and
+                        brickFreqMatrix[x-1][y][z] != 0 and
+                        brickFreqMatrix[x][y+1][z] != 0 and
+                        brickFreqMatrix[x][y-1][z] != 0 and
+                        brickFreqMatrix[x][y][z+1] != 0 and
+                        brickFreqMatrix[x][y][z-1] != 0):
+                        brickFreqMatrix[x][y][z] = -1
+                    else:
+                        shellVals.append((x, y, z))
 
+    # mark outside and unused inside brickFreqMatrix values for removal
     for x in range(xL):
         for y in range(yL):
             for z in range(zL):
-                # mark outside brickFreqMatrix values for removal
                 if brickFreqMatrix[x][y][z] == 0:
                     brickFreqMatrix[x][y][z] = None
 
-
-def updateInternals(brickFreqMatrix, cm=None, faceIdxMatrix=None):
-    """ set up brickFreqMatrix values for bricks inside shell (-1) """
+    # Update internals
     j = 1
-    # NOTE: Following two lines calculate partial brickFreqMatrix (insideness only calculated as deep as necessary)
-    # denom = min([(cm.shellThickness-1), max(len(brickFreqMatrix)-2, len(brickFreqMatrix[0])-2, len(brickFreqMatrix[0][0])-2)])/2
-    # for idx in range(cm.shellThickness-1):
-    # NOTE: Following two lines calculate full brickFreqMatrix
-    denom = max(len(brickFreqMatrix)-2, len(brickFreqMatrix[0])-2, len(brickFreqMatrix[0][0])-2)/2
-    old_percent = 0
-    old_percent = updateProgressBars(True, False, 0, -1, "Internal")
     for i in range(1, 51):
-        j0 = j
         j = round(j-0.01, 2)
         gotOne = False
-        for x in range(i, len(brickFreqMatrix) - i):
-            # print status to terminal
-            old_percent = updateProgressBars(True, False, ((i + x / len(brickFreqMatrix)) ** 0.6) / 7.07107, old_percent, "Internal")
-            for y in range(i, len(brickFreqMatrix[0]) - i):
-                for z in range(i, len(brickFreqMatrix[0][0]) - i):
-                    if brickFreqMatrix[x][y][z] != -1:
-                        continue
-                    idxsToCheck = [(x+1, y, z),
-                                   (x-1, y, z),
-                                   (x, y+1, z),
-                                   (x, y-1, z),
-                                   (x, y, z+1),
-                                   (x, y, z-1)]
-                    for idx in idxsToCheck:
-                        curVal = brickFreqMatrix[idx[0]][idx[1]][idx[2]]
-                        if curVal == j0:
-                            brickFreqMatrix[x][y][z] = j
-                            if faceIdxMatrix: faceIdxMatrix[x][y][z] = faceIdxMatrix[idx[0]][idx[1]][idx[2]]
-                            gotOne = True
-                            break
+        newShellVals = []
+        for x, y, z in shellVals:
+            idxsToCheck = [(x+1, y, z),
+                           (x-1, y, z),
+                           (x, y+1, z),
+                           (x, y-1, z),
+                           (x, y, z+1),
+                           (x, y, z-1)]
+            for idx in idxsToCheck:
+                curVal = brickFreqMatrix[idx[0]][idx[1]][idx[2]]
+                if curVal == -1:
+                    newShellVals.append(idx)
+                    brickFreqMatrix[idx[0]][idx[1]][idx[2]] = j
+                    if faceIdxMatrix: faceIdxMatrix[idx[0]][idx[1]][idx[2]] = faceIdxMatrix[x][y][z]
+                    gotOne = True
         if not gotOne:
             break
-    # end progress bar
-    updateProgressBars(True, False, 1, 0, "Internal", end=True)
+        shellVals = newShellVals
 
 
 def getThreshold(cm):
     """ returns threshold (draw bricks if returned val >= threshold) """
     return 1.01 - (cm.shellThickness / 100)
+
 
 def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:tuple=(0, 0, 0), near_face:int=None, near_intersection:str=None, near_normal:tuple=None, rgba:tuple=None, mat_name:str="", custom_mat_name:bool=False, parent:str=None, size:list=None, attempted_merge:bool=False, top_exposed:bool=None, bot_exposed:bool=None, obscures:list=[False]*6, bType:str=None, flipped:bool=False, rotated:bool=False, created_from:str=None):
     """
@@ -639,6 +639,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     bricksDict = {}
     threshold = getThreshold(cm)
     brickType = cm.brickType  # prevents cm.brickType update function from running over and over in for loop
+    uvImageName = cm.uvImageName
     noOffset = vec_round(offset, precision=5) == Vector((0, 0, 0))
     # get uv_texture image and pixels for material calculation
     uv_images = getUVImages(source)
@@ -660,7 +661,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                 norm_dir = getNormalDirection(nn)
                 bType = "PLATE" if brickType == "BRICKS AND PLATES" else (brickType[:-1] if brickType.endswith("S") else ("CUSTOM 1" if brickType == "CUSTOM" else brickType))
                 flipped, rotated = getFlipRot("" if norm_dir is None else norm_dir[1:])
-                rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, cm, source, nf, ni if ni is None else Vector(ni), uv_images)
+                rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uvImageName)
                 draw = brickFreqMatrix[x][y][z] >= threshold
                 # create bricksDict entry for current brick
                 bricksDict[bKey] = createBricksDictEntry(
@@ -686,7 +687,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
         for key in bricksDict.keys():
             if not bricksDict[key]["draw"]:
                 continue
-            setBrickExposure(cm, bricksDict, key)
+            setBrickExposure(bricksDict, key)
 
     # return list of created Brick objects
     return bricksDict

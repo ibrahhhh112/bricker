@@ -24,6 +24,8 @@ Blender add-on for automated generation of Brick sculptures and simulations from
       * Generate model with bricks and slopes to more closely approximate original mesh
       * Transfer matObj functionality to new custom list property
       * Add customization for custom object offset, size, and brick scale (amount of bricksDict locations it takes up), default to scale/offset for 1x1 brick with stud
+      * Speed up 'updateInternals' function (finish what I started in adjustBFM function)
+      * try separating for loops like in adjustBFM function
   * Known issues:
       * For models with thin outer shells, Bricker may use color of inside face instead of outside face for brick material (see snapchat hotdog file)
       * Applying model rotation when deleting brickified model whose source has rotated parent produces problematic results
