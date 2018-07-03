@@ -33,13 +33,13 @@ from .generator_utils import *
 from ....functions import *
 
 
-def addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
+def addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
     # initialize vars
     if hollow is None:
         add_beams = brickSize[2] == 3 and (sum(brickSize[:2]) > 4 or min(brickSize[:2]) == 1 and max(brickSize[:2]) == 3) and detail in ("MEDIUM", "HIGH")
     if hollow is None:
         hollow = brickSize[2] == 1 or min(brickSize[:2]) != 1
-    bAndPBrick = flatBrickType(cm.brickType) and brickSize[2] == 3
+    bAndPBrick = flatBrickType(brickType) and brickSize[2] == 3
     minS = min(brickSize[:2])
     sides = [0, 1] + ([0, 0, 1, 1] if brickSize[0] < brickSize[1] else [1, 1, 0, 0])
     sides2 = [0, 1] + ([1, 1, 0, 0] if brickSize[0] < brickSize[1] else [0, 0, 1, 1])
@@ -63,7 +63,7 @@ def addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d,
             tubeX = (xNum * d.x * 2) + d.x * (2 if brickSize[0] == 1 else 1)
             tubeY = (yNum * d.y * 2) + d.y * (2 if brickSize[1] == 1 else 1)
             if hollow:
-                bme, tubeVerts = makeTube(r, h, t, circleVerts, co=Vector((tubeX, tubeY, tubeZ)), botFace=True, topFace=False, loopCutTop=cm.loopCut, bme=bme)
+                bme, tubeVerts = makeTube(r, h, t, circleVerts, co=Vector((tubeX, tubeY, tubeZ)), botFace=True, topFace=False, loopCutTop=loopCut, bme=bme)
                 selectVerts(tubeVerts["outer"]["top"] + tubeVerts["inner"]["top"])
                 allTopVerts += tubeVerts["outer"]["top"] + tubeVerts["inner"]["top"]
             else:

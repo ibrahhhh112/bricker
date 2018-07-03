@@ -38,7 +38,7 @@ def removeDoubles(obj):
 
 def getLegoLogo(self, scn, cm, dimensions):
     # update refLogo
-    if cm.logoDetail == "NONE":
+    if cm.logoType == "NONE":
         refLogo = None
     else:
         r = cm.logoResolution

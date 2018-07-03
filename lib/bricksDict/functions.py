@@ -357,11 +357,11 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
     return source, source_details, dimensions, brickScale, customData
 
 
-def isBrickExposed(cm, bricksDict, key=None, loc=None):
+def isBrickExposed(bricksDict, zStep, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
-    keysInBrick = getKeysInBrick(bricksDict, bricksDict[key]["size"], getZStep(cm), key)
+    keysInBrick = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key)
     topExposed, botExposed = False, False
     # top or bottom exposed if even one location is exposed
     for k in keysInBrick:
@@ -370,11 +370,11 @@ def isBrickExposed(cm, bricksDict, key=None, loc=None):
     return topExposed, botExposed
 
 
-def setAllBrickExposures(cm, bricksDict, key=None, loc=None):
+def setAllBrickExposures(bricksDict, zStep, key=None, loc=None):
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
-    keysInBrick = getKeysInBrick(bricksDict, bricksDict[key]["size"], getZStep(cm), key)
+    keysInBrick = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key)
     topExposed, botExposed = False, False
     # set brick exposures
     for k in keysInBrick:

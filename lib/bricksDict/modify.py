@@ -47,6 +47,8 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
     colorSnap = cm.colorSnap
     uvImageName = cm.uvImageName
     includeTransparency = cm.includeTransparency
+    transWeight = cm.transparentWeight
+    cm_id = cm.id
     # clear materials
     mat_name_start = "Bricker_{n}{f}".format(n=n, f="f_%(curFrame)s" % locals() if curFrame else "")
     for mat in bpy.data.materials:
@@ -61,19 +63,16 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
         # get RGBA value at nearest face intersection
         if isSmoke:
             rgba = bricksDict[key]["rgba"]
-            print(1)
         else:
             ni = Vector(bricksDict[key]["near_intersection"])
             rgba, matName = getBrickRGBA(scn, source, nf, ni, uv_images, uvImageName)
-            print(2)
-        print(rgba)
         if materialType == "SOURCE":
             # get material with snapped RGBA value
-            matObj = getMatObject(cm.id, typ="ABS")
+            matObj = getMatObject(cm_id, typ="ABS")
             if useUVMap and rgba is None:
                 matName = ""
             elif colorSnap == "ABS" and len(matObj.data.materials) > 0:
-                matName = findNearestBrickColorName(rgba, matObj=matObj)
+                matName = findNearestBrickColorName(rgba, transWeight, matObj=matObj)
             elif colorSnap == "RGB" or isSmoke or useUVMap:
                 matName = createNewMaterial(n, rgba, rgba_vals, includeTransparency, curFrame)
             if rgba is not None:
@@ -161,9 +160,9 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
     return brickSize
 
 
-def getNumAlignedEdges(cm, bricksDict, size, key, loc, zStep=None):
+def getNumAlignedEdges(bricksDict, size, key, loc, zStep=None):
     numAlignedEdges = 0
-    locs = getLocsInBrick(cm, bricksDict, size, 1, key, loc)
+    locs = getLocsInBrick(bricksDict, size, 1, key, loc)
     gotOne = False
 
     for l in locs:

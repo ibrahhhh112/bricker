@@ -35,27 +35,27 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeTile(dimensions:dict, brickSize:list, circleVerts:int=None, type:str=None, detail:str="LOW", cm:CollectionProperty=None, bme:bmesh=None):
+def makeTile(dimensions:dict, brickType:str, loopCut:bool, brickSize:list, circleVerts:int=None, type:str=None, detail:str="LOW", bme:bmesh=None):
     """
     create inverted slope brick with bmesh
 
     Keyword Arguments:
         dimensions  -- dictionary containing brick dimensions
+        brickType   -- cm.brickType
+        loopCut     -- loop cut cylinders so bevels can be cleaner
         brickSize   -- size of brick (e.g. standard 2x4 -> [2, 4, 3])
         circleVerts -- number of vertices per circle of cylinders
         type        -- type of round 1x1 brick in ("CONE", "CYLINDER", "STUD", "STUD_HOLLOW")
         detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
-        cm          -- cmlist item of model
         bme         -- bmesh object in which to create verts
 
     """
     # create new bmesh object
     bme = bmesh.new() if not bme else bme
-    cm = cm or getActiveContextInfo()[1]
 
     # get halfScale
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, dimensions["height"] / 2))
-    d.z = d.z * (brickSize[2] if flatBrickType(cm.brickType) else 1)
+    d.z = d.z * (brickSize[2] if flatBrickType(brickType) else 1)
     # get scalar for d in positive xyz directions
     scalar = Vector((brickSize[0] * 2 - 1,
                      brickSize[1] * 2 - 1,
@@ -112,6 +112,6 @@ def makeTile(dimensions:dict, brickSize:list, circleVerts:int=None, type:str=Non
 
         # add supports
         if max(brickSize[:2]) > 2:
-            addSupports(cm, dimensions, dimensions["height"], brickSize, circleVerts, type, detail, d, scalar, thick, bme)
+            addSupports(dimensions, dimensions["height"], brickSize, brickType, loopCut, circleVerts, type, detail, d, scalar, thick, bme)
 
     return bme

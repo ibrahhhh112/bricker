@@ -33,7 +33,7 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int=16, detail:str="LOW", logo:Object=None, stud:bool=True, cm:CollectionProperty=None, bme:bmesh=None):
+def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, loopCut:bool, circleVerts:int=16, detail:str="LOW", logo:Object=None, stud:bool=True, bme:bmesh=None):
     """
     create brick with bmesh
 
@@ -41,24 +41,24 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int
         dimensions  -- dictionary containing brick dimensions
         brickSize   -- size of brick (e.g. standard 2x4 -> [2, 4, 3])
         type        -- type of brick (e.g. BRICK, PLATE, CUSTOM)
+        brickType   -- cm.brickType
+        loopCut     -- loop cut cylinders so bevels can be cleaner
         circleVerts -- number of vertices per circle of cylinders
         detail      -- level of brick detail (options: ["FLAT", "LOW", "MEDIUM", "HIGH"])
         logo        -- logo object to create on top of studs
         stud        -- create stud on top of brick
-        cm          -- cmlist item of model
         bme         -- bmesh object in which to create verts
 
     """
     assert detail in ("FLAT", "LOW", "MEDIUM", "HIGH")
     # create new bmesh object
     bme = bmesh.new() if not bme else bme
-    cm = cm or getActiveContextInfo()[1]
-    bAndPBrick = flatBrickType(cm.brickType) and brickSize[2] == 3
+    bAndPBrick = flatBrickType(brickType) and brickSize[2] == 3
     height = dimensions["height"] * (3 if bAndPBrick else 1)
 
     # get halfScale
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, dimensions["height"] / 2))
-    d.z = d.z * (brickSize[2] if flatBrickType(cm.brickType) else 1)
+    d.z = d.z * (brickSize[2] if flatBrickType(brickType) else 1)
     # get scalar for d in positive xyz directions
     scalar = Vector((brickSize[0] * 2 - 1,
                      brickSize[1] * 2 - 1,
@@ -73,7 +73,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int
     v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], bme=bme)
 
     # add studs
-    if stud: addStuds(dimensions, height, brickSize, cm.brickType, circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3 or "HOLES" in type, loopCut=cm.loopCut)
+    if stud: addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3 or "HOLES" in type, loopCut=loopCut)
 
     # add details
     if detail != "FLAT":
@@ -96,14 +96,14 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, circleVerts:int
 
         # add supports
         if max(brickSize[:2]) > 1:
-            addSupports(cm, dimensions, height, brickSize, circleVerts, type, detail, d, scalar, thick, bme)
+            addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, type, detail, d, scalar, thick, bme)
         # add small inner cylinders inside brick
         if detail in ("MEDIUM", "HIGH"):
             edgeXp = [v15] + (bottomVerts["X+"][::-1] if drawTickMarks else []) + [v14]
             edgeXn = [v16] + (bottomVerts["X-"][::-1] if drawTickMarks else []) + [v13]
             edgeYp = [v15] + (bottomVerts["Y+"][::-1] if drawTickMarks else []) + [v16]
             edgeYn = [v14] + (bottomVerts["Y-"][::-1] if drawTickMarks else []) + [v13]
-            addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=cm.loopCut)
+            addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=loopCut)
 
     # transform final mesh
     gap = Vector([dimensions["gap"]] * 2)

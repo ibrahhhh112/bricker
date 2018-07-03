@@ -367,8 +367,8 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
                ("NONE", "None", "Don't include Brick Logo on bricks")],
         update=dirtyBricks,
         default="EXPOSED")
-    logoDetail = EnumProperty(
-        name="Logo Detailing",
+    logoType = EnumProperty(
+        name="Logo Type",
         description="Choose logo type to draw on brick studs",
         items=[("CUSTOM", "Custom Logo", "Choose a mesh object to use as the brick stud logo"),
                ("LEGO", "LEGO Logo", "Include a LEGO logo on each stud"),
@@ -583,7 +583,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     matrixIsDirty = BoolProperty(default=True)
     matrixLost = BoolProperty(default=False)
     internalIsDirty = BoolProperty(default=True)
-    lastLogoDetail = StringProperty(default="NONE")
+    lastLogoType = StringProperty(default="NONE")
     lastSplitModel = BoolProperty(default=False)
     lastStartFrame = IntProperty(default=-1)
     lastStopFrame = IntProperty(default=-1)
@@ -607,3 +607,4 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     distOffsetX = FloatProperty(default=-1)
     distOffsetY = FloatProperty(default=-1)
     distOffsetZ = FloatProperty(default=-1)
+    logoDetail = StringProperty(default="")

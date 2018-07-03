@@ -152,7 +152,7 @@ def getCMProps():
     """ returns list of important cmlist properties """
     return ["shellThickness",
             "studDetail",
-            "logoDetail",
+            "logoType",
             "logoResolution",
             "logoDecimate",
             "logoObjectName",

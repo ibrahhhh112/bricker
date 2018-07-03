@@ -35,7 +35,7 @@ from .generator_utils import *
 from ....functions import *
 
 
-def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:int=None, detail:str="LOW", stud:bool=True, cm:CollectionProperty=None, bme:bmesh=None):
+def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, direction:str=None, circleVerts:int=None, detail:str="LOW", stud:bool=True, bme:bmesh=None):
     """
     create slope brick with bmesh
 
@@ -44,17 +44,17 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
     Keyword Arguments:
         dimensions  -- dictionary containing brick dimensions
         brickSize   -- size of brick (e.g. 2x3 slope -> [2, 3, 3])
+        brickType   -- cm.brickType
+        loopCut     -- loop cut cylinders so bevels can be cleaner
         direction   -- direction slant faces in ("X+", "X-", "Y+", "Y-")
         circleVerts -- number of vertices per circle of cylinders
         detail      -- level of brick detail (options: ("FLAT", "LOW", "MEDIUM", "HIGH"))
         stud        -- create stud on top of brick
-        cm          -- cmlist item of model
         bme         -- bmesh object in which to create verts
 
     """
     # create new bmesh object
     bme = bmesh.new() if not bme else bme
-    cm = cm or getActiveContextInfo()[1]
 
     # set direction to longest side if None (defaults to X if sides are the same)
     maxIdx = brickSize.index(max(brickSize[:2]))
@@ -65,7 +65,7 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
     assert direction in directions
 
     # get halfScale
-    bAndPBrick = flatBrickType(cm.brickType) and brickSize[2] == 3
+    bAndPBrick = flatBrickType(brickType) and brickSize[2] == 3
     height = dimensions["height"] * (3 if bAndPBrick else 1)
     d = Vector((dimensions["width"] / 2, dimensions["width"] / 2, height / 2))
     # get scalar for d in positive xyz directions
@@ -91,7 +91,7 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
         # add face to opposite side from slope
         bme.faces.new((v1, v5, v8, v2))
         # create stud
-        if stud: addStuds(dimensions, height, [1] + adjustedBrickSize[1:], "CONE", circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3, loopCut=cm.loopCut)
+        if stud: addStuds(dimensions, height, [1] + adjustedBrickSize[1:], "CONE", circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3, loopCut=loopCut)
 
     # make square at end of slope
     coord1 = Vector((d.x * scalar.x, -d.y, -d.z + (dimensions["slit_height"] if max(brickSize[:2]) == 1 else 0)))
@@ -214,10 +214,10 @@ def makeSlope(dimensions:dict, brickSize:list, direction:str=None, circleVerts:i
         bme.faces.new((v1, v2, v20, v19))
 
         # add supports
-        addSupports(cm, dimensions, height, adjustedBrickSize, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in ([1, 2], [2, 1]))
+        addSupports(dimensions, height, adjustedBrickSize, brickType, loopCut, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in ([1, 2], [2, 1]))
         # add inner cylinders
         if detail in ("MEDIUM", "HIGH"):
-            addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, v23, v31 if addBlockSupports else v24, v34 if addBlockSupports else v25, v26, bme, loopCut=cm.loopCut)
+            addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, v23, v31 if addBlockSupports else v24, v34 if addBlockSupports else v25, v26, bme, loopCut=loopCut)
 
 
     # # translate slope to adjust for flipped brick

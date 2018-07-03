@@ -89,7 +89,7 @@ def setCurBrickVal(bricksDict, loc, action="ADD"):
     bricksDict[listToStr(loc)]["val"] = newVal
 
 
-def verifyBrickExposureAboveAndBelow(scn, cm, origLoc, bricksDict, decriment=0, zNeg=False, zPos=False):
+def verifyBrickExposureAboveAndBelow(scn, zStep, origLoc, bricksDict, decriment=0, zNeg=False, zPos=False):
     dictLocs = []
     if not zNeg:
         dictLocs.append((origLoc[0], origLoc[1], origLoc[2] + decriment))
@@ -102,7 +102,7 @@ def verifyBrickExposureAboveAndBelow(scn, cm, origLoc, bricksDict, decriment=0, 
             continue
         parent_key = k if bricksDict[k]["parent"] == "self" else bricksDict[k]["parent"]
         if parent_key is not None:
-            setAllBrickExposures(cm, bricksDict, parent_key)
+            setAllBrickExposures(bricksDict, zStep, parent_key)
     return bricksDict
 
 
@@ -167,7 +167,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
 def itemFromType(typ):
     return (typ.upper(), typ.title().replace("_", " "), "")
 
-def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=0, curHeight=None, curType=None, targetHeight=None, targetType=None, createdFrom=None):
+def updateBrickSizeAndDict(dimensions, source_name, bricksDict, brickSize, key, loc, dec=0, curHeight=None, curType=None, targetHeight=None, targetType=None, createdFrom=None):
     brickD = bricksDict[key]
     assert targetHeight is not None or targetType is not None
     targetHeight = targetHeight or (1 if targetType in getBrickTypes(height=1) else 3)
@@ -196,7 +196,7 @@ def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=
                     newKey = listToStr(newLoc)
                     # create new bricksDict entry if it doesn't exist
                     if newKey not in bricksDict:
-                        bricksDict = createAddlBricksDictEntry(cm, bricksDict, key, newKey, full_d, x, y, z)
+                        bricksDict = createAddlBricksDictEntry(source_name, bricksDict, key, newKey, full_d, x, y, z)
                     # update bricksDict entry to point to new brick
                     bricksDict[newKey]["parent"] = key
                     bricksDict[newKey]["created_from"] = createdFrom
@@ -209,10 +209,9 @@ def updateBrickSizeAndDict(dimensions, cm, bricksDict, brickSize, key, loc, dec=
     return brickSize
 
 
-def createAddlBricksDictEntry(cm, bricksDict, source_key, key, full_d, x, y, z):
+def createAddlBricksDictEntry(source_name, bricksDict, source_key, key, full_d, x, y, z):
     brickD = bricksDict[source_key]
-    n = cm.source_name
-    newName = "Bricker_%(n)s_brick__%(key)s" % locals()
+    newName = "Bricker_%(source_name)s_brick__%(key)s" % locals()
     newCO = (Vector(brickD["co"]) + vec_mult(Vector((x, y, z)), full_d)).to_tuple()
     bricksDict[key] = createBricksDictEntry(
         name=              newName,

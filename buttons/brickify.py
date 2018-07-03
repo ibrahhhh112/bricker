@@ -51,7 +51,7 @@ def updateCanRun(type):
     elif scn.cmlist_index == -1:
         return False
     else:
-        commonNeedsUpdate = (cm.logoDetail != "NONE" and cm.logoDetail != "LEGO") or cm.brickType == "CUSTOM" or cm.modelIsDirty or cm.matrixIsDirty or cm.internalIsDirty or cm.buildIsDirty or cm.bricksAreDirty
+        commonNeedsUpdate = (cm.logoType != "NONE" and cm.logoType != "LEGO") or cm.brickType == "CUSTOM" or cm.modelIsDirty or cm.matrixIsDirty or cm.internalIsDirty or cm.buildIsDirty or cm.bricksAreDirty
         if type == "ANIMATION":
             return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
         elif type == "MODEL":
@@ -176,7 +176,7 @@ class BrickerBrickify(bpy.types.Operator):
                 obj.cmlist_id = cm.id
 
         # # set final variables
-        cm.lastLogoDetail = cm.logoDetail
+        cm.lastlogoType = cm.logoType
         cm.lastSplitModel = cm.splitModel
         cm.lastBrickType = cm.brickType
         cm.lastLegalBricksOnly = cm.legalBricksOnly
@@ -549,7 +549,7 @@ class BrickerBrickify(bpy.types.Operator):
                 return False
 
         # check that custom logo object exists in current scene and is of type "MESH"
-        if cm.logoDetail == "CUSTOM" and cm.brickType != "CUSTOM":
+        if cm.logoType == "CUSTOM" and cm.brickType != "CUSTOM":
             if cm.logoObjectName == "":
                 self.report({"WARNING"}, "Custom logo object not specified.")
                 return False
@@ -629,16 +629,16 @@ class BrickerBrickify(bpy.types.Operator):
 
     @classmethod
     def getLogo(self, scn, cm, dimensions):
-        if cm.brickType == "CUSTOM" or cm.logoDetail == "NONE":
+        if cm.brickType == "CUSTOM" or cm.logoType == "NONE":
             refLogo = None
             logo_details = None
         else:
-            if cm.logoDetail == "LEGO":
+            if cm.logoType == "LEGO":
                 refLogo = getLegoLogo(self, scn, cm, dimensions)
             else:
                 refLogo = bpy.data.objects.get(cm.logoObjectName)
             # apply transformation to duplicate of logo object and normalize size/position
-            logo_details, refLogo = prepareLogoAndGetDetails(scn, cm, refLogo, dimensions)
+            logo_details, refLogo = prepareLogoAndGetDetails(scn, refLogo, cm.logoType, cm.logoScale, dimensions)
         return logo_details, refLogo
 
     def getDuplicateObjects(self, scn, cm, source_name, startFrame, stopFrame):

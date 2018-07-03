@@ -92,6 +92,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
     # initialize variables
     brickSizeStrings = {}
+    cm_id = cm.id
     buildIsDirty = cm.buildIsDirty
     brickType = cm.brickType
     maxWidth = cm.maxWidth
@@ -99,29 +100,44 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     legalBricksOnly = cm.legalBricksOnly
     mergeInconsistentMats = cm.mergeInconsistentMats
     materialType = cm.materialType
+    materialName = cm.materialName
+    randomMatSeed = cm.randomMatSeed
+    studDetail = cm.studDetail
+    exposedUndersideDetail = cm.exposedUndersideDetail
+    hiddenUndersideDetail = cm.hiddenUndersideDetail
+    randomRot = cm.randomRot
+    randomLoc = cm.randomLoc
+    logoType = cm.logoType
+    logoScale = cm.logoScale
+    logoInset = cm.logoInset,
+    logoResolution = cm.logoResolution
+    logoDecimate = cm.logoDecimate
+    loopCut = cm.loopCut
+    circleVerts = cm.circleVerts
+    brickHeight = cm.brickHeight
     mats = []
     allMeshes = bmesh.new()
     lowestZ = -1
     availableKeys = []
     bricksCreated = []
     maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
-    connectThresh = cm.connectThresh if mergableBrickType(cm.brickType) and cm.mergeType == "RANDOM" else 1
+    connectThresh = cm.connectThresh if mergableBrickType(brickType) and cm.mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:
         mats.append(internalMat)
     # set number of times to run through all keys
-    numIters = 2 if cm.brickType == "BRICKS AND PLATES" else 1
+    numIters = 2 if brickType == "BRICKS AND PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksDict values
-    if not cm.customized and not (mergableBrickType(cm.brickType, up=zStep == 1) and (cm.maxDepth != 1 or cm.maxWidth != 1)):
+    if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (cm.maxDepth != 1 or cm.maxWidth != 1)):
         size = [1, 1, zStep]
         updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
         availableKeys = keys
         for key in keys:
             bricksDict[key]["parent"] = "self"
             bricksDict[key]["size"] = size.copy()
-            setAllBrickExposures(cm, bricksDict, key)
+            setAllBrickExposures(bricksDict, zStep, key)
             setFlippedAndRotated(bricksDict, key, [key])
             if bricksDict[key]["type"] == "SLOPE" and brickType == "SLOPES":
                 setBrickTypeForSlope(bricksDict, key, [key])
@@ -178,7 +194,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:
-                            numAlignedEdges[j] += getNumAlignedEdges(cm, bricksDict, brickSize, key, loc, zStep)
+                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, zStep)
                             numBricks += 1
 
                         # print status to terminal and cursor
@@ -186,7 +202,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         old_percent = updateProgressBars(printStatus, cursorStatus, cur_percent, old_percent, "Merging")
 
                         # remove keys in new brick from availableKeys (for attemptMerge)
-                        updateKeysLists(cm, bricksDict, brickSize, loc, availableKeys, key)
+                        updateKeysLists(bricksDict, brickSize, zStep, key, loc, availableKeys)
 
                     if connectThresh > 1:
                         # if no aligned edges / bricks found, skip to next z level
@@ -224,7 +240,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             continue
         loc = getDictLoc(bricksDict, k2)
         # create brick based on the current brick info
-        drawBrick(cm, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, randS1, randS2, randS3)
+        drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
         # print status to terminal and cursor
         old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
 
@@ -232,7 +248,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)
 
     # remove duplicate of original logo
-    if cm.logoDetail != "LEGO" and logo is not None:
+    if cm.logoType != "LEGO" and logo is not None:
         bpy.data.objects.remove(logo)
 
     # combine meshes, link to scene, and add relevant data to the new Blender MESH object
@@ -276,9 +292,9 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             allBricksObj = bpy.data.objects.new(name, m)
             allBricksObj.cmlist_id = cm.id
             # add edge split modifier
-            if cm.brickType != "CUSTOM":
+            if brickType != "CUSTOM":
                 addEdgeSplitMod(allBricksObj)
-        if cm.brickType != "CUSTOM":
+        if brickType != "CUSTOM":
             # create vert group for bevel mod (assuming only logo verts are selected):
             vg = allBricksObj.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:

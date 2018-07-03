@@ -419,6 +419,7 @@ def handle_upconversion(scene):
                 # transfer dist offset values to new prop locations
                 if cm.distOffsetX != -1:
                     cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
-
+            if int(cm.version[2]) < 5:
+                cm.logoType = cm.logoDetail
 
 bpy.app.handlers.load_post.append(handle_upconversion)

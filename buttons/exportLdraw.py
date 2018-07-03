@@ -65,6 +65,7 @@ class exportLdraw(Operator):
         # initialize vars
         legalBricks = getLegalBricks()
         absMatCodes = getAbsPlasticMatCodes()
+        zStep = getZStep(cm)
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [scn.frame_current]:
             path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
             if errorMsg is not None:
@@ -108,15 +109,15 @@ class exportLdraw(Operator):
                     idx += 1 if size[1] > size[0] else 0
                     matrix = matrices[idx]
                     # get coordinate for brick in Ldraw units
-                    co = self.blendToLdrawUnits(cm, bricksDict, key, idx)
+                    co = self.blendToLdrawUnits(cm, bricksDict, zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(cm, bricksDict, key, size)
+                    mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     if rgba in (None, "") and mat_name not in absMatCodes.keys() and bpy.data.materials.get(mat_name) is not None:
                         rgba = getMaterialColor(mat_name)
                     if rgba not in (None, "") and mat_name not in absMatCodes.keys():
-                        mat_name = findNearestBrickColorName(rgba)
+                        mat_name = findNearestBrickColorName(rgba, cm.transparentWeight)
                     if mat_name in absMatCodes.keys():
                         color = absMatCodes[mat_name]
                     else:
@@ -140,11 +141,10 @@ class exportLdraw(Operator):
             else:
                 self.report({"INFO"}, "Ldraw file saved to '%(path)s'" % locals())
 
-    def blendToLdrawUnits(self, cm, bricksDict, key, idx):
+    def blendToLdrawUnits(self, cm, bricksDict, zStep, key, idx):
         """ convert location of brick from blender units to ldraw units """
         brickD = bricksDict[key]
         size = brickD["size"]
-        zStep = getZStep(cm)
         loc = getBrickCenter(bricksDict, key, zStep=zStep)
         dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
         h = 8 * zStep

@@ -840,9 +840,9 @@ class DetailingPanel(Panel):
         row = col.row(align=True)
         row.label("Logo:")
         row = col.row(align=True)
-        row.prop(cm, "logoDetail", text="")
-        if cm.logoDetail != "NONE":
-            if cm.logoDetail == "LEGO":
+        row.prop(cm, "logoType", text="")
+        if cm.logoType != "NONE":
+            if cm.logoType == "LEGO":
                 row = col.row(align=True)
                 row.prop(cm, "logoResolution", text="Resolution")
                 row.prop(cm, "logoDecimate", text="Decimate")

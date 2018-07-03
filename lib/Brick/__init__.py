@@ -36,17 +36,15 @@ from ...functions import *
 
 class Bricks:
     @staticmethod
-    def new_mesh(dimensions:list, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, logo=False, all_vars=False, logo_type=None, logo_details=None, logo_inset=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16, cm=None):
+    def new_mesh(dimensions:list, brickType:str, size:list=[1,1,3], type:str="BRICK", flip:bool=False, rotate90:bool=False, loopCut:bool=False, logo=False, logoType="NONE", logoScale=1, logoInset=None, all_vars=False, logo_details=None, undersideDetail:str="FLAT", stud:bool=True, circleVerts:int=16):
         """ create unlinked Brick at origin """
-        cm = cm or getActiveContextInfo()[1]
-
         # create brick mesh
         if type in ("BRICK", "PLATE") or "CUSTOM" in type:
-            brickBM = makeStandardBrick(dimensions=dimensions, brickSize=size, type=type, circleVerts=circleVerts, detail=undersideDetail, stud=stud, cm=cm)
+            brickBM = makeStandardBrick(dimensions, size, type, brickType, loopCut, circleVerts=circleVerts, detail=undersideDetail, stud=stud)
         elif type in ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW"):
-            brickBM = makeRound1x1(dimensions=dimensions, circleVerts=circleVerts, type=type, detail=undersideDetail, cm=cm)
+            brickBM = makeRound1x1(dimensions, brickType, loopCut, circleVerts=circleVerts, type=type, detail=undersideDetail)
         elif type in ("TILE", "TILE_GRILL"):
-            brickBM = makeTile(dimensions=dimensions, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail, cm=cm)
+            brickBM = makeTile(dimensions, brickType, loopCut, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail)
         elif type in ("SLOPE", "SLOPE_INVERTED", "TALL_SLOPE"):
             # determine brick direction
             directions = ["X+", "Y+", "X-", "Y-"]
@@ -54,13 +52,13 @@ class Bricks:
             maxIdx -= 2 if flip else 0
             maxIdx += 1 if rotate90 else 0
             # make slope brick bmesh
-            brickBM = makeSlope(dimensions=dimensions, brickSize=size, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud, cm=cm)
+            brickBM = makeSlope(dimensions, size, brickType, loopCut, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
         else:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
         # create list of brick bmesh variations
         if logo and stud and (type in ("BRICK", "PLATE", "STUD") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = makeLogoVariations(dimensions, size, directions[maxIdx] if type == "SLOPE" else "", all_vars, logo, logo_type, logo_details, logo_inset, cm.brickType, cm.logoDetail, cm.logoScale)
+            bms = makeLogoVariations(dimensions, size, directions[maxIdx] if type == "SLOPE" else "", all_vars, logo, logoType, logo_details, logoInset, brickType, logoType, logoScale)
         else:
             bms = [bmesh.new()]
 
@@ -143,7 +141,7 @@ def getRotAdd(direction, size):
     return rot_add
 
 
-def makeLogoVariations(dimensions, size, direction, all_vars, logo, logo_type, logo_details, logo_inset, brickType, logoDetail, logoScale):
+def makeLogoVariations(dimensions, size, direction, all_vars, logo, logo_details, logoInset, brickType, logoType, logoScale):
     # get logo rotation angle based on size of brick
     rot_vars = getNumRots(direction, size)
     rot_mult = 90 if size[0] == 1 and size[1] == 1 else 180
@@ -162,9 +160,9 @@ def makeLogoVariations(dimensions, size, direction, all_vars, logo, logo_type, l
     bms = [bmesh.new() for zRot in zRots]
     # get loc offsets
     zOffset = dimensions["logo_offset"] + (dimensions["height"] if flatBrickType(brickType) and size[2] == 3 else 0)
-    lw = dimensions["logo_width"] * (0.78 if logoDetail == "LEGO" else logoScale)
+    lw = dimensions["logo_width"] * (0.78 if logoType == "LEGO" else logoScale)
     distMax = max(logo_details.dist.xy)
-    zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logo_inset * 2)
+    zOffset += ((logo_details.dist.z * (lw / distMax)) / 2) * (1 - logoInset * 2)
     xyOffset = dimensions["width"] + dimensions["gap"]
     # cap x/y ranges so logos aren't created over slopes
     xR0 = size[0] - 1 if direction == "X-" else 0

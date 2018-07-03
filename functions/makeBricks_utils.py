@@ -43,21 +43,21 @@ from .general import *
 from ..lib.caches import bricker_bm_cache
 
 
-def drawBrick(cm, bricksDict, key, loc, i, dimensions, zStep, brickSize, split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, randS1, randS2, randS3):
+def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, brickType, split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
     # check exposure of current [merged] brick
-    if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or cm.buildIsDirty:
-        topExposed, botExposed = setAllBrickExposures(cm, bricksDict, key)
+    if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
+        topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
     else:
-        topExposed, botExposed = isBrickExposed(cm, bricksDict, key)
+        topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
 
     # get brick material
-    mat = getMaterial(cm, bricksDict, key, brickSize, brick_mats, i)
+    mat = getMaterial(cm, bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
 
     # set up arguments for brick mesh
-    useStud = (topExposed and cm.studDetail != "NONE") or cm.studDetail == "ALL"
+    useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
     logoToUse = logo if useStud else None
-    undersideDetail = cm.exposedUndersideDetail if botExposed else cm.hiddenUndersideDetail
+    undersideDetail = exposedUndersideDetail if botExposed else hiddenUndersideDetail
 
     ### CREATE BRICK ###
 
@@ -66,13 +66,13 @@ def drawBrick(cm, bricksDict, key, loc, i, dimensions, zStep, brickSize, split, 
         m = customData[int(brickD["type"][-1]) - 1]
     else:
         # get brick mesh
-        m = getBrickData(cm, brickD, randS3, dimensions, brickSize, undersideDetail, logoToUse, cm.logoDetail, logo_details, cm.logoScale, cm.logoInset, useStud, cm.circleVerts)
+        m = getBrickData(brickD, randS3, dimensions, brickSize, brickType, brickHeight, logoResolution, logoDecimate, circleVerts, loopCut, undersideDetail, logoToUse, logoType, logo_details, logoScale, logoInset, useStud)
     if not split:
         m = m.copy()
     # apply random rotation to edit mesh according to parameters
-    randomRotMatrix = getRandomRotMatrix(cm.randomRot, randS2, brickSize, m) if cm.randomRot > 0 else None
+    randomRotMatrix = getRandomRotMatrix(randomRot, randS2, brickSize, m) if randomRot > 0 else None
     # get brick location
-    locOffset = getRandomLoc(cm.randomLoc, randS2, dimensions["width"], dimensions["height"]) if cm.randomLoc > 0 else Vector((0, 0, 0))
+    locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
     brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
 
     if split:
@@ -90,7 +90,7 @@ def drawBrick(cm, bricksDict, key, loc, i, dimensions, zStep, brickSize, split, 
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brickD["name"], m)
-            brick.cmlist_id = cm.id
+            brick.cmlist_id = cm_id
             # add edge split modifier
             if useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
@@ -160,8 +160,8 @@ def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize
     return brickSize
 
 
-def updateKeysLists(cm, bricksDict, size, loc, availableKeys, key):
-    keysChecked = getKeysInBrick(bricksDict, size, getZStep(cm), key, loc)
+def updateKeysLists(bricksDict, size, zStep, key, loc, availableKeys):
+    keysChecked = getKeysInBrick(bricksDict, size, zStep, key, loc)
     for k in keysChecked:
         # remove key if it exists in availableKeys
         remove_item(availableKeys, k)
@@ -201,18 +201,18 @@ def getRandomRotMatrix(randomRot, rand, brickSize, m):
     return combined_mat
 
 
-def prepareLogoAndGetDetails(scn, cm, logo, dimensions):
+def prepareLogoAndGetDetails(scn, logo, detail, scale, dimensions):
     """ duplicate and normalize custom logo object; return logo and bounds(logo) """
     if logo is None:
         return None, logo
-    if cm.logoDetail != "LEGO":
+    if detail != "LEGO":
         # prepare custom object for duplication
         oldLayers = list(scn.layers)
         setLayers(logo.layers)
         logo.hide = False
     # duplicate logo object
     logo = duplicate(logo, link_to_scene=True)
-    if cm.logoDetail != "LEGO":
+    if detail != "LEGO":
         # disable modifiers for logo object
         for mod in logo.modifiers:
             mod.show_viewport = False
@@ -231,7 +231,7 @@ def prepareLogoAndGetDetails(scn, cm, logo, dimensions):
     # create transform and scale matrices
     t_mat = Matrix.Translation(-logo_details.mid)
     distMax = max(logo_details.dist.xy)
-    lw = dimensions["logo_width"] * (0.78 if cm.logoDetail == "LEGO" else cm.logoScale)
+    lw = dimensions["logo_width"] * (0.78 if detail == "LEGO" else scale)
     s_mat = Matrix.Scale(lw / distMax, 4)
     # run transformations on logo mesh
     m.transform(t_mat)
@@ -239,19 +239,19 @@ def prepareLogoAndGetDetails(scn, cm, logo, dimensions):
     return logo_details, logo
 
 
-def getBrickData(cm, brickD, rand, dimensions, brickSize, undersideDetail, logoToUse, logo_type, logo_details, logo_scale, logo_inset, useStud, circleVerts):
+def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, logoResolution, logoDecimate, circleVerts, loopCut, undersideDetail, logoToUse, logoType, logo_details, logoScale, logoInset, useStud):
     # get bm_cache_string
     bm_cache_string = ""
-    if "CUSTOM" not in cm.brickType:
-        custom_logo_used = logoToUse is not None and logo_type == "CUSTOM"
-        bm_cache_string = json.dumps((cm.brickHeight, brickSize, undersideDetail,
-                                      cm.logoResolution if logoToUse is not None else None,
-                                      cm.logoDecimate if logoToUse is not None else None,
-                                      logo_inset if logoToUse is not None else None,
+    if "CUSTOM" not in brickType:
+        custom_logo_used = logoToUse is not None and logoType == "CUSTOM"
+        bm_cache_string = json.dumps((brickHeight, brickSize, undersideDetail,
+                                      logoResolution if logoToUse is not None else None,
+                                      logoDecimate if logoToUse is not None else None,
+                                      logoInset if logoToUse is not None else None,
                                       hash_object(logoToUse) if custom_logo_used else None,
-                                      logo_scale if custom_logo_used else None,
-                                      logo_type, useStud, cm.circleVerts,
-                                      brickD["type"], cm.loopCut, dimensions["gap"],
+                                      logoScale if custom_logo_used else None,
+                                      logoType, useStud, circleVerts,
+                                      brickD["type"], loopCut, dimensions["gap"],
                                       brickD["flipped"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
                                       brickD["rotated"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None))
 
@@ -259,8 +259,8 @@ def getBrickData(cm, brickD, rand, dimensions, brickSize, undersideDetail, logoT
     bms = bricker_bm_cache.get(bm_cache_string)
     # if not found in bricker_bm_cache, create new brick mesh(es) and store to cache
     if bms is None:
-        bms = Bricks.new_mesh(dimensions=dimensions, size=brickSize, type=brickD["type"], undersideDetail=undersideDetail, flip=brickD["flipped"], rotate90=brickD["rotated"], logo=logoToUse, logo_type=logo_type, all_vars=logoToUse is not None, logo_details=logo_details, logo_inset=cm.logoInset, stud=useStud, circleVerts=cm.circleVerts, cm=cm)
-        if cm.brickType != "CUSTOM":
+        bms = Bricks.new_mesh(dimensions, brickType, size=brickSize, type=brickD["type"], flip=brickD["flipped"], rotate90=brickD["rotated"], loopCut=loopCut, logo=logoToUse, logoType=logoType, logoScale=logoScale, logoInset=logoInset, all_vars=logoToUse is not None, logo_details=logo_details, undersideDetail=undersideDetail, stud=useStud, circleVerts=circleVerts)
+        if brickType != "CUSTOM":
             bricker_bm_cache[bm_cache_string] = bms
 
     # create edit mesh for each bmesh
@@ -284,17 +284,18 @@ def getBrickData(cm, brickD, rand, dimensions, brickSize, undersideDetail, logoT
     return m0
 
 
-def getMaterial(cm, bricksDict, key, size, brick_mats=None, seedInc=None):
+def getMaterial(cm, bricksDict, key, size, zStep, materialType, materialName, randomMatSeed, brick_mats=None, seedInc=None):
     mat = None
     highestVal = 0
     matsL = []
-    if bricksDict[key]["custom_mat_name"] and not (cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty):
+    matDirty = cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty
+    if bricksDict[key]["custom_mat_name"] and not matDirty:
         mat = bpy.data.materials.get(bricksDict[key]["mat_name"])
-    elif cm.materialType == "CUSTOM":
-        mat = bpy.data.materials.get(cm.materialName)
-    elif cm.materialType == "SOURCE":
+    elif materialType == "CUSTOM":
+        mat = bpy.data.materials.get(materialName)
+    elif materialType == "SOURCE":
         # get most frequent material in brick size
-        keysInBrick = getKeysInBrick(bricksDict, size, getZStep(cm), key)
+        keysInBrick = getKeysInBrick(bricksDict, size, zStep, key)
         for key0 in keysInBrick:
             curBrickD = bricksDict[key0]
             if curBrickD["val"] >= highestVal:
@@ -306,10 +307,10 @@ def getMaterial(cm, bricksDict, key, size, brick_mats=None, seedInc=None):
         if len(matsL) > 1:
             matName = most_common(matsL)
         mat = bpy.data.materials.get(matName)
-    elif cm.materialType == "RANDOM" and brick_mats is not None and len(brick_mats) > 0:
+    elif materialType == "RANDOM" and brick_mats is not None and len(brick_mats) > 0:
         if len(brick_mats) > 1:
             randState = np.random.RandomState(0)
-            randState.seed(cm.randomMatSeed + seedInc)
+            randState.seed(randomMatSeed + seedInc)
             randIdx = randState.randint(0, len(brick_mats))
         else:
             randIdx = 0
