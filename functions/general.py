@@ -209,7 +209,7 @@ def getBricks(cm=None, typ=None):
 
 
 def getMatObject(cm_id, typ="RANDOM"):
-    mat_n = cm.id
+    mat_n = cm_id
     Bricker_mat_on = "Bricker_%(mat_n)s_%(typ)s_mats" % locals()
     matObj = bpy.data.objects.get(Bricker_mat_on)
     return matObj

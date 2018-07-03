@@ -132,12 +132,14 @@ class BrickerBrickify(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo()
         self.undo_stack.iterateStates(cm)
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-
-        # get source and initialize values
         source = self.getObjectToBrickify(cm)
+
+        # ensure that Bricker can run successfully
+        if not self.isValid(scn, cm, source, Bricker_bricks_gn):
+            return {"CANCELLED"}
+
+        # initialize variables
         source.cmlist_id = cm.id
-        oldLayers = list(scn.layers)
-        setLayers(source.layers)
         matrixDirty = matrixReallyIsDirty(cm)
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
 
@@ -157,8 +159,9 @@ class BrickerBrickify(bpy.types.Operator):
             if not matrixDirty and loadedFromCache:
                 cm.matrixIsDirty = False
 
-        if not self.isValid(scn, cm, source, Bricker_bricks_gn):
-            return {"CANCELLED"}
+        # set layers to source layers
+        oldLayers = list(scn.layers)
+        setLayers(source.layers)
 
         if "ANIM" not in self.action:
             self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
