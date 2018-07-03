@@ -280,7 +280,7 @@ def getMaterialColor(matName):
 def getBrickRGBA(scn, obj, face_idx, point, uv_images, uvImageName=None):
     """ returns RGBA value for brick """
     if face_idx is None:
-        return None
+        return None, None
     # get material based on rgba value of UV image at face index
     if uv_images:
         origMatName = ""

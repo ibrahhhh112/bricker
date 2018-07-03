@@ -61,9 +61,12 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
         # get RGBA value at nearest face intersection
         if isSmoke:
             rgba = bricksDict[key]["rgba"]
+            print(1)
         else:
             ni = Vector(bricksDict[key]["near_intersection"])
             rgba, matName = getBrickRGBA(scn, source, nf, ni, uv_images, uvImageName)
+            print(2)
+        print(rgba)
         if materialType == "SOURCE":
             # get material with snapped RGBA value
             matObj = getMatObject(cm.id, typ="ABS")
