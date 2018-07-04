@@ -41,13 +41,9 @@ def getSafeScn():
     return safeScn
 
 
-def getActiveContextInfo(cm=None, cm_idx=None, cm_id=None):
+def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
-    cm_idx = cm_idx or scn.cmlist_index
-    if cm_id is not None:
-        cm = getItemByID(scn.cmlist, cm_id)
-    else:
-        cm = cm or scn.cmlist[cm_idx]
+    cm = cm or scn.cmlist[scn.cmlist_index]
     n = cm.source_name
     return scn, cm, n
 

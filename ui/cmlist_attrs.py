@@ -340,6 +340,20 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         min=0.00001, max=1.0,
         default=0.001,
         update=dirtyBuild)
+    colorSnapSpecular = FloatProperty(
+        name="Specular",
+        description="Specular value for the created materials",
+        precision=3,
+        min=0.0, max=1.0,
+        default=0.5,
+        update=dirtyMaterial)
+    colorSnapRoughness = FloatProperty(
+        name="Roughness",
+        description="Roughness value for the created materials",
+        precision=3,
+        min=0.0, max=1.0,
+        default=0.5,
+        update=dirtyMaterial)
     includeTransparency = BoolProperty(
         name="Include Transparency",
         description="Mix diffuse and transparency nodes to represent alpha value of color picked",

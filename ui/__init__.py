@@ -768,6 +768,10 @@ class MaterialsPanel(Panel):
             if cm.colorSnap == "RGB":
                 row = col.row(align=True)
                 row.prop(cm, "colorSnapAmount")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapSpecular")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapRoughness")
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 if not brick_materials_installed:

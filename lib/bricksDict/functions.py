@@ -160,12 +160,12 @@ def getFirstNode(mat, type="BSDF_DIFFUSE"):
     return diffuse
 
 
-def createNewMaterial(model_name, rgba, rgba_vals, includeTransparency, curFrame=None):
+def createNewMaterial(model_name, rgba, rgba_vals, specular, roughness, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
     """ create new material with specified rgba values """
-    scn, cm, _ = getActiveContextInfo()
+    scn = bpy.context.scene
     # get or create material with unique color
     min_diff = float("inf")
-    snapAmount = 0.000001 if cm.colorSnap == "NONE" else cm.colorSnapAmount
+    snapAmount = 0.000001 if colorSnap == "NONE" else colorSnapAmount
     if rgba is None:
         return ""
     r0, g0, b0, a0 = rgba
@@ -175,7 +175,8 @@ def createNewMaterial(model_name, rgba, rgba_vals, includeTransparency, curFrame
             min_diff = diff
             r0, g0, b0, a0 = rgba_vals[i]
             break
-    mat_name_hash = str(hash_str(str(round(r0, 5)) + str(round(g0, 5)) + str(round(b0, 5)) + str(round(a0, 5))))[:14]
+    mat_name_end_string = "".join((str(round(r0, 5)), str(round(g0, 5)), str(round(b0, 5)), str(round(a0, 5))))
+    mat_name_hash = str(hash_str(mat_name_end_string))[:14]
     mat_name = "Bricker_{n}{f}_{hash}".format(n=model_name, f="_f_%(curFrame)s" % locals() if curFrame else "", hash=mat_name_hash)
     mat = bpy.data.materials.get(mat_name)
     mat_is_new = mat is None
@@ -188,18 +189,26 @@ def createNewMaterial(model_name, rgba, rgba_vals, includeTransparency, curFrame
             mat_links = mat.node_tree.links
             # a new material node tree already has a diffuse and material output node
             output = mat_nodes['Material Output']
+            # add Principled BSDF
             diffuse = mat_nodes['Diffuse BSDF']
-            diffuse.inputs[0].default_value = rgba
+            principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
+            mat_nodes.remove(diffuse)
+            # set values for Principled BSDF
+            principled.inputs[0].default_value = rgba
+            principled.inputs[5].default_value = specular
+            principled.inputs[7].default_value = roughness
             if includeTransparency:
                 # create transparent and mix nodes
                 transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
                 mix = mat_nodes.new("ShaderNodeMixShader")
                 # link these nodes together
-                mat_links.new(diffuse.outputs['BSDF'], mix.inputs[1])
+                mat_links.new(principled.outputs['BSDF'], mix.inputs[1])
                 mat_links.new(transparent.outputs['BSDF'], mix.inputs[2])
                 mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
                 # set mix factor to 1 - alpha
                 mix.inputs[0].default_value = 1 - rgba[3]
+            else:
+                mat_links.new(principled.outputs['BSDF'], output.inputs['Surface'])
         else:
             if not mat.use_nodes:
                 mat.use_nodes = True
