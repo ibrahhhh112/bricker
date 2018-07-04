@@ -239,6 +239,8 @@ def matchProperties(cmTo, cmFrom, bh=False):
         for mat in matObjFrom.data.materials:
             matObjTo.data.materials.append(mat)
     # match properties from 'cmFrom' to 'cmTo'
+    scn.cmlist_index = cmTo.idx
     for attr in cm_attrs:
         oldVal = getattr(cmFrom, attr)
         setattr(cmTo, attr, oldVal)
+    scn.cmlist_index = cmFrom.idx

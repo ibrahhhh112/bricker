@@ -217,7 +217,11 @@ def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, dire
         addSupports(dimensions, height, adjustedBrickSize, brickType, loopCut, circleVerts, "SLOPE", detail, d, scalar, thick, bme, add_beams=False, hollow=brickSize[:2] not in ([1, 2], [2, 1]))
         # add inner cylinders
         if detail in ("MEDIUM", "HIGH"):
-            addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, v23, v31 if addBlockSupports else v24, v34 if addBlockSupports else v25, v26, bme, loopCut=loopCut)
+            edgeXp = [v34 if addBlockSupports else v25, v31 if addBlockSupports else v24]
+            edgeXn = [v26, v23]
+            edgeYp = [v34 if addBlockSupports else v25, v26]
+            edgeYn = [v31 if addBlockSupports else v24, v23]
+            addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=loopCut)
 
 
     # # translate slope to adjust for flipped brick

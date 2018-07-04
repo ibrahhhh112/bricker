@@ -296,7 +296,7 @@ class drawAdjacent(Operator):
                 brickKeys = [listToStr((x0, y0, z0 + z)) for z in range((zStep + 2) % 4 if side in (4, 5) else 1)]
                 for k in brickKeys:
                     self.bricksDict[k]["draw"] = False
-                    setCurBrickVal(self.bricksDict, getDictLoc(bricksDict, k), action="REMOVE")
+                    setCurBrickVal(self.bricksDict, getDictLoc(self.bricksDict, k), action="REMOVE")
                     self.bricksDict[k]["size"] = None
                     self.bricksDict[k]["parent"] = None
                     self.bricksDict[k]["bot_exposed"] = None
@@ -343,7 +343,7 @@ class drawAdjacent(Operator):
             adjBrickD["parent"] = "self"
             adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or self.bricksDict[dictKey]["near_face"]
-            adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or self.bricksDict[dictKey]["near_intersection"].copy()
+            adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or tuple(self.bricksDict[dictKey]["near_intersection"])
             setAllBrickExposures(self.bricksDict, zStep, adjacent_key)
             adjBrickD["created_from"] = dictKey
             keysToMerge.append(adjacent_key)

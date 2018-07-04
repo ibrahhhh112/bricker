@@ -1026,7 +1026,7 @@ class BrickDetailsPanel(Panel):
         row.prop(cm, "activeKey", text="")
 
         if cm.animated:
-            bricksDict, _ = getBricksDict(dType="ANIM", cm=cm, curFrame=getAnimAdjustedFrame(cm, scn.frame_current, cm.lastStartFrame, cm.lastStopFrame))
+            bricksDict, _ = getBricksDict(dType="ANIM", cm=cm, curFrame=getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame))
         elif cm.modelCreated:
             bricksDict, _ = getBricksDict(cm=cm)
         if bricksDict is None:

@@ -203,7 +203,7 @@ def updateBrickSizeAndDict(dimensions, source_name, bricksDict, brickSize, key, 
                     bricksDict[newKey]["draw"] = True
                     bricksDict[newKey]["mat_name"] = brickD["mat_name"] if bricksDict[newKey]["mat_name"] == "" else bricksDict[newKey]["mat_name"]
                     bricksDict[newKey]["near_face"] = bricksDict[newKey]["near_face"] or brickD["near_face"]
-                    bricksDict[newKey]["near_intersection"] = bricksDict[newKey]["near_intersection"] or brickD["near_intersection"].copy()
+                    bricksDict[newKey]["near_intersection"] = bricksDict[newKey]["near_intersection"] or tuple(brickD["near_intersection"])
                     if bricksDict[newKey]["val"] == 0:
                         setCurBrickVal(bricksDict, newLoc)
     return brickSize

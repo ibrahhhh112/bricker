@@ -56,7 +56,7 @@ def handle_animation(scene):
             curBricks = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if curBricks is None:
                 continue
-            adjusted_frame_current = getAnimAdjustedFrame(cm, scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
+            adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
             onCurF = adjusted_frame_current == cf
             for brick in curBricks.objects:
                 # hide bricks from view and render unless on current frame

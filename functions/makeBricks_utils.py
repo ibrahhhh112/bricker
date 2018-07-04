@@ -167,12 +167,12 @@ def updateKeysLists(bricksDict, size, zStep, key, loc, availableKeys):
         remove_item(availableKeys, k)
 
 
-def skipThisRow(cm, timeThrough, lowestZ, z):
+def skipThisRow(timeThrough, lowestZ, z, offsetBrickLayers):
     if timeThrough == 0:  # first time
-        if (z - cm.offsetBrickLayers - lowestZ) % 3 in (1, 2):
+        if (z - offsetBrickLayers - lowestZ) % 3 in (1, 2):
             return True
     else:  # second time
-        if (z - cm.offsetBrickLayers - lowestZ) % 3 == 0:
+        if (z - offsetBrickLayers - lowestZ) % 3 == 0:
             return True
     return False
 

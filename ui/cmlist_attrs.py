@@ -607,4 +607,4 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     distOffsetX = FloatProperty(default=-1)
     distOffsetY = FloatProperty(default=-1)
     distOffsetZ = FloatProperty(default=-1)
-    logoDetail = StringProperty(default="")
+    logoDetail = StringProperty(default="NONE")

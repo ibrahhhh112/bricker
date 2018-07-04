@@ -85,13 +85,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         matObj = getMatObject(cm.id, typ="RANDOM")
         brick_mats = list(matObj.data.materials.keys())
 
-    # initialize random states
-    randS1 = np.random.RandomState(cm.mergeSeed)  # for brickSize calc
-    randS2 = np.random.RandomState(cm.mergeSeed+1)
-    randS3 = np.random.RandomState(cm.mergeSeed+2)
 
-    # initialize variables
-    brickSizeStrings = {}
+    # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
     buildIsDirty = cm.buildIsDirty
     brickType = cm.brickType
@@ -99,6 +94,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     maxDepth = cm.maxDepth
     legalBricksOnly = cm.legalBricksOnly
     mergeInconsistentMats = cm.mergeInconsistentMats
+    mergeType = cm.mergeType
+    mergeSeed = cm.mergeSeed
     materialType = cm.materialType
     materialName = cm.materialName
     randomMatSeed = cm.randomMatSeed
@@ -115,13 +112,21 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     loopCut = cm.loopCut
     circleVerts = cm.circleVerts
     brickHeight = cm.brickHeight
+    alignBricks = cm.alignBricks
+    offsetBrickLayers = cm.offsetBrickLayers
+    # initialize random states
+    randS1 = np.random.RandomState(cm.mergeSeed)  # for brickSize calc
+    randS2 = np.random.RandomState(cm.mergeSeed+1)
+    randS3 = np.random.RandomState(cm.mergeSeed+2)
+    # initialize other variables
+    brickSizeStrings = {}
     mats = []
     allMeshes = bmesh.new()
     lowestZ = -1
     availableKeys = []
     bricksCreated = []
     maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
-    connectThresh = cm.connectThresh if mergableBrickType(brickType) and cm.mergeType == "RANDOM" else 1
+    connectThresh = cm.connectThresh if mergableBrickType(brickType) and mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:
@@ -130,7 +135,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     numIters = 2 if brickType == "BRICKS AND PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksDict values
-    if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (cm.maxDepth != 1 or cm.maxWidth != 1)):
+    if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
         size = [1, 1, zStep]
         updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
         availableKeys = keys
@@ -149,11 +154,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # iterate through z locations in bricksDict (bottom to top)
             for z in sorted(keysDict.keys()):
                 # skip second and third rows on first time through
-                if numIters == 2 and cm.alignBricks:
+                if numIters == 2 and alignBricks:
                     # initialize lowestZ if not done already
                     if lowestZ == -0.1:
                         lowestZ = z
-                    if skipThisRow(cm, timeThrough, lowestZ, z):
+                    if skipThisRow(timeThrough, lowestZ, z, offsetBrickLayers):
                         continue
                 # get availableKeys for attemptMerge
                 availableKeysBase = []
@@ -173,8 +178,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 for j in range(connectThresh):
                     availableKeys = availableKeysBase.copy()
                     numBricks = 0
-                    if cm.mergeType == "RANDOM":
-                        random.seed(cm.mergeSeed + i)
+                    if mergeType == "RANDOM":
+                        random.seed(mergeSeed + i)
                         random.shuffle(keysDict[z])
                     # iterate through keys on current z level
                     for key in keysDict[z]:
@@ -290,7 +295,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             allBricksObj.data = m
         else:
             allBricksObj = bpy.data.objects.new(name, m)
-            allBricksObj.cmlist_id = cm.id
+            allBricksObj.cmlist_id = cm_id
             # add edge split modifier
             if brickType != "CUSTOM":
                 addEdgeSplitMod(allBricksObj)
@@ -302,11 +307,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = allBricksObj.vertex_groups.new("%(name)s_bvl" % locals())
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
-        if cm.materialType == "CUSTOM":
-            mat = bpy.data.materials.get(cm.materialName)
+        if materialType == "CUSTOM":
+            mat = bpy.data.materials.get(materialName)
             if mat is not None:
                 addMaterial(allBricksObj, mat)
-        elif cm.materialType == "SOURCE" or (cm.materialType == "RANDOM" and len(brick_mats) > 0):
+        elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
             for mat in mats:
                 addMaterial(allBricksObj, mat)
         # set parent
