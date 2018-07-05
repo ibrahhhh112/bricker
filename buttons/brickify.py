@@ -610,7 +610,7 @@ class BrickerBrickify(bpy.types.Operator):
         # if model is not split
         elif not cm.splitModel:
             # apply stored transformation to bricks
-            applyTransformData(cm, list(bGroup.objects))
+            applyTransformData(cm, bGroup.objects)
         # if model wasn't split but is now
         elif not cm.lastSplitModel:
             # apply stored transformation to parent of bricks

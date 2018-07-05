@@ -66,14 +66,9 @@ def stopWatch(text, value, precision=2):
     return time.time()
 
 
-def groupExists(groupName):
+def groupExists(name):
     """ check if group exists in blender's memory """
-
-    groupExists = False
-    for group in bpy.data.groups:
-        if group.name == groupName:
-            groupExists = True
-    return groupExists
+    return name in bpy.data.groups.keys()
 
 
 def getItemByID(collection, id):
@@ -153,7 +148,7 @@ def remove_item(ls, item):
 
 
 def tag_redraw_areas(areaTypes=["ALL"]):
-    areaTypes = confirmList(areaTypes)
+    areaTypes = confirmIter(areaTypes)
     for area in bpy.context.screen.areas:
         for areaType in areaTypes:
             if areaType == "ALL" or area.type == areaType:
@@ -216,17 +211,15 @@ def applyModifiers(obj, only=None, exclude=["SMOKE"], curFrame=None):
     select(obj, active=True, only=True)
     # apply modifiers
     for mod in obj.modifiers:
-        # only = ("SUBSURF", "ARMATURE", "SOLIDIFY", "MIRROR", "ARRAY", "BEVEL", "BOOLEAN", "SKIN", "OCEAN", "FLUID_SIMULATION")
-        if (only is None or mod.type in only) and (exclude is None or mod.type not in exclude) and mod.show_viewport:
-            # if curFrame and mod.type in ("CLOTH", "SOFT_BODY", "ARMATURE"):
-            #     pass
-            try:
-                with Suppressor():
-                    bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
-            except:
-                mod.show_viewport = False
-            if mod.type == "ARMATURE" and not hasArmature and mod.show_viewport:
-                hasArmature = True
+        if not (only is None or mod.type in only) or not (exclude is None or mod.type not in exclude) or not mod.show_viewport:
+            continue
+        try:
+            with Suppressor():
+                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
+        except:
+            mod.show_viewport = False
+        if mod.type == "ARMATURE" and not hasArmature and mod.show_viewport:
+            hasArmature = True
     return hasArmature
 
 
@@ -325,22 +318,22 @@ def confirmList(itemList):
     return itemList
 
 
-def insertKeyframes(objList, keyframeType, frame, interpolationMode='Default', idx=-1):
+def confirmIter(object):
+    """ if single item passed, convert to list """
+    try:
+        iter(object)
+    except TypeError:
+        object = [object]
+    return object
+
+
+def insertKeyframes(objs, keyframeType, frame, if_needed=False):
     """ insert key frames for given objects to given frames """
-    objList = confirmList(objList)
-    for obj in objList:
-        obj.keyframe_insert(data_path=keyframeType, frame=frame)
-        if interpolationMode == "Default":
-            continue
-        fcurves = []
-        for i in range(3):  # increase if inserting keyframes for something that takes up more than three fcurves
-            fc = obj.animation_data.action.fcurves.find(keyframeType, index=i)
-            if fc is not None:
-                fcurves.append(fc)
-        for fcurve in fcurves:
-            # for kf in fcurve.keyframe_points:
-            kf = fcurve.keyframe_points[idx]
-            kf.interpolation = interpolationMode
+    objs = confirmIter(objs)
+    ct = time.time()
+    options = set(["INSERTKEY_NEEDED"] if if_needed else [])
+    for obj in objs:
+        inserted = obj.keyframe_insert(data_path=keyframeType, frame=frame, options=options)
 
 
 def setActiveScn(scn):
@@ -348,9 +341,9 @@ def setActiveScn(scn):
         screen.scene = scn
 
 
-def getLayersList(layerList):
-    layerList = confirmList(layerList)
-    newLayersList = [i in layerList for i in range(20)]
+def getLayersList(layers):
+    layers = confirmIter(layers)
+    newLayersList = [i in layers for i in range(20)]
     return newLayersList
 
 
@@ -380,15 +373,15 @@ def selectAll():
     bpy.ops.object.select_all(action='SELECT')
 
 
-def hide(objList):
-    objList = confirmList(objList)
-    for obj in objList:
+def hide(objs):
+    objs = confirmIter(objs)
+    for obj in objs:
         obj.hide = True
 
 
-def unhide(objList):
-    objList = confirmList(objList)
-    for obj in objList:
+def unhide(objs):
+    objs = confirmIter(objs)
+    for obj in objs:
         if obj.hide:
             obj.hide = False
 
@@ -418,13 +411,12 @@ def select(objList=[], active=None, deselect:bool=False, only:bool=False, scene:
     return True
 
 
-def delete(objList):
-    objList = confirmList(objList)
-    objs = bpy.data.objects
-    for obj in objList:
+def delete(objs):
+    objs = confirmIter(objs)
+    for obj in objs:
         if obj is None:
             continue
-        objs.remove(obj, True)
+        bpy.data.objects.remove(obj, True)
 
 
 def duplicate(obj, linked=False, link_to_scene=False):
@@ -437,21 +429,21 @@ def duplicate(obj, linked=False, link_to_scene=False):
     return copy
 
 
-def selectVerts(vertsList):
-    vertsList = confirmList(vertsList)
-    for v in vertsList:
+def selectVerts(verts):
+    verts= confirmIter(verts)
+    for v in verts:
         v.select = True
 
 
-def smoothBMFaces(facesList):
-    facesList = confirmList(facesList)
-    for f in facesList:
+def smoothBMFaces(faces):
+    faces = confirmIter(faces)
+    for f in faces:
         f.smooth = True
 
 
-def smoothMeshFaces(facesList):
-    facesList = confirmList(facesList)
-    for f in facesList:
+def smoothMeshFaces(faces):
+    faces = confirmIter(faces)
+    for f in faces:
         f.use_smooth = True
 
 
@@ -617,7 +609,7 @@ def apply_transform(obj):
 def parent_clear(objs, apply_transform=True):
     # select(objs, only=True, active=True)
     # bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
-    objs = confirmList(objs)
+    objs = confirmIter(objs)
     if apply_transform:
         for obj in objs:
             obj.rotation_mode = "XYZ"

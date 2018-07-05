@@ -88,7 +88,7 @@ class BrickerBevel(bpy.types.Operator):
     @classmethod
     def removeBevelMods(self, objs):
         """ removes bevel modifier 'obj.name + "_bvl"' for objects in 'objs' """
-        objs = confirmList(objs)
+        objs = confirmIter(objs)
         for obj in objs:
             bvlMod = obj.modifiers.get(obj.name + "_bvl")
             if bvlMod is None:
@@ -99,7 +99,7 @@ class BrickerBevel(bpy.types.Operator):
     def createBevelMods(self, cm, objs):
         """ runs 'createBevelMod' on objects in 'objs' """
         # get objs to bevel
-        objs = confirmList(objs)
+        objs = confirmIter(objs)
         # create bevel modifiers for each object
         for obj in objs:
             segments = cm.bevelSegments

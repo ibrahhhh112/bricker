@@ -82,7 +82,7 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=T
 
 def test_brick_generators():
     # try to delete existing objects
-    delete(list(bpy.data.objects))
+    delete(bpy.data.objects)
 
     # create objects
     scn, cm, _ = getActiveContextInfo()
