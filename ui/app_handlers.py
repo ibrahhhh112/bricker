@@ -357,7 +357,6 @@ def handle_upconversion(scene):
             if int(cm.version[2]) < 1:
                 cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
                 cm.brickDepth = cm.maxBrickScale2
-                cm.matrixIsDirty = True
             # convert from v1_2 to v1_3
             if int(cm.version[2]) < 3:
                 if cm.colorSnapAmount == 0:
@@ -421,5 +420,6 @@ def handle_upconversion(scene):
                     cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
             if int(cm.version[2]) < 5:
                 cm.logoType = cm.logoDetail
+                cm.matrixIsDirty = True
 
 bpy.app.handlers.load_post.append(handle_upconversion)
