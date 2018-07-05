@@ -421,5 +421,6 @@ def handle_upconversion(scene):
             if int(cm.version[2]) < 5:
                 cm.logoType = cm.logoDetail
                 cm.matrixIsDirty = True
+                cm.matrixLost = True
 
 bpy.app.handlers.load_post.append(handle_upconversion)
