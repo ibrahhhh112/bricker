@@ -160,7 +160,7 @@ def getFirstNode(mat, type="BSDF_DIFFUSE"):
     return diffuse
 
 
-def createNewMaterial(model_name, rgba, rgba_vals, specular, roughness, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
+def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -191,12 +191,17 @@ def createNewMaterial(model_name, rgba, rgba_vals, specular, roughness, colorSna
             output = mat_nodes['Material Output']
             # add Principled BSDF
             diffuse = mat_nodes['Diffuse BSDF']
-            principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
             mat_nodes.remove(diffuse)
+            principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
             # set values for Principled BSDF
             principled.inputs[0].default_value = rgba
+            principled.inputs[1].default_value = sss
+            sat_mat = getSaturationMatrix(sssSat)
+            principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) * sat_mat).to_tuple()
             principled.inputs[5].default_value = specular
             principled.inputs[7].default_value = roughness
+            principled.inputs[14].default_value = ior
+            principled.inputs[15].default_value = transmission
             if includeTransparency:
                 # create transparent and mix nodes
                 transparent = mat_nodes.new("ShaderNodeBsdfTransparent")

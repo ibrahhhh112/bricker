@@ -354,6 +354,34 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         min=0.0, max=1.0,
         default=0.5,
         update=dirtyMaterial)
+    colorSnapSubsurface = FloatProperty(
+        name="Subsurface Sattering",
+        description="Subsurface scattering value for the created materials",
+        precision=3,
+        min=0.0, max=1.0,
+        default=0.0,
+        update=dirtyMaterial)
+    colorSnapSubsurfaceSaturation = FloatProperty(
+        name="SSS Saturation",
+        description="Saturation of the subsurface scattering for the created materials (relative to base color value)",
+        precision=3,
+        min=0.0, max=10.0,
+        default=0.0,
+        update=dirtyMaterial)
+    colorSnapIOR = FloatProperty(
+        name="IOR",
+        description="IOR value for the created materials",
+        precision=3,
+        min=0.0, max=1000.0,
+        default=1.45,
+        update=dirtyMaterial)
+    colorSnapTransmission = FloatProperty(
+        name="Transmission",
+        description="Transmission value for the created materials",
+        precision=3,
+        min=0.0, max=1.0,
+        default=0.0,
+        update=dirtyMaterial)
     includeTransparency = BoolProperty(
         name="Include Transparency",
         description="Mix diffuse and transparency nodes to represent alpha value of color picked",

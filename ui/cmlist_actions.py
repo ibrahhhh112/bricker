@@ -205,7 +205,7 @@ class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
             scn, cm0, _ = getActiveContextInfo()
             for cm1 in scn.cmlist:
                 if cm0 != cm1:
-                    matchProperties(cm1, cm0, bh=True)
+                    matchProperties(cm1, cm0, overrideIdx=cm1.idx)
         except:
             handle_exception()
         return{'FINISHED'}

@@ -155,7 +155,7 @@ class BrickerDelete(bpy.types.Operator):
         if source is None:
             print("[Bricker] Source object for model could not be found")
         else:
-            select(source, active=source)
+            select(source, active=True)
 
             # apply transformation to source
             if not cm.armature and ((modelType == "MODEL" and (cm.applyToSourceObject or not cm.lastSplitModel)) or (modelType == "ANIMATION" and cm.applyToSourceObject)):

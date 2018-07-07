@@ -106,7 +106,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     randomLoc = cm.randomLoc
     logoType = cm.logoType
     logoScale = cm.logoScale
-    logoInset = cm.logoInset,
+    logoInset = cm.logoInset
     logoResolution = cm.logoResolution
     logoDecimate = cm.logoDecimate
     loopCut = cm.loopCut

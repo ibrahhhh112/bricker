@@ -85,7 +85,7 @@ def updateParentExposure(self, context):
         parentOb = bpy.data.objects.get(cm.parent_name)
         if parentOb:
             safeLink(parentOb, protect=True)
-            select(parentOb, active=parentOb, only=True)
+            select(parentOb, active=True, only=True)
     else:
         parentOb = bpy.data.objects.get(cm.parent_name)
         if parentOb:
@@ -151,6 +151,7 @@ def dirtyBricks(self, context):
 def getCMProps():
     """ returns list of important cmlist properties """
     return ["shellThickness",
+            "brickHeight",
             "studDetail",
             "logoType",
             "logoResolution",
@@ -218,11 +219,10 @@ def getCMProps():
             "bevelProfile"]
 
 
-def matchProperties(cmTo, cmFrom, bh=False):
+def matchProperties(cmTo, cmFrom, overrideIdx=-1):
+    scn = bpy.context.scene
     cm_attrs = getCMProps()
     # remove properties that should not be matched
-    if not bh:
-        cm_attrs.remove("brickHeight")
     if not cmFrom.bevelAdded or not cmTo.bevelAdded:
         cm_attrs.remove("bevelWidth")
         cm_attrs.remove("bevelSegments")
@@ -239,8 +239,11 @@ def matchProperties(cmTo, cmFrom, bh=False):
         for mat in matObjFrom.data.materials:
             matObjTo.data.materials.append(mat)
     # match properties from 'cmFrom' to 'cmTo'
-    scn.cmlist_index = cmTo.idx
+    if overrideIdx >= 0:
+        origIdx = scn.cmlist_index
+        scn.cmlist_index = overrideIdx
     for attr in cm_attrs:
         oldVal = getattr(cmFrom, attr)
         setattr(cmTo, attr, oldVal)
-    scn.cmlist_index = cmFrom.idx
+    if overrideIdx >= 0:
+        scn.cmlist_index = origIdx

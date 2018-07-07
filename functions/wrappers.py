@@ -35,10 +35,7 @@ def timed_call(label, precision=2):
         def wrapped(*args, **kwargs):
             time_beg = time.time()
             ret = fn(*args, **kwargs)
-            time_end = time.time()
-
-            time_delta = time_end - time_beg
-            stopWatch(label, time_delta, precision=precision)
+            stopWatch(label, time_beg, precision=precision)
             return ret
         return wrapped
     return wrapper

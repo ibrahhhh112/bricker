@@ -46,8 +46,9 @@ def bversion():
     return bversion
 
 
-def stopWatch(text, value, precision=2):
+def stopWatch(text, lastTime, precision=2):
     """From seconds to Days;Hours:Minutes;Seconds"""
+    value = time.time()-lastTime
 
     valueD = (((value/365)/24)/60)
     Days = int(valueD)
@@ -366,11 +367,15 @@ def openLayer(layerNum, scn=None):
 
 
 def deselectAll():
-    bpy.ops.object.select_all(action='DESELECT')
+    for obj in bpy.context.selected_objects:
+        if obj.select:
+            obj.select = False
 
 
-def selectAll():
-    bpy.ops.object.select_all(action='SELECT')
+def selectAll(hidden=False):
+    for obj in bpy.context.scene.objects:
+        if not obj.select and (not obj.hide or hidden):
+            obj.select = True
 
 
 def hide(objs):
@@ -392,14 +397,12 @@ def setActiveObj(obj, scene=None):
     scene.objects.active = obj
 
 
-def select(objList=[], active=None, deselect:bool=False, only:bool=False, scene:Scene=None):
+def select(objList, active:bool=False, deselect:bool=False, only:bool=False, scene:Scene=None):
     """ selects objs in list and deselects the rest """
-    # initialize vars
-    if objList is None and active is None:
-        return True
+    # confirm objList is a list of objects
     objList = confirmList(objList)
     # deselect all if selection is exclusive
-    if only and not deselect and len(objList) > 0:
+    if only and not deselect:
         deselectAll()
     # select/deselect objects in list
     for obj in objList:
@@ -407,7 +410,7 @@ def select(objList=[], active=None, deselect:bool=False, only:bool=False, scene:
             obj.select = not deselect
     # set active object
     if active:
-        setActiveObj(objList[0] if type(active) == bool else active, scene=scene)
+        setActiveObj(objList[0], scene=scene)
     return True
 
 
@@ -593,7 +596,7 @@ def update_progress(job_title, progress):
 
 
 def apply_transform(obj):
-    # select(obj, only=True, active=True)
+    # select(obj, active=True, only=True)
     # bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     loc, rot, scale = obj.matrix_world.decompose()
     obj.matrix_world = Matrix.Identity(4)
@@ -607,7 +610,7 @@ def apply_transform(obj):
 
 
 def parent_clear(objs, apply_transform=True):
-    # select(objs, only=True, active=True)
+    # select(objs, active=True, only=True)
     # bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
     objs = confirmIter(objs)
     if apply_transform:

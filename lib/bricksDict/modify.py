@@ -48,8 +48,12 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
     uvImageName = cm.uvImageName
     includeTransparency = cm.includeTransparency
     transWeight = cm.transparentWeight
+    sss = cm.colorSnapSubsurface
+    sssSat = cm.colorSnapSubsurfaceSaturation
     specular = cm.colorSnapSpecular
     roughness = cm.colorSnapRoughness
+    ior = cm.colorSnapIOR
+    transmission = cm.colorSnapTransmission
     colorSnapAmount = cm.colorSnapAmount
     cm_id = cm.id
     # clear materials
@@ -80,7 +84,7 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
             elif colorSnap == "ABS" and len(matObj.data.materials) > 0:
                 matName = findNearestBrickColorName(rgba, transWeight, matObj=matObj)
             elif colorSnap == "RGB" or isSmoke or useUVMap:
-                matName = createNewMaterial(n, rgba, rgba_vals, specular, roughness, colorSnap, colorSnapAmount, includeTransparency, curFrame)
+                matName = createNewMaterial(n, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame)
             if rgba is not None:
                 rgba_vals.append(rgba)
         bricksDict[key]["mat_name"] = matName

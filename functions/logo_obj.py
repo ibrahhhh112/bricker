@@ -36,18 +36,16 @@ def removeDoubles(obj):
     obj.data.update()
 
 
-def getLegoLogo(self, scn, cm, dimensions):
+def getLegoLogo(self, scn, typ, res, decimate, dimensions):
     # update refLogo
-    if cm.logoType == "NONE":
+    if typ == "NONE":
         refLogo = None
     else:
-        r = cm.logoResolution
-        d = cm.logoDecimate
-        refLogoName = "Bricker_LEGO_Logo_%(r)s_%(d)s" % locals()
+        refLogoName = "Bricker_LEGO_Logo_%(res)s_%(decimate)s" % locals()
         refLogo = bpy.data.objects.get(refLogoName)
         if refLogo is None:
             # get logo text reference with current settings
-            logo_txt_ref = getLegoLogoTxtObj(scn, cm, "Bricker_LEGO_Logo_Text")
+            logo_txt_ref = getLegoLogoTxtObj(scn, res, "Bricker_LEGO_Logo_Text")
             # convert logo_txt_ref to mesh
             refLogo = logo_txt_ref.copy()
             refLogo.data = logo_txt_ref.data.copy()
@@ -59,9 +57,9 @@ def getLegoLogo(self, scn, cm, dimensions):
             # remove duplicate verts
             removeDoubles(refLogo)
             # decimate mesh
-            if cm.logoDecimate != 0:
+            if decimate != 0:
                 dMod = refLogo.modifiers.new('Decimate', type='DECIMATE')
-                dMod.ratio = 1 - (cm.logoDecimate / 10)
+                dMod.ratio = 1 - (decimate / 10)
                 m = refLogo.to_mesh(scn, True, 'PREVIEW')
                 refLogo.modifiers.remove(dMod)
                 refLogo.data = m
@@ -78,7 +76,7 @@ def getLEGOStudFont():
         LEGOStudFont = bpy.data.fonts.load(fontPath)
     return LEGOStudFont
 
-def getLegoLogoTxtObj(scn, cm, name):
+def getLegoLogoTxtObj(scn, res, name):
     # get logo_txt_ref from Bricker_storage scene
     logo_txt = bpy.data.objects.get(name)
     if logo_txt is None:
@@ -97,6 +95,6 @@ def getLegoLogoTxtObj(scn, cm, name):
         logo_txt.data.align_y = "CENTER"
         logo_txt.data.space_character = 0.8
     # set logo_txt_ref resolution
-    logo_txt.data.resolution_u = cm.logoResolution - 1
-    logo_txt.data.bevel_resolution = cm.logoResolution - 1
+    logo_txt.data.resolution_u = res - 1
+    logo_txt.data.bevel_resolution = res - 1
     return logo_txt

@@ -57,7 +57,6 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
 
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
     assert loc or key
-    keyError = False
     x, y, z = loc or getDictLoc(bricksDict, key)
     adjKeys = [listToStr((x+1, y, z)),
                listToStr((x-1, y, z)),
@@ -66,27 +65,24 @@ def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
                listToStr((x, y, z+1)),
                listToStr((x, y, z-1))]
     adjBrickVals = []
-    for key in adjKeys.copy():
+    for k in adjKeys.copy():
         try:
-            adjBrickVals.append(bricksDict[key]["val"])
+            adjBrickVals.append(bricksDict[k]["val"])
         except KeyError:
-            adjKeys.remove(key)
-            keyError = True
-    return adjKeys, adjBrickVals, keyError
+            adjKeys.remove(k)
+    return adjKeys, adjBrickVals
 
 
-def setCurBrickVal(bricksDict, loc, action="ADD"):
-    _, adjBrickVals, keyError = getAdjKeysAndBrickVals(bricksDict, loc=loc)
-    if action == "ADD" and (keyError or 0 in adjBrickVals or len(adjBrickVals) == 0 or min(adjBrickVals) == 1):
+def setCurBrickVal(bricksDict, loc, key=None, action="ADD"):
+    key = key or listToStr(loc)
+    _, adjBrickVals = getAdjKeysAndBrickVals(bricksDict, loc=loc)
+    if action == "ADD" and (0 in adjBrickVals or len(adjBrickVals) < 6 or min(adjBrickVals) == 1):
         newVal = 1
-    elif action == "REMOVE" and 0 in adjBrickVals:
-        newVal = 0
     elif action == "REMOVE":
-        newVal = max(adjBrickVals)
+        newVal = 0 if 0 in adjBrickVals or len(adjBrickVals) < 6 else max(adjBrickVals)
     else:
-        highestAdjVal = max(adjBrickVals)
-        newVal = highestAdjVal - 0.01
-    bricksDict[listToStr(loc)]["val"] = newVal
+        newVal = max(adjBrickVals) - 0.01
+    bricksDict[key]["val"] = newVal
 
 
 def verifyBrickExposureAboveAndBelow(scn, zStep, origLoc, bricksDict, decriment=0, zNeg=False, zPos=False):
@@ -183,7 +179,7 @@ def updateBrickSizeAndDict(dimensions, source_name, bricksDict, brickSize, key, 
                     newKey = listToStr(newLoc)
                     bricksDict[newKey]["parent"] = None
                     bricksDict[newKey]["draw"] = False
-                    setCurBrickVal(bricksDict, newLoc, action="REMOVE")
+                    setCurBrickVal(bricksDict, newLoc, newKey, action="REMOVE")
     # adjust brick size if changing type from 1 tall to 3 tall
     elif curHeight == 1 and targetHeight == 3:
         brickSize[2] = 3
@@ -205,7 +201,7 @@ def updateBrickSizeAndDict(dimensions, source_name, bricksDict, brickSize, key, 
                     bricksDict[newKey]["near_face"] = bricksDict[newKey]["near_face"] or brickD["near_face"]
                     bricksDict[newKey]["near_intersection"] = bricksDict[newKey]["near_intersection"] or tuple(brickD["near_intersection"])
                     if bricksDict[newKey]["val"] == 0:
-                        setCurBrickVal(bricksDict, newLoc)
+                        setCurBrickVal(bricksDict, newLoc, newKey)
     return brickSize
 
 

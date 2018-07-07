@@ -357,11 +357,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     colorMatrix = deepcopy(faceIdxMatrix)
     old_percent = 0
     brightness = Vector([(cm.smokeBrightness - 1) / 5]*3)
-    s = cm.smokeSaturation
-    sr = (1 - s) * (0.3086 or 0.2125)
-    sg = (1 - s) * (0.6094 or 0.7154)
-    sb = (1 - s) * (0.0820 or 0.0721)
-    sat_mat = Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))
+    sat_mat = getSaturationMatrix(cm.smokeSaturation)
     step = cm.smokeStep
 
     # get starting and ending idx
@@ -392,7 +388,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     xn0 = domain_res[0] / d.x
     yn0 = domain_res[1] / d.y
     zn0 = domain_res[2] / d.z
-    denom = d.x * d.y * d.z
+    denom = d.x
 
     # initialize variables
     flameIntensity = cm.flameIntensity
@@ -402,7 +398,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     # set up brickFreqMatrix values
     for x in range(int(s_idx[0]), int(e_idx[0])):
         # print status to terminal
-        old_percent = updateProgressBars(printStatus, cursorStatus, (x * y * z) / denom, old_percent, "Shell")
+        old_percent = updateProgressBars(printStatus, cursorStatus, x / denom, old_percent, "Shell")
         for y in range(int(s_idx[1]), int(e_idx[1])):
             for z in range(int(s_idx[2]), int(e_idx[2])):
                 d_acc = 0
@@ -413,9 +409,9 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 x0 = x - int(s_idx[0])
                 y0 = y - int(s_idx[1])
                 z0 = z - int(s_idx[2])
-                xn = (int(xn0 * x0), int(xn0 * (x0 + 1)))
-                yn = (int(yn0 * y0), int(yn0 * (y0 + 1)))
-                zn = (int(zn0 * z0), int(zn0 * (z0 + 1)))
+                xn = [int(xn0 * x0), int(xn0 * (x0 + 1))]
+                yn = [int(yn0 * y0), int(yn0 * (y0 + 1))]
+                zn = [int(zn0 * z0), int(zn0 * (z0 + 1))]
                 xn[1] += 1 if xn[1] - xn[0] == 0 else 0
                 yn[1] += 1 if yn[1] - yn[0] == 0 else 0
                 zn[1] += 1 if zn[1] - zn[0] == 0 else 0
@@ -427,11 +423,11 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                     for y1 in range(yn[0], yn[1], step):
                         for z1 in range(zn[0], zn[1], step):
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
-                            d = density_grid[cur_idx]
+                            _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]
-                            d_acc += d
+                            d_acc += _d
                             f_acc += f
-                            cs_acc += d * Vector((color_grid[cur_idx * 4], color_grid[cur_idx * 4 + 1], color_grid[cur_idx * 4 + 2]))
+                            cs_acc += _d * Vector((color_grid[cur_idx * 4], color_grid[cur_idx * 4 + 1], color_grid[cur_idx * 4 + 2]))
                             cf_acc += Vector(f * flameIntensity * (flameColor * f))
                             ave_denom += 1
                 d_ave = d_acc / ave_denom

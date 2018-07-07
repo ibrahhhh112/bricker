@@ -215,12 +215,12 @@ def getBrickTypes(height):
     return bpy.props.Bricker_legal_brick_sizes[height].keys()
 
 
-def flatBrickType(bt):
-    return "PLATE" in bt or "STUD" in bt
+def flatBrickType(typ):
+    return type(typ) == str and ("PLATE" in typ or "STUD" in typ)
 
 
 def mergableBrickType(typ, up=False):
-    return "PLATE" in typ or "BRICK" in typ or "SLOPE" in typ or (up and typ == "CYLINDER")
+    return type(typ) == str and ("PLATE" in typ or "BRICK" in typ or "SLOPE" in typ or (up and typ == "CYLINDER"))
 
 
 def getTallType(brickD, targetType=None):
@@ -527,3 +527,11 @@ def updateHasCustomObjs(cm, typ):
         cm.hasCustomObj2 = True
     if typ == "CUSTOM 3":
         cm.hasCustomObj3 = True
+
+
+def getSaturationMatrix(s:float):
+    """ returns saturation matrix from saturation value """
+    sr = (1 - s) * 0.3086  # or 0.2125
+    sg = (1 - s) * 0.6094  # or 0.7154
+    sb = (1 - s) * 0.0820  # or 0.0721
+    return Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))

@@ -64,35 +64,13 @@ def handle_animation(scene):
                     brick.hide = not onCurF
                     brick.hide_render = not onCurF
                 if scn.objects.active and scn.objects.active.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
-                    select(brick, active=brick)
+                    select(brick, active=True)
                 # prevent bricks from being selected on frame change
                 elif brick.select:
                     brick.select = False
 
 
 bpy.app.handlers.frame_change_pre.append(handle_animation)
-
-
-# @persistent
-# def makeUpdateButtonsAvailable(scene):
-#     scn = scene
-#     if not brickerIsActive():
-#         return
-#     for i, cm in enumerate(scn.cmlist):
-#         if not cm.modelCreated:
-#             continue
-#         source = bpy.data.objects[cm.source_name)
-#         if is_smoke(source) or source.animation_data is not None:
-#             if is_smoke(source):
-#                 try:
-#                     safeLink(source)
-#                 except:
-#                     pass
-#                 safeUnlink(source)
-#             cm.matrixIsDirty = True
-#
-#
-# bpy.app.handlers.frame_change_post.append(makeUpdateButtonsAvailable)
 
 
 def isObjVisible(scn, cm, n):
@@ -118,9 +96,10 @@ def handle_selections(scene):
     scn = bpy.context.scene
     if not brickerIsActive() or brickerRunningBlockingOp():
         return
+    curLayers = str(list(scn.layers))
     # if scn.layers changes and active object is no longer visible, set scn.cmlist_index to -1
-    if scn.Bricker_last_layers != str(list(scn.layers)):
-        scn.Bricker_last_layers = str(list(scn.layers))
+    if scn.Bricker_last_layers != curLayers:
+        scn.Bricker_last_layers = curLayers
         curObjVisible = False
         if scn.cmlist_index != -1:
             cm0 = scn.cmlist[scn.cmlist_index]
@@ -146,7 +125,7 @@ def handle_selections(scene):
                 n = cm.source_name
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
-                    select(bricks, active=bricks[0], only=True)
+                    select(bricks, active=True, only=True)
                     scn.Bricker_last_active_object_name = scn.objects.active.name
             elif cm.animated:
                 n = cm.source_name
@@ -157,16 +136,15 @@ def handle_selections(scene):
                     cf = cm.startFrame
                 gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
                 if len(bpy.data.groups[gn].objects) > 0:
-                    select(list(bpy.data.groups[gn].objects), active=bpy.data.groups[gn].objects[0], only=True)
+                    select(list(bpy.data.groups[gn].objects), active=True, only=True)
                     scn.Bricker_last_active_object_name = scn.objects.active.name
             else:
-                select(source, active=source, only=True)
+                select(source, active=True, only=True)
             scn.Bricker_last_active_object_name = source.name
         else:
-            for i in range(len(scn.cmlist)):
-                cm = scn.cmlist[i]
+            for i,cm in enumerate(scn.cmlist):
                 if cm.source_name == scn.Bricker_active_object_name:
-                    select(None)
+                    deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
     elif scn.objects.active and scn.Bricker_last_active_object_name != scn.objects.active.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_name != "") and scn.objects.active.type == "MESH":
@@ -184,8 +162,7 @@ def handle_selections(scene):
         else:
             usingSource = True
             scn.Bricker_active_object_name = scn.objects.active.name
-        for i in range(len(scn.cmlist)):
-            cm = scn.cmlist[i]
+        for i,cm in enumerate(scn.cmlist):
             if createdWithUnsupportedVersion(cm) or cm.source_name != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
@@ -198,15 +175,6 @@ def handle_selections(scene):
             return
         # if no matching cmlist item found, set cmlist_index to -1
         scn.cmlist_index = -1
-    # if scn.cmlist_index != -1:
-    #     cm = scn.cmlist[scn.cmlist_index]
-    #     # keep isWaterTight updated
-    #     obj = bpy.data.objects.get(cm.source_name)
-    #     if obj and (len(obj.data.vertices) != cm.objVerts or len(obj.data.polygons) != cm.objPolys or len(obj.data.edges) != cm.objEdges):
-    #         cm.objVerts = len(obj.data.vertices)
-    #         cm.objPolys = len(obj.data.polygons)
-    #         cm.objEdges = len(obj.data.edges)
-    #         cm.isWaterTight = cm.objVerts + cm.objPolys - cm.objEdges == 2
 
 
 bpy.app.handlers.scene_update_pre.append(handle_selections)
@@ -242,24 +210,6 @@ def find_3dview_space():
         space = bpy.context.space_data
 
     return space
-
-
-# @persistent
-# def handle_snapping(scene):
-#     scn = bpy.context.scene
-#     if brickerIsActive() and scn.Bricker_snapping:
-#         # disable regular snapping if enabled
-#         if not scn.tool_settings.use_snap:
-#             scn.tool_settings.use_snap = True
-#
-#         if scn.cmlist_index != -1:
-#             # snap transformations to scale
-#             space = find_3dview_space()
-#             cm = scn.cmlist[scn.cmlist_index]
-#             space.grid_scale = cm.brickHeight + cm.gap
-#
-#
-# bpy.app.handlers.scene_update_pre.append(handle_snapping)
 
 
 # clear light cache before file load

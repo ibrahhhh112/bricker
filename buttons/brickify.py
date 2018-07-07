@@ -99,7 +99,7 @@ class BrickerBrickify(bpy.types.Operator):
                         bpy.data.groups.remove(group)
                 if self.source:
                     self.source.protected = False
-                    select(self.source, active=self.source)
+                    select(self.source, active=True)
                 cm.animated = previously_animated
                 cm.modelCreated = previously_model_created
             print()
@@ -288,6 +288,7 @@ class BrickerBrickify(bpy.types.Operator):
         # create new bricks
         group_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
 
+        ct = time.time()
         bGroup = bpy.data.groups.get(group_name)
         if bGroup:
             self.createdGroups.append(group_name)
@@ -478,7 +479,7 @@ class BrickerBrickify(bpy.types.Operator):
         group_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
         bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
-            select(bricksCreated, active=bricksCreated[0], only=True)
+            select(bricksCreated, active=True, only=True)
         # store current bricksDict to cache
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
         return group_name
@@ -621,7 +622,7 @@ class BrickerBrickify(bpy.types.Operator):
             return
         # select the bricks object unless it's massive
         if not cm.splitModel and len(obj.data.vertices) < 500000:
-            select(obj, active=obj)
+            select(obj, active=True)
         # if model contains armature, lock the location, rotation, and scale of created bricks object
         if not cm.splitModel and cm.armature:
             obj.lock_location = (True, True, True)
@@ -630,16 +631,17 @@ class BrickerBrickify(bpy.types.Operator):
 
     @classmethod
     def getLogo(self, scn, cm, dimensions):
-        if cm.brickType == "CUSTOM" or cm.logoType == "NONE":
+        typ = cm.logoType
+        if cm.brickType == "CUSTOM" or typ == "NONE":
             refLogo = None
             logo_details = None
         else:
-            if cm.logoType == "LEGO":
-                refLogo = getLegoLogo(self, scn, cm, dimensions)
+            if typ == "LEGO":
+                refLogo = getLegoLogo(self, scn, typ, cm.logoResolution, cm.logoDecimate, dimensions)
             else:
                 refLogo = bpy.data.objects.get(cm.logoObjectName)
             # apply transformation to duplicate of logo object and normalize size/position
-            logo_details, refLogo = prepareLogoAndGetDetails(scn, refLogo, cm.logoType, cm.logoScale, dimensions)
+            logo_details, refLogo = prepareLogoAndGetDetails(scn, refLogo, typ, cm.logoScale, dimensions)
         return logo_details, refLogo
 
     def getDuplicateObjects(self, scn, cm, source_name, startFrame, stopFrame):

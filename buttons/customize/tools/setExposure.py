@@ -96,9 +96,9 @@ class setExposure(Operator):
                 # add selected objects to objects to select at the end
                 objsToSelect += bpy.context.selected_objects
             # select the new objects created
+            select(objsToSelect)
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
-            # select the new objects created
-            select(objsToSelect, active=orig_obj)
+            setActiveObj(orig_obj)
         except:
             handle_exception()
         return {"FINISHED"}
