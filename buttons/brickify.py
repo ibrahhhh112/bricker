@@ -534,9 +534,9 @@ class BrickerBrickify(bpy.types.Operator):
                 self.report({"WARNING"}, "Only 'MESH' objects can be Brickified. Please select another object (or press 'ALT-C to convert object to mesh).")
                 return False
             # verify source is not a rigid body
-            if source.rigid_body is not None:
-                self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
-                return False
+            if source.rigid_body is not None and source.rigid_body.type == "ACTIVE":
+                    self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
+                    return False
 
         if self.action in ("ANIMATE", "UPDATE_ANIM"):
             # verify start frame is less than stop frame

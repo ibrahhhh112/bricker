@@ -159,32 +159,34 @@ class BrickModelsPanel(Panel):
                         col.label("your current version.")
                 else:
                     row = col1.row(align=True)
-                    if obj:
-                        row.active = obj.type == 'MESH' and obj.rigid_body is None
-                    else:
-                        row.active = False
+                    row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
                     row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH")
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
-                        col.label("Bake rigid body transforms")
-                        col.label("to keyframes (SPACEBAR >")
-                        col.label("Bake To Keyframes).")
+                        if obj.rigid_body.type == "ACTIVE":
+                            col.label("Bake rigid body transforms")
+                            col.label("to keyframes (SPACEBAR >")
+                            col.label("Bake To Keyframes).")
+                        else:
+                            col.label("Rigid body settings will")
+                            col.label("be lost.")
             # if use animation is not selected, draw modeling options
             else:
                 if not cm.animated and not cm.modelCreated:
                     row = col1.row(align=True)
-                    if obj:
-                        row.active = obj.type == 'MESH' and obj.rigid_body is None
-                    else:
-                        row.active = False
+                    row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
                     row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
-                        col.label("Bake rigid body transforms")
-                        col.label("to keyframes (SPACEBAR >")
-                        col.label("Bake To Keyframes).")
+                        if obj.rigid_body.type == "ACTIVE":
+                            col.label("Bake rigid body transforms")
+                            col.label("to keyframes (SPACEBAR >")
+                            col.label("Bake To Keyframes).")
+                        else:
+                            col.label("Rigid body settings will")
+                            col.label("be lost.")
                 else:
                     row = col1.row(align=True)
                     row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
