@@ -709,10 +709,9 @@ class MaterialsPanel(Panel):
                 if bpy.context.scene.render.engine != 'CYCLES':
                     row = col.row(align=True)
                     row.label("Switch to 'Cycles' for Brick materials")
-                else:
-                    if not brick_materials_loaded():
-                        row = col.row(align=True)
-                        row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                elif not brick_materials_loaded():
+                    row = col.row(align=True)
+                    row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
             if cm.modelCreated or cm.animated:
                 col = layout.column(align=True)
                 row = col.row(align=True)
@@ -783,44 +782,42 @@ class MaterialsPanel(Panel):
                 row.prop(cm, "colorSnapTransmission")
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
-                if not brick_materials_installed:
-                    row.label("'ABS Plastic Materials' not installed")
-                elif scn.render.engine != 'CYCLES':
-                    row.label("Switch to 'Cycles' for ABS Materials")
-                else:
-                    row.prop(cm, "transparentWeight", text="Transparent Weight")
+                row.prop(cm, "transparentWeight", text="Transparent Weight")
 
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
             if matObj is not None:
-                # draw materials UI list and list actions
-                numMats = len(matObj.data.materials)
-                rows = 5 if numMats > 5 else (numMats if numMats > 2 else 2)
-                split = col.split(align=True, percentage=0.85)
-                col1 = split.column(align=True)
-                col1.template_list("MATERIAL_UL_matslots_example", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
-                col1 = split.column(align=True)
-                col1.operator("bricker.mat_list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
-                col1.scale_y = 1 + rows
-                if not brick_materials_installed:
+                if not brick_materials_installed():
                     col.label("'ABS Plastic Materials' not installed")
-                elif not brick_materials_loaded():
-                    col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                elif scn.render.engine != 'CYCLES':
+                    col.label("Switch to 'Cycles' for Brick Materials")
                 else:
-                    col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
-                col = layout.column(align=True)
-                split = col.split(align=True, percentage=0.25)
-                col = split.column(align=True)
-                col.label("Add:")
-                col = split.column(align=True)
-                col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
+                    # draw materials UI list and list actions
+                    numMats = len(matObj.data.materials)
+                    rows = 5 if numMats > 5 else (numMats if numMats > 2 else 2)
+                    split = col.split(align=True, percentage=0.85)
+                    col1 = split.column(align=True)
+                    col1.template_list("MATERIAL_UL_matslots_example", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
+                    col1 = split.column(align=True)
+                    col1.operator("bricker.mat_list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
+                    col1.scale_y = 1 + rows
+                    if not brick_materials_loaded():
+                        col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                    else:
+                        col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
+                    col = layout.column(align=True)
+                    split = col.split(align=True, percentage=0.25)
+                    col = split.column(align=True)
+                    col.label("Add:")
+                    col = split.column(align=True)
+                    col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
 
         if cm.materialType == "SOURCE" and obj and scn.render.engine == "CYCLES" and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0):
             col = layout.column(align=True)
             col.scale_y = 0.5
-            col.label("Based on RGB value of")
+            col.label("Based on RGB value of first")
             col.separator()
-            col.label("first 'Diffuse' node")
+            col.label("'Diffuse' or 'Principled' node")
             col.separator()
             col.separator()
             col.separator()

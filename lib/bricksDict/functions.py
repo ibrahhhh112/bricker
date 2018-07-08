@@ -149,15 +149,13 @@ def getAverage(rgba0:Vector, rgba1:Vector, weight:float):
     return (rgba1 * weight + rgba0) / (weight + 1)
 
 
-def getFirstNode(mat, type="BSDF_DIFFUSE"):
+def getFirstNode(mat, types:list=["BSDF_DIFFUSE"]):
     """ get first node in material of specified type """
     diffuse = None
     mat_nodes = mat.node_tree.nodes
     for node in mat_nodes:
-        if node.type == type:
-            diffuse = node
-            break
-    return diffuse
+        if node.type in types:
+            return node
 
 
 def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
@@ -217,13 +215,13 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
         else:
             if not mat.use_nodes:
                 mat.use_nodes = True
-            diffuse = getFirstNode(mat, type="BSDF_DIFFUSE")
-            if diffuse:
-                rgba1 = diffuse.inputs[0].default_value
+            first_node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"])
+            if first_node:
+                rgba1 = first_node.inputs[0].default_value
                 newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 # if diffuse.inputs[0].is_linked:
                 #     # TODO: read different types of input to the diffuse node
-                diffuse.inputs[0].default_value = newRGBA
+                first_node.inputs[0].default_value = newRGBA
     else:
         if mat_is_new:
             mat.diffuse_color = rgba[:3]
@@ -276,11 +274,10 @@ def getMaterialColor(matName):
     if mat is None:
         return None
     if mat.use_nodes:
-        diffuse = getFirstNode(mat, type="BSDF_DIFFUSE")
-        if diffuse:
-            r, g, b, a = diffuse.inputs[0].default_value
-        else:
+        node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"])
+        if not node:
             return None
+        r, g, b, a = node.inputs[0].default_value
     else:
         r, g, b = mat.diffuse_color
         intensity = mat.diffuse_intensity
