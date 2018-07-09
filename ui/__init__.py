@@ -1026,7 +1026,7 @@ class BrickDetailsPanel(Panel):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
 
-        if cm.matrixIsDirty and cm.lastMatrixSettings != getMatrixSettings():
+        if matrixReallyIsDirty(cm):
             layout.label("Matrix is dirty!")
             return
         if not Caches.cacheExists(cm):

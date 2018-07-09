@@ -253,7 +253,9 @@ def brick_materials_loaded():
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
-    return listToStr((cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes))
+    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
+    smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeStep, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
+    return listToStr(regularSettings + smokeSettings)
 
 
 def matrixReallyIsDirty(cm):

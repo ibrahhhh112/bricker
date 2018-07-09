@@ -82,7 +82,7 @@ def getUVTextureData(obj):
     if len(obj.data.uv_textures) == 0:
         return None
     active_uv = obj.data.uv_textures.active
-    if active_uv is None and len(obj.data.uv_textures) > 0:
+    if active_uv is None:
         obj.data.uv_textures.active = obj.data.uv_textures[0]
         active_uv = obj.data.uv_textures.active
     return active_uv.data
@@ -99,8 +99,11 @@ def getFirstImgTexNode(obj):
         nodes_to_check = [active_node] + list(mat.node_tree.nodes)
         for node in nodes_to_check:
             if node and node.type == "TEX_IMAGE":
-                img = node.image
-                break
+                img = verifyImg(node.image)
+                if img is not None:
+                    break
+        if img is not None:
+            break
     return img
 
 
@@ -113,10 +116,11 @@ def getUVImages(obj):
     images = [uv_tex.image for uv_tex in uv_tex_data] if uv_tex_data else []
     images.append(bpy.data.images.get(cm.uvImageName))
     images.append(getFirstImgTexNode(obj))
+    images = uniquify1(images)
     # store images
     uv_images = {}
     for img in images:
-        if not img or img.name in uv_images or not img.pixels:
+        if verifyImg(img) is None:
             continue
         uv_images[img.name] = (img.size[0],
                                img.size[1],
@@ -241,13 +245,17 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
     return mat_name
 
 
+def verifyImg(im):
+    return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
+
+
 def getUVImage(scn, obj, face_idx, uvImageName):
     """ returns UV image (priority to user settings, then face index, then first one found in object """
-    image = bpy.data.images.get(uvImageName)
-    image = image if image is not None and image.has_data else None
+    image = verifyImg(bpy.data.images.get(uvImageName))
     if image is None and obj.data.uv_textures.active:
-        face_im = obj.data.uv_textures.active.data[face_idx].image
-        image = (face_im if face_im is not None and face_im.has_data else None) or getFirstImgTexNode(obj)
+        image = verifyImg(obj.data.uv_textures.active.data[face_idx].image)
+    if image is None:
+        image = verifyImg(getFirstImgTexNode(obj))
     return image
 
 
