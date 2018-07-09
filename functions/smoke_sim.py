@@ -20,7 +20,7 @@ Created by Christopher Gearhart
 """
 
 # System imports
-# NONE!
+import time
 
 # Addon imports
 from .common import *
@@ -32,17 +32,16 @@ def getSmokeInfo(smoke_obj):
     # Search smoke domain target for smoke modifiers
     for mod in smoke_obj.modifiers:
         if hasattr(mod, "smoke_type") and mod.smoke_type == 'DOMAIN':
-            # Blender version 2.71 supports direct access to smoke data structure
             smoke_data = mod.domain_settings
             break
 
     if smoke_data is not None:
         # get channel data
-        density_grid = list(smoke_data.density_grid)
-        flame_grid = list(smoke_data.flame_grid)
-        color_grid = list(smoke_data.color_grid)
+        density_grid = tuple(smoke_data.density_grid)
+        flame_grid = tuple(smoke_data.flame_grid)
+        color_grid = tuple(smoke_data.color_grid)
         # get resolution
-        domain_res = getAdjustedRes(smoke_data, list(smoke_data.domain_resolution))
+        domain_res = getAdjustedRes(smoke_data, tuple(smoke_data.domain_resolution))
         adapt = smoke_data.use_adaptive_domain
         max_res_i = smoke_data.resolution_max
         max_res = Vector(domain_res) * (max_res_i / max(domain_res))
