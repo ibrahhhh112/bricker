@@ -351,7 +351,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
 
 
 def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, printStatus=True, cursorStatus=False):
-    scn, cm, _ = getActiveContextInfo()
+    cm = getActiveContextInfo()[1]
     density_grid, flame_grid, color_grid, domain_res, max_res, adapt = getSmokeInfo(source)
     brickFreqMatrix = deepcopy(faceIdxMatrix)
     colorMatrix = deepcopy(faceIdxMatrix)
@@ -372,8 +372,8 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
             return brickFreqMatrix, colorMatrix
         start_percent = vec_div(adapt_min - full_min, full_dist)
         end_percent   = vec_div(adapt_max - full_min, full_dist)
-        s_idx = (floor(len(faceIdxMatrix) * start_percent.x), floor(len(faceIdxMatrix[0]) * start_percent.y), floor(len(faceIdxMatrix[0][0]) * start_percent.z))
-        e_idx = ( ceil(len(faceIdxMatrix) * end_percent.x),    ceil(len(faceIdxMatrix[0]) * end_percent.y),    ceil(len(faceIdxMatrix[0][0]) * end_percent.z))
+        s_idx = (len(faceIdxMatrix) * start_percent.x, len(faceIdxMatrix[0]) * start_percent.y, len(faceIdxMatrix[0][0]) * start_percent.z)
+        e_idx = (len(faceIdxMatrix) * end_percent.x,   len(faceIdxMatrix[0]) * end_percent.y,   len(faceIdxMatrix[0][0]) * end_percent.z)
     else:
         s_idx = (0, 0, 0)
         e_idx = (len(faceIdxMatrix), len(faceIdxMatrix[0]), len(faceIdxMatrix[0][0]))
@@ -395,11 +395,11 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     smokeDensity = cm.smokeDensity
 
     # set up brickFreqMatrix values
-    for x in range(s_idx[0], e_idx[0]):
+    for x in range(int(s_idx[0]), int(e_idx[0])):
         # print status to terminal
         old_percent = updateProgressBars(printStatus, cursorStatus, x / denom, old_percent, "Shell")
-        for y in range(s_idx[1], e_idx[1]):
-            for z in range(s_idx[2], e_idx[2]):
+        for y in range(int(s_idx[1]), int(e_idx[1])):
+            for z in range(int(s_idx[2]), int(e_idx[2])):
                 d_acc = 0
                 f_acc = 0
                 cs_acc = Vector((0, 0, 0))
