@@ -253,7 +253,8 @@ class BrickerBrickify(bpy.types.Operator):
             if sourceDup.parent:
                 parent_clear(sourceDup)
             # send to new mesh
-            sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+            if not cm.isSmoke:
+                sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
             # apply transformation data
             # TODO: rewrite the transform apply operator myself
             apply_transform(sourceDup)
@@ -705,7 +706,8 @@ class BrickerBrickify(bpy.types.Operator):
             sourceDup.matrix_world = self.source.matrix_world
             sourceDup.animation_data_clear()
             # send to new mesh
-            sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+            if not cm.isSmoke:
+                sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
             # apply transform data
             apply_transform(sourceDup)
             duplicates[curFrame] = sourceDup

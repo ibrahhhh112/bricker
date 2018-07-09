@@ -372,15 +372,14 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
             return brickFreqMatrix, colorMatrix
         start_percent = vec_div(adapt_min - full_min, full_dist)
         end_percent   = vec_div(adapt_max - full_min, full_dist)
-        s_idx = (len(faceIdxMatrix) * start_percent.x, len(faceIdxMatrix[0]) * start_percent.y, len(faceIdxMatrix[0][0]) * start_percent.z)
-        e_idx = (len(faceIdxMatrix) * end_percent.x,   len(faceIdxMatrix[0]) * end_percent.y,   len(faceIdxMatrix[0][0]) * end_percent.z)
+        s_idx = (floor(len(faceIdxMatrix) * start_percent.x), floor(len(faceIdxMatrix[0]) * start_percent.y), floor(len(faceIdxMatrix[0][0]) * start_percent.z))
+        e_idx = ( ceil(len(faceIdxMatrix) * end_percent.x),    ceil(len(faceIdxMatrix[0]) * end_percent.y),    ceil(len(faceIdxMatrix[0][0]) * end_percent.z))
     else:
         s_idx = (0, 0, 0)
         e_idx = (len(faceIdxMatrix), len(faceIdxMatrix[0]), len(faceIdxMatrix[0][0]))
 
     # get number of iterations from s_idx to e_idx for x, y, z
-    d = Vector((int(e_idx[0]) - int(s_idx[0]), int(e_idx[1]) - int(s_idx[1]), int(e_idx[2]) - int(s_idx[2])))
-    d = Vector((int(e_idx[0]) - int(s_idx[0]), int(e_idx[1]) - int(s_idx[1]), int(e_idx[2]) - int(s_idx[2])))
+    d = Vector((e_idx[0] - s_idx[0], e_idx[1] - s_idx[1], e_idx[2] - s_idx[2]))
     # verify bounding box is larger than 0 in all directions
     if 0 in d:
         return brickFreqMatrix, colorMatrix
@@ -396,28 +395,25 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     smokeDensity = cm.smokeDensity
 
     # set up brickFreqMatrix values
-    for x in range(int(s_idx[0]), int(e_idx[0])):
+    for x in range(s_idx[0], e_idx[0]):
         # print status to terminal
         old_percent = updateProgressBars(printStatus, cursorStatus, x / denom, old_percent, "Shell")
-        for y in range(int(s_idx[1]), int(e_idx[1])):
-            for z in range(int(s_idx[2]), int(e_idx[2])):
+        for y in range(s_idx[1], e_idx[1]):
+            for z in range(s_idx[2], e_idx[2]):
                 d_acc = 0
                 f_acc = 0
                 cs_acc = Vector((0, 0, 0))
                 cf_acc = Vector((0, 0, 0))
                 # get indices for
-                x0 = x - int(s_idx[0])
-                y0 = y - int(s_idx[1])
-                z0 = z - int(s_idx[2])
+                x0 = x - s_idx[0]
+                y0 = y - s_idx[1]
+                z0 = z - s_idx[2]
                 xn = [int(xn0 * x0), int(xn0 * (x0 + 1))]
                 yn = [int(yn0 * y0), int(yn0 * (y0 + 1))]
                 zn = [int(zn0 * z0), int(zn0 * (z0 + 1))]
-                xn[1] += 1 if xn[1] - xn[0] == 0 else 0
-                yn[1] += 1 if yn[1] - yn[0] == 0 else 0
-                zn[1] += 1 if zn[1] - zn[0] == 0 else 0
-                xn[1] = xn[1] + 1 if xn[1] == xn[0] and xn[0] < domain_res[0] else xn[1]
-                yn[1] = yn[1] + 1 if yn[1] == yn[0] and yn[0] < domain_res[1] else yn[1]
-                zn[1] = zn[1] + 1 if zn[1] == zn[0] and zn[0] < domain_res[2] else zn[1]
+                xn[1] += 1 if xn[1] == xn[0] else 0
+                yn[1] += 1 if yn[1] == yn[0] else 0
+                zn[1] += 1 if zn[1] == zn[0] else 0
                 ave_denom = 0
                 for x1 in range(xn[0], xn[1], step):
                     for y1 in range(yn[0], yn[1], step):
@@ -427,8 +423,9 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                             f = flame_grid[cur_idx]
                             d_acc += _d
                             f_acc += f
-                            cs_acc += _d * Vector((color_grid[cur_idx * 4], color_grid[cur_idx * 4 + 1], color_grid[cur_idx * 4 + 2]))
-                            cf_acc += Vector(f * flameIntensity * (flameColor * f))
+                            cur_idx_ext = cur_idx * 4
+                            cs_acc += _d * Vector((color_grid[cur_idx_ext], color_grid[cur_idx_ext + 1], color_grid[cur_idx_ext + 2]))
+                            cf_acc += Vector(f * flameIntensity * f * flameColor)
                             ave_denom += 1
                 d_ave = d_acc / ave_denom
                 f_ave = f_acc / ave_denom
