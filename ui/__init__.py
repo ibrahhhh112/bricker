@@ -769,19 +769,6 @@ class MaterialsPanel(Panel):
             if cm.colorSnap == "RGB":
                 row = col.row(align=True)
                 row.prop(cm, "colorSnapAmount")
-                col = layout.column(align=True)
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSpecular")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapRoughness")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSubsurface")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSubsurfaceSaturation")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapIOR")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapTransmission")
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
@@ -814,15 +801,34 @@ class MaterialsPanel(Panel):
                     col = split.column(align=True)
                     col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
 
-        if cm.materialType == "SOURCE" and obj and scn.render.engine == "CYCLES" and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0):
-            col = layout.column(align=True)
-            col.scale_y = 0.5
-            col.label("Based on RGB value of first")
-            col.separator()
-            col.label("'Diffuse' or 'Principled' node")
-            col.separator()
-            col.separator()
-            col.separator()
+        if cm.materialType == "SOURCE" and obj:
+            noUV = scn.render.engine == "CYCLES" and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0)
+            if noUV:
+                col = layout.column(align=True)
+                col.scale_y = 0.5
+                col.label("Based on RGB value of first")
+                col.separator()
+                col.label("'Diffuse' or 'Principled' node")
+            if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
+                col = layout.column(align=True)
+                col.label("Material Properties:")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapSpecular")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapRoughness")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapSubsurface")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapSubsurfaceSaturation")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapIOR")
+                row = col.row(align=True)
+                row.prop(cm, "colorSnapTransmission")
+            elif noUV:
+                col.separator()
+                col.separator()
+                col.separator()
+
 
 
 class DetailingPanel(Panel):
