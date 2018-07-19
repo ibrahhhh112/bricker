@@ -627,7 +627,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     animIsDirty = BoolProperty(default=True)
     materialIsDirty = BoolProperty(default=True)
     modelIsDirty = BoolProperty(default=True)
-    buildIsDirty = BoolProperty(default=True)
+    buildIsDirty = BoolProperty(default=False)
     bricksAreDirty = BoolProperty(default=True)
     matrixIsDirty = BoolProperty(default=True)
     matrixLost = BoolProperty(default=False)

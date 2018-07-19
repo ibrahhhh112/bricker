@@ -135,6 +135,12 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     # set number of times to run through all keys
     numIters = 2 if brickType == "BRICKS AND PLATES" else 1
     i = 0
+    # set exposure of brick locs
+    if buildIsDirty:
+        for key in keys:
+            if not bricksDict[key]["draw"]:
+                continue
+            setBrickExposure(bricksDict, key)
     # if merging unnecessary, simply update bricksDict values
     if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
         size = [1, 1, zStep]
@@ -143,7 +149,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         for key in keys:
             bricksDict[key]["parent"] = "self"
             bricksDict[key]["size"] = size.copy()
-            setAllBrickExposures(bricksDict, zStep, key)
             setFlippedAndRotated(bricksDict, key, [key])
             if bricksDict[key]["type"] == "SLOPE" and brickType == "SLOPES":
                 setBrickTypeForSlope(bricksDict, key, [key])

@@ -45,11 +45,11 @@ from ..lib.caches import bricker_bm_cache
 
 def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, brickType, split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
-    # check exposure of current [merged] brick
-    if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
-        topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
-    else:
-        topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
+    # # check exposure of current [merged] brick
+    # if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
+    #     topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
+    # else:
+    topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
 
     # get brick material
     mat = getMaterial(cm, bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
