@@ -379,7 +379,7 @@ class BrickerDelete(bpy.types.Operator):
         cm.animIsDirty = True
         cm.materialIsDirty = True
         cm.modelIsDirty = True
-        cm.buildIsDirty = True
+        cm.buildIsDirty = False
         cm.matrixIsDirty = True
         cm.bricksAreDirty = True
         cm.armature = False
