@@ -70,6 +70,7 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
         # get RGBA value at nearest face intersection
         if isSmoke:
             rgba = bricksDict[key]["rgba"]
+            matName = ""
         else:
             ni = Vector(bricksDict[key]["near_intersection"])
             rgba, matName = getBrickRGBA(scn, source, nf, ni, uv_images, uvImageName)
@@ -170,17 +171,32 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
     return brickSize
 
 
-def getNumAlignedEdges(bricksDict, size, key, loc, zStep=None):
+def getNumAlignedEdges(bricksDict, size, key, loc, zStep=None, bricksAndPlates=False):
     numAlignedEdges = 0
     locs = getLocsInBrick(bricksDict, size, 1, key, loc)
     gotOne = False
 
     for l in locs:
+        # factor in height of brick (encourages)
+        if bricksAndPlates and False:
+            k0 = listToStr(l)
+            try:
+                p_brick0 = bricksDict[k0]["parent"]
+            except KeyError:
+                continue
+            if p_brick0 == "self":
+                p_brick0 = k
+            if p_brick0 is None:
+                continue
+            p_brick_sz0 = bricksDict[p_brick0]["size"]
+            numAlignedEdges -= p_brick_sz0[2] / 3
+        # check number of aligned edges
         l[2] -= 1
         k = listToStr(l)
-        if k not in bricksDict:
+        try:
+            p_brick = bricksDict[k]["parent"]
+        except KeyError:
             continue
-        p_brick = bricksDict[k]["parent"]
         if p_brick == "self":
             p_brick = k
         if p_brick is None:

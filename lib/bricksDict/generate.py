@@ -207,7 +207,7 @@ def addColumnSupports(bricksDict, keys, thickness, step):
             y % step < colThickness):
             bricksDict[key]["draw"] = True
 
-def addLatticeSupports(bricksDict, keys, step, alternateXY):
+def addLatticeSupports(bricksDict, keys, step, height, alternateXY):
     """ update bricksDict internal entries to draw lattice supports
     bricksDict  -- dictionary with brick information at each lattice coordinate
     keys        -- keys to test in bricksDict
@@ -218,9 +218,10 @@ def addLatticeSupports(bricksDict, keys, step, alternateXY):
         if not isInternal(bricksDict, key):
             continue
         x,y,z = getDictLoc(bricksDict, key)
-        if x % step == 0 and (not alternateXY or z % 2 == 0):
+        z0 = (floor(z / height) if alternateXY else z) % 2
+        if x % step == 0 and (not alternateXY or z0 == 0):
             bricksDict[key]["draw"] = True
-        elif y % step == 0 and (not alternateXY or z % 2 == 1):
+        elif y % step == 0 and (not alternateXY or z0 == 1):
             bricksDict[key]["draw"] = True
 
 def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
@@ -245,7 +246,7 @@ def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
         addColumnSupports(bricksDict, keys, cm.colThickness, cm.colStep)
     # draw lattice supports
     elif cm.internalSupports == "LATTICE":
-        addLatticeSupports(bricksDict, keys, cm.latticeStep, cm.alternateXY)
+        addLatticeSupports(bricksDict, keys, cm.latticeStep, cm.latticeHeight, cm.alternateXY)
 
 def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", printStatus=True, cursorStatus=False):
     """ returns new brickFreqMatrix """

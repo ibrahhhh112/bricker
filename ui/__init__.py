@@ -67,6 +67,8 @@ class BasicMenu(bpy.types.Menu):
         layout.operator("cmlist.copy_to_others", icon="COPY_ID", text="Copy Settings to Others")
         layout.operator("cmlist.copy_settings", icon="COPYDOWN", text="Copy Settings")
         layout.operator("cmlist.paste_settings", icon="PASTEDOWN", text="Paste Settings")
+        layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
+        layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
 
 
 class BrickModelsPanel(Panel):
@@ -523,12 +525,6 @@ class BrickTypesPanel(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
             row.prop(cm, "legalBricksOnly")
-            if cm.brickType == "BRICKS AND PLATES":
-                row = col.row(align=True)
-                row.prop(cm, "alignBricks")
-                if cm.alignBricks:
-                    row = col.row(align=True)
-                    row.prop(cm, "offsetBrickLayers")
 
         if cm.brickType == "CUSTOM":
             col = layout.column(align=True)
@@ -586,6 +582,13 @@ class MergeSettingsPanel(Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(cm, "mergeInconsistentMats")
+        if cm.brickType == "BRICKS AND PLATES":
+            row = col.row(align=True)
+            row.prop(cm, "alignBricks")
+            if cm.alignBricks:
+                row = col.row(align=True)
+                row.prop(cm, "offsetBrickLayers")
+
 
 
 class CustomizeModel(Panel):
@@ -746,7 +749,7 @@ class MaterialsPanel(Panel):
                 col.scale_y = 0.7
                 col.label("(Vertex colors not supported)")
             if cm.shellThickness > 1 or cm.internalSupports != "NONE":
-                if len(obj.data.uv_layers) <= 0:
+                if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
                     col = layout.column(align=True)
                 row = col.row(align=True)
                 row.label("Internal Material:")
@@ -941,6 +944,9 @@ class SupportsPanel(Panel):
         row = col.row(align=True)
         if cm.internalSupports == "LATTICE":
             row.prop(cm, "latticeStep")
+            row = col.row(align=True)
+            row.active == cm.latticeStep > 1
+            row.prop(cm, "latticeHeight")
             row = col.row(align=True)
             row.prop(cm, "alternateXY")
         elif cm.internalSupports == "COLUMNS":

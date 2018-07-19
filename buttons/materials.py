@@ -126,6 +126,8 @@ class BrickerApplyMaterial(bpy.types.Operator):
             # update bricksDict mat_name values for not split models
             if self.action == "CUSTOM" and not cm.lastSplitModel:
                 for k in bricksDict.keys():
+                    print(k)
+                    print(bricksDict[k])
                     if bricksDict[k]["draw"] and bricksDict[k]["parent"] == "self":
                         bricksDict[k]["mat_name"] = matName
 

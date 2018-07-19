@@ -101,7 +101,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         step=1,
         precision=3,
         min=0, max=1,
-        default=0.01)
+        default=0.005)
     mergeSeed = IntProperty(
         name="Random Seed",
         description="Random seed for brick merging calculations",
@@ -204,7 +204,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Type of brick used to build the model",
         items=[("STUD_HOLLOWS", "Hollow Studs", description),
                ("STUDS", "Studs", description),
-               # ("SLOPES", "Slopes (fast)", description),
+               ("SLOPES", "Slopes (fast)", description),
                ("PLATES", "Plates", description),
                ("CYLINDERS", "Cylinders", description),
                ("CUSTOM", "Custom", "Use custom object to build the model"),
@@ -461,18 +461,18 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         name="Underside Detailing of Obstructed Bricks",
         description="Level of detail on underside of obstructed bricks",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
-               ("LOW", "Low", "Draw minimal details on brick underside"),
-               ("MEDIUM", "Medium", "Draw adequate details on brick underside"),
-               ("HIGH", "High", "Draw true-to-life details on brick underside")],
+               ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
+               ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
+               ("HIGH", "High", "Draw support ticks on 2 by x bricks")],
         update=dirtyBricks,
         default="FLAT")
     exposedUndersideDetail = EnumProperty(
         name="Underside Detailing of Exposed Bricks",
         description="Level of detail on underside of exposed bricks",
-        items=[("FLAT", "Flat", "Draw single face on brick underside"),
-               ("LOW", "Low", "Draw minimal details on brick underside"),
-               ("MEDIUM", "Medium", "Draw adequate details on brick underside"),
-               ("HIGH", "High", "Draw true-to-life details on brick underside")],
+        items=[("FLAT", "Flat", "draw single face on brick underside"),
+               ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
+               ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
+               ("HIGH", "High", "Draw support ticks on 2 by x bricks")],
         update=dirtyBricks,
         default="FLAT")
     circleVerts = IntProperty(
@@ -525,6 +525,13 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         step=1,
         min=2, max=25,
         default=4)
+    latticeHeight = IntProperty(
+        name="Height",
+        description="Height of the cross-beams",
+        update=dirtyInternal,
+        step=1,
+        min=1, max=3,
+        default=1)
     alternateXY = BoolProperty(
         name="Alternate X and Y",
         description="Alternate back-and-forth and side-to-side beams",

@@ -90,6 +90,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     cm_id = cm.id
     buildIsDirty = cm.buildIsDirty
     brickType = cm.brickType
+    bricksAndPlates = brickType == "BRICKS AND PLATES"
     maxWidth = cm.maxWidth
     maxDepth = cm.maxDepth
     legalBricksOnly = cm.legalBricksOnly
@@ -199,7 +200,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:
-                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, zStep)
+                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, zStep, bricksAndPlates)
                             numBricks += 1
 
                         # print status to terminal and cursor

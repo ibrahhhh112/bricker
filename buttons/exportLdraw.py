@@ -66,7 +66,7 @@ class exportLdraw(Operator):
         legalBricks = getLegalBricks()
         absMatCodes = getAbsPlasticMatCodes()
         zStep = getZStep(cm)
-        for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [scn.frame_current]:
+        for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
             path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
             if errorMsg is not None:
                 self.report({"WARNING"}, errorMsg)

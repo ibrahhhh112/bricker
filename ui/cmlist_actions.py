@@ -260,6 +260,32 @@ class Bricker_Uilist_pasteSettings(bpy.types.Operator):
         return{'FINISHED'}
 
 
+# select bricks from current model
+class Bricker_Uilist_selectBricks(bpy.types.Operator):
+    bl_idname = "cmlist.select_bricks"
+    bl_label = "Select All Bricks in Current Brick Model"
+    bl_description = "Select all bricks in the current model"
+
+    @classmethod
+    def poll(self, context):
+        """ ensures operator can execute (if not, returns false) """
+        scn = context.scene
+        if scn.cmlist_index == -1:
+            return False
+        cm = scn.cmlist[scn.cmlist_index]
+        return cm.animated or cm.modelCreated
+
+    deselect = BoolProperty(default=False)
+
+    def execute(self, context):
+        try:
+            print(self.deselect)
+            select(getBricks(), deselect=self.deselect)
+        except:
+            handle_exception()
+        return{'FINISHED'}
+
+
 # -------------------------------------------------------------------
 # draw
 # -------------------------------------------------------------------
