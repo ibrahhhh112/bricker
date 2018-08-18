@@ -2,7 +2,7 @@
 
 Bricker is an addon for Blender designed to streamline and, in many cases, automate the modeling, animation, and simulation workflow for LEGO bricks.
 
-![Bricker Sphere](https://flic.kr/p/296L8JW)
+![Bricker Sphere](https://farm2.staticflickr.com/1816/43384740134_3e03c9f125_b.jpg)
 
 This is useful for stop motion animators wishing to add brick simulations (fire, water, smoke, etc.) or set extensions to their work. It can also be useful for LEGO sculptors and model builders as a modeling and pre-visualization tool (the model can then be exported to LDR for printing instructions). The models are also optimized for 3D printing!
 
