@@ -6,8 +6,8 @@ bl_info = {
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "",  # used for warning icon and text in addons panel
-    "wiki_url"    : "https://www.blendermarket.com/products/rebrickr/",
-    "tracker_url" : "https://github.com/bblanimation/rebrickr/issues",
+    "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
+    "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
 developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button

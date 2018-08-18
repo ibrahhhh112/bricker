@@ -893,12 +893,12 @@ def register(bl_info):
 	updater.user = "bblanimation"
 
 	# choose your own repository, must match github name
-	updater.repo = "rebrickr"
+	updater.repo = "bricker"
 
 	#updater.addon = # define at top of module, MUST be done first
 
 	# Website for manual addon download, optional but recommended to set
-	updater.website = "https://github.com/bblanimation/rebrickr"
+	updater.website = "https://github.com/bblanimation/bricker"
 
 	# used to check/compare versions
 	updater.current_version = bl_info["version"]
