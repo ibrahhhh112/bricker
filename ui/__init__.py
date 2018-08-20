@@ -87,6 +87,10 @@ class BrickModelsPanel(Panel):
         layout = self.layout
         scn = context.scene
 
+        # Call to check for update in background
+        # Internally also checks to see if auto-check enabled
+        # and if the time interval has passed
+        addon_updater_ops.check_for_update_background()
         # draw auto-updater update box
         addon_updater_ops.update_notice_box_ui(self, context)
 

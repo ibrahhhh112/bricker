@@ -61,7 +61,7 @@ class BrickerPreferences(AddonPreferences):
 
         # draw addon prefs
         prefs = bpy.props.bricker_preferences
-        row.prop(prefs, "printStatus")
+        # row.prop(prefs, "printStatus")
 
         # updater draw function
         addon_updater_ops.update_settings_ui(self,context)
