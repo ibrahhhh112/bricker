@@ -224,7 +224,7 @@ def makeSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bool, dire
             addInnerCylinders(dimensions, [1] + adjustedBrickSize[1:], circleVerts, d, edgeXp, edgeXn, edgeYp, edgeYn, bme, loopCut=loopCut)
 
 
-    # # translate slope to adjust for flipped brick
+    # translate slope to adjust for flipped brick
     for v in bme.verts:
         v.co.y -= d.y * (scalar.y - 1) if direction in ("X-", "Y+") else 0
         v.co.x -= d.x * (scalar.x - 1) if direction in ("X-", "Y-") else 0

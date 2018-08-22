@@ -66,16 +66,19 @@ def getCachedFrames(obj, point_cache):
     name = cacheName(obj, point_cache)
     index = "%02i" % point_cache.index
 
+    # protect against nonexistent cache
+    if not os.path.exists(cache_path):
+        return []
+
     # assemble list of cached frames
-    if os.path.exists(cache_path):
-        pattern = re.compile(name + "_([0-9]+)_" + index + "\.bphys")
-        cache_frames = []
-        for cache_file in sorted(os.listdir(cache_path)):
-            match = pattern.match(cache_file)
-            if match:
-                cache_frame = int(match.groups()[0])
-                cache_frames.append(cache_frame)  # also can include 'cache_file' cache file name in tuple if desired
-        cache_frames.sort()
+    pattern = re.compile(name + "_([0-9]+)_" + index + "\.bphys")
+    cache_frames = []
+    for cache_file in sorted(os.listdir(cache_path)):
+        match = pattern.match(cache_file)
+        if match:
+            cache_frame = int(match.groups()[0])
+            cache_frames.append(cache_frame)  # also can include 'cache_file' cache file name in tuple if desired
+    cache_frames.sort()
 
     # send cache files back to memory
     if not use_disk_cache:

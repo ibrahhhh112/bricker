@@ -665,6 +665,7 @@ class BrickerBrickify(bpy.types.Operator):
         #     storeRigidBodySettings(self.source)
 
         # step through uncached frames to run simulation
+        print("HERE1" + "*"*100)
         if soft_body or smoke:
             firstUncachedFrame = getFirstUncachedFrame(self.source, point_cache)
             for curFrame in range(firstUncachedFrame, startFrame):

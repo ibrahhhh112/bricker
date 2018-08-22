@@ -10,7 +10,7 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
 
 """
