@@ -142,7 +142,7 @@ def addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edg
                 select(innerCylinderVerts["mid"])
             botVertsD = createVertListDict(innerCylinderVerts["bottom"])
             botVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = botVertsD
-    connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, botVertsDofDs, xNum, yNum, bme, step=1)
+    connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, botVertsDofDs, xNum, yNum, bme)
 
 
 def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=None, edgeXn=None, edgeYp=None, edgeYn=None, hollow=False, botFace=True, loopCut=False):
@@ -168,15 +168,16 @@ def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=
                 topVertsD = createVertListDict2(studVerts["outer"]["bottom"] if hollow else studVerts["bottom"])
                 topVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = topVertsD
     if edgeXp is not None:
-        connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, topVertsDofDs, xNum, yNum, bme, step=-1)
+        connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, topVertsDofDs, xNum, yNum, bme, flipNormals=True)
     return studVerts
 
 
-def connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, vertsDofDs, xNum, yNum, bme, step=1):
+def connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, vertsDofDs, xNum, yNum, bme, flipNormals=False):
     # joinVerts = {"Y+":[v7, v8], "Y-":[v6, v5], "X+":[v7, v6], "X-":[v8, v5]}
     thickZ = dimensions["thickness"]
     sX = brickSize[0]
     sY = brickSize[1]
+    step = -1 if flipNormals else 1
     # Make corner faces if few cylinder verts
     v5 = edgeYn[-1]
     v6 = edgeYn[0]
@@ -273,7 +274,7 @@ def connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, e
             bme.faces.new(verts[::-step])
 
 
-def addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, nno, npo, ppo, pno, nni, npi, ppi, pni, nnt, npt, ppt, pnt, bme):
+def addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, bme, nno=None, npo=None, ppo=None, pno=None, nni=None, npi=None, ppi=None, pni=None, nnt=None, npt=None, ppt=None, pnt=None, sideMarks=True):
     # for edge vert refs, n=negative, p=positive, o=outer, i=inner, t=top
     joinVerts = {"X-":[npi, npo, nno, nni], "X+":[ppi, ppo, pno, pni], "Y-":[pni, pno, nno, nni], "Y+":[ppi, ppo, npo, npi]}
     lastSideVerts = {"X-":[nnt, nni], "X+":[pni, pnt], "Y-":[nni, nnt], "Y+":[npt, npi]}
@@ -284,7 +285,7 @@ def addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, nno, npo,
             # initialize z
             z1 = -d.z
             z2 = d.z - thick.z
-            if xNum == 0:
+            if xNum == 0 and sideMarks:
                 # initialize x, y
                 x1 = -d.x + thick.x
                 x2 = -d.x + thick.x + dimensions["tick_depth"]
@@ -308,7 +309,7 @@ def addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, nno, npo,
                 bme.faces.new([v6, v4] + lastSideVerts["X+"])
                 lastSideVerts["X+"] = [v3, v7]
                 bottomVerts["X+"] += [v6, v5, v8, v7]
-            if yNum == 0:
+            if yNum == 0 and sideMarks:
                 # initialize x, y
                 y1 = -d.y + thick.y
                 y2 = -d.y + thick.y + dimensions["tick_depth"]
@@ -320,7 +321,7 @@ def addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, nno, npo,
                 bme.faces.new([v5, v1] + lastSideVerts["Y-"])
                 lastSideVerts["Y-"] = [v4, v6]
                 bottomVerts["Y-"] += [v5, v8, v7, v6]
-            elif yNum == brickSize[1]-1:
+            elif yNum == brickSize[1]-1 and sideMarks:
                 # initialize x, y
                 x1 = xNum * d.x * 2 - dimensions["tick_width"] / 2
                 x2 = xNum * d.x * 2 + dimensions["tick_width"] / 2
@@ -335,14 +336,15 @@ def addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, nno, npo,
                 bottomVerts["Y+"] += [v8, v5, v6, v7]
 
     # draw faces between ticks and base
-    bme.faces.new(joinVerts["X-"][::-1])
     bme.faces.new(joinVerts["X+"])
-    bme.faces.new(joinVerts["Y-"])
-    bme.faces.new(joinVerts["Y+"][::-1])
-    bme.faces.new([npi, npt] + lastSideVerts["X-"])
     bme.faces.new([ppt, ppi] + lastSideVerts["X+"])
-    bme.faces.new([pnt, pni] + lastSideVerts["Y-"])
-    bme.faces.new([ppi, ppt] + lastSideVerts["Y+"])
+    if sideMarks:
+        bme.faces.new(joinVerts["X-"][::-1])
+        bme.faces.new([npi, npt] + lastSideVerts["X-"])
+        bme.faces.new(joinVerts["Y-"])
+        bme.faces.new(joinVerts["Y+"][::-1])
+        bme.faces.new([pnt, pni] + lastSideVerts["Y-"])
+        bme.faces.new([ppi, ppt] + lastSideVerts["Y+"])
 
     return bottomVerts
 

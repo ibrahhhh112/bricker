@@ -293,6 +293,7 @@ def rreplace(s, old, new, occurrence=1):
 
 
 def round_nearest(num, divisor):
+    """ round to nearest multiple of 'divisor' """
     rem = num % divisor
     if rem > divisor / 2:
         return round_up(num, divisor)
@@ -301,10 +302,12 @@ def round_nearest(num, divisor):
 
 
 def round_up(num, divisor):
+    """ round up to nearest multiple of 'divisor' """
     return num + divisor - (num % divisor)
 
 
 def round_down(num, divisor):
+    """ round down to nearest multiple of 'divisor' """
     return num - (num % divisor)
 
 

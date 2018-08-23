@@ -180,21 +180,22 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
     return bme, {"bottom":botVerts[::-1], "top":topVerts, "mid":midVerts}
 
 
-def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, loopCut:bool=False, loopCutTop:bool=False, bme:bmesh=None):
+def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, loopCut:bool=False, loopCutTop:bool=False, flipNormals:bool=False, bme:bmesh=None):
     """
     create a tube with bmesh
 
     Keyword Arguments:
-        r          -- radius of inner cylinder
-        h          -- height of cylinder
-        t          -- thickness of tube
-        N          -- number of verts per circle
-        co         -- coordinate of cylinder's center
-        botFace    -- create face on bottom of cylinder
-        topFace    -- create face on top of cylinder
-        loopCut    -- Add loop cut to cylinders
-        loopCutTop -- Add loop cut to top/bottom connected circles
-        bme        -- bmesh object in which to create verts
+        r           -- radius of inner cylinder
+        h           -- height of cylinder
+        t           -- thickness of tube
+        N           -- number of verts per circle
+        co          -- coordinate of cylinder's center
+        botFace     -- create face on bottom of cylinder
+        topFace     -- create face on top of cylinder
+        loopCut     -- Add loop cut to cylinders
+        loopCutTop  -- Add loop cut to top/bottom connected circles
+        flipNormals -- flip normals of cylinder
+        bme         -- bmesh object in which to create verts
 
     """
     # create new bmesh object
@@ -202,29 +203,29 @@ def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFac
         bme = bmesh.new()
 
     # create upper and lower circles
-    bme, innerVerts = makeCylinder(r, h, N, co=co, botFace=False, topFace=False, flipNormals=True, loopCut=loopCut, bme=bme)
-    bme, outerVerts = makeCylinder(r + t, h, N, co=co, botFace=False, topFace=False, loopCut=loopCut, bme=bme)
+    bme, innerVerts = makeCylinder(r, h, N, co=co, botFace=False, topFace=False, flipNormals=not flipNormals, loopCut=loopCut, bme=bme)
+    bme, outerVerts = makeCylinder(r + t, h, N, co=co, botFace=False, topFace=False, flipNormals=flipNormals, loopCut=loopCut, bme=bme)
     if topFace:
         if loopCutTop:
             circleVerts = makeCircle(r + (t / 2), N, co=Vector((co.x, co.y, co.z + h / 2)), face=False, bme=bme)
-            connectCircles(outerVerts["top"], circleVerts[::-1], bme)
-            connectCircles(circleVerts[::-1], innerVerts["top"], bme)
+            connectCircles(outerVerts["top"], circleVerts[::-1], bme, flipNormals=flipNormals)
+            connectCircles(circleVerts[::-1], innerVerts["top"], bme, flipNormals=flipNormals)
             select(circleVerts)
         else:
-            connectCircles(outerVerts["top"], innerVerts["top"], bme)
+            connectCircles(outerVerts["top"], innerVerts["top"], bme, flipNormals=flipNormals)
     if botFace:
         if loopCutTop:
             circleVerts = makeCircle(r + (t / 2), N, co=Vector((co.x, co.y, co.z - h / 2)), face=False, bme=bme)
-            connectCircles(outerVerts["bottom"], circleVerts[::-1], bme)
-            connectCircles(circleVerts[::-1], innerVerts["bottom"], bme)
+            connectCircles(outerVerts["bottom"], circleVerts[::-1], bme, flipNormals=flipNormals)
+            connectCircles(circleVerts[::-1], innerVerts["bottom"], bme, flipNormals=flipNormals)
             select(circleVerts)
         else:
-            connectCircles(outerVerts["bottom"], innerVerts["bottom"], bme)
+            connectCircles(outerVerts["bottom"], innerVerts["bottom"], bme, flipNormals=flipNormals)
     # return bmesh
     return bme, {"outer":outerVerts, "inner":innerVerts}
 
 
-def connectCircles(circle1, circle2, bme, offset=0, smooth=True):
+def connectCircles(circle1, circle2, bme, offset=0, flipNormals=False, smooth=True):
     assert offset < len(circle1) - 1 and offset >= 0
     faces = []
     for v in range(len(circle1)):
@@ -232,7 +233,7 @@ def connectCircles(circle1, circle2, bme, offset=0, smooth=True):
         v2 = circle2[v]
         v3 = circle2[(v-1)]
         v4 = circle1[(v-1) - offset]
-        f = bme.faces.new((v1, v2, v3, v4))
+        f = bme.faces.new([v1, v2, v3, v4][::-1 if flipNormals else 1])
         f.smooth = smooth
         faces.append(f)
     return bme, faces

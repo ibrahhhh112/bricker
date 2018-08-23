@@ -85,7 +85,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
         v9, v10, v11, v12, v13, v14, v15, v16 = makeCube(coord1, coord2, sides, flipNormals=True, bme=bme)
         # make tick marks inside 2 by x bricks
         if drawTickMarks:
-            bottomVerts = addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v9, npi=v10, ppi=v11, pni=v12, nnt=v13, npt=v16, ppt=v15, pnt=v14, bme=bme)
+            bottomVerts = addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v9, npi=v10, ppi=v11, pni=v12, nnt=v13, npt=v16, ppt=v15, pnt=v14)
         else:
             # make faces on bottom edges of brick
             bme.faces.new((v1,  v9,  v12, v4))
