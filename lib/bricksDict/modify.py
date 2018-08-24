@@ -95,7 +95,7 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
 def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, maxL, height3Only, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=False, tallType="BRICK", shortType="PLATE"):
     """ update 'brickSizes' with available brick sizes surrounding bricksDict[key] """
     if not mergeVertical:
-        maxL[2] == 1
+        maxL[2] = 1
     newMax1 = maxL[1]
     newMax2 = maxL[2]
     breakOuter1 = False
