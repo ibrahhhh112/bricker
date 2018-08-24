@@ -26,6 +26,8 @@ def get_brick_dimensions(height=1, zScale=1, gap_percentage=0.01):
     dimensions["slit_height"] = scale*0.3
     dimensions["slit_depth"] = scale*0.3
     dimensions["support_height"] = dimensions["height"]*0.65
+    dimensions["oblong_support_dist"] = scale*0.455
+    dimensions["oblong_support_radius"] = scale*0.2
     dimensions["support_height_triple"] = (dimensions["height"]*3)*0.65
     dimensions["logo_offset"] = (dimensions["height"] / 2) + (dimensions["stud_height"])
     # round all values in dimensions

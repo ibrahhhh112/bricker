@@ -180,22 +180,24 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
     return bme, {"bottom":botVerts[::-1], "top":topVerts, "mid":midVerts}
 
 
-def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, loopCut:bool=False, loopCutTop:bool=False, flipNormals:bool=False, bme:bmesh=None):
+def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, topFaceInner:bool=False, botFaceInner:bool=False, loopCut:bool=False, loopCutTop:bool=False, flipNormals:bool=False, bme:bmesh=None):
     """
     create a tube with bmesh
 
     Keyword Arguments:
-        r           -- radius of inner cylinder
-        h           -- height of cylinder
-        t           -- thickness of tube
-        N           -- number of verts per circle
-        co          -- coordinate of cylinder's center
-        botFace     -- create face on bottom of cylinder
-        topFace     -- create face on top of cylinder
-        loopCut     -- Add loop cut to cylinders
-        loopCutTop  -- Add loop cut to top/bottom connected circles
-        flipNormals -- flip normals of cylinder
-        bme         -- bmesh object in which to create verts
+        r            -- radius of inner cylinder
+        h            -- height of cylinder
+        t            -- thickness of tube
+        N            -- number of verts per circle
+        co           -- coordinate of cylinder's center
+        botFace      -- create face on bottom of cylinder
+        topFace      -- create face on top of cylinder
+        botFaceInner -- create inner circle on bottom of cylinder
+        topFaceInner -- create inner circle on top of cylinder
+        loopCut      -- Add loop cut to cylinders
+        loopCutTop   -- Add loop cut to top/bottom connected circles
+        flipNormals  -- flip normals of cylinder
+        bme          -- bmesh object in which to create verts
 
     """
     # create new bmesh object
@@ -221,6 +223,10 @@ def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFac
             select(circleVerts)
         else:
             connectCircles(outerVerts["bottom"], innerVerts["bottom"], bme, flipNormals=flipNormals)
+    if botFaceInner:
+        bme.faces.new(innerVerts["bottom"])
+    if topFaceInner:
+        bme.faces.new(innerVerts["top"][::-1])
     # return bmesh
     return bme, {"outer":outerVerts, "inner":innerVerts}
 

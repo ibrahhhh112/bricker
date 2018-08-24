@@ -117,6 +117,113 @@ def addSupports(dimensions, height, brickSize, brickType, loopCut, circleVerts, 
         cutVerts(dimensions, height, brickSize, allTopVerts, d, scalar, thick, bme)
 
 
+def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
+    # round circleVerts to multiple of 4
+    circleVerts = round_up(circleVerts, 4)
+    # initialize innerVerts
+    innerVerts = {"top":{"-":[], "+":[]}, "bottom":{"-":[], "+":[]}}
+    # get support tube dimensions
+    tubeX = d.x * 2 + d.x
+    tubeY = d.y * 2 + d.y
+    tubeZ = -thick.z / 2
+    r = dimensions["oblong_support_radius"]
+    h = height - thick.z
+    # generate parallel cylinders
+    bme, tubeVerts1 = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY - dimensions["oblong_support_dist"], tubeZ)), botFace=True, topFace=False, loopCut=loopCut, bme=bme)
+    bme, tubeVerts2 = makeCylinder(r, h, circleVerts, co=Vector((tubeX, tubeY + dimensions["oblong_support_dist"], tubeZ)), botFace=True, topFace=False, loopCut=loopCut, bme=bme)
+    selectVerts((tubeVerts1["mid"] + tubeVerts2["mid"]) if loopCut else (tubeVerts1["top"] + tubeVerts2["top"]))
+    # remove half of cylinders and populate 'innerVerts'
+    for side in ["top", "bottom"] + (["mid"] if loopCut else []):
+        for v in tubeVerts1[side]:
+            if v.co.y > tubeY:
+                bme.verts.remove(v)
+            elif v.co.y == tubeY:
+                innerVerts[side]["-"].append(v)
+        for v in tubeVerts2[side]:
+            if v.co.y < tubeY:
+                bme.verts.remove(v)
+            elif v.co.y == tubeY:
+                innerVerts[side]["+"].append(v)
+    # connect half-cylinders
+    bme.faces.new(innerVerts["top"]["-"] + innerVerts["top"]["+"])
+    if loopCut:
+        bme.faces.new(innerVerts["top"]["-"][0] + innerVerts["top"]["+"][0] + innerVerts["mid"]["-"][0] + innerVerts["mid"]["+"][0])
+        bme.faces.new(innerVerts["top"]["-"][1] + innerVerts["top"]["+"][1] + innerVerts["mid"]["-"][1] + innerVerts["mid"]["+"][1])
+        bme.faces.new(innerVerts["mid"]["-"][0] + innerVerts["mid"]["+"][0] + innerVerts["bottom"]["-"][0] + innerVerts["bottom"]["+"][0])
+        bme.faces.new(innerVerts["mid"]["-"][1] + innerVerts["mid"]["+"][1] + innerVerts["bottom"]["-"][1] + innerVerts["bottom"]["+"][1])
+    else:
+        bme.faces.new(innerVerts["top"]["-"][0] + innerVerts["top"]["+"][0] + innerVerts["bottom"]["-"][0] + innerVerts["bottom"]["+"][0])
+        bme.faces.new(innerVerts["top"]["-"][1] + innerVerts["top"]["+"][1] + innerVerts["bottom"]["-"][1] + innerVerts["bottom"]["+"][1])
+
+
+def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=None, edgeXn=None, edgeYp=None, edgeYn=None, underside=False, loopCut=False):
+    r = dimensions["stud_radius"] if underside else dimensions["bar_radius"]
+    h = dimensions["stud_height"]
+    t = dimensions["stud_radius"] - dimensions["bar_radius"]
+    z = (dimensions["stud_height"] + (-height if underside else height)) / 2
+    sMin = edgeYp[0].co
+    sMax = edgeYp[1].co
+    sDistX = sMax.x - sMin.x
+    sDistZ = sMax.z - sMin.z
+    endVerts = []
+    allSemiCircleVerts = []
+    # round circleVerts if underside
+    if underside: circleVerts = round_up(circleVerts, 4)
+    # make studs
+    topVertsDofDs = {}
+    for xNum in range(1, max(brickSize[:2])):
+        for yNum in range(min(brickSize[:2])):
+            x = dimensions["width"] * xNum
+            y = dimensions["width"] * yNum
+            if underside:
+                _, studVerts = makeCylinder(r, h, circleVerts, co=Vector((x, y, z)), botFace=False, flipNormals=True, bme=bme)
+                # move bottom verts of tubes to slope plane
+                for v in studVerts["bottom"]:
+                    curRatio = (v.co.x - sMin.x) / sDistX
+                    v.co.z = sMin.z + sDistZ * curRatio
+                # move top verts of tubes to middle of bottom verts
+                zAve = sum([v.co.z for v in studVerts["bottom"]]) / len(studVerts["bottom"])
+                for v in studVerts["top"]:
+                    v.co.z = zAve
+                # remove half of cylinder
+                for v in studVerts["bottom"]:
+                    if v.co.x > x:
+                        bme.verts.remove(v)
+                for v in studVerts["top"]:
+                    if v.co.x >= x:
+                        bme.verts.remove(v)
+                f0 = bme.faces.new((studVerts["bottom"][circleVerts // 4 - 1], studVerts["bottom"][circleVerts // 4], studVerts["top"][(circleVerts // 4) * 3 - 1]))
+                f1 = bme.faces.new((studVerts["bottom"][(circleVerts // 4) * 3 - 2], studVerts["bottom"][(circleVerts // 4) * 3 - 1], studVerts["top"][circleVerts // 4 + 1]))
+                f0.smooth = True
+                f1.smooth = True
+                bme.faces.new([v for v in studVerts["top"][::-1] if v.is_valid] + [studVerts["bottom"][(circleVerts // 4) * 3 - 1], studVerts["bottom"][circleVerts // 4 - 1]])
+                if yNum == 0:
+                    bme.faces.new((edgeXn[0], edgeXp[1], studVerts["bottom"][circleVerts // 4 - 1]))
+                if yNum == min(brickSize[:2]) - 1:
+                    bme.faces.new((edgeXp[0], edgeXn[1], studVerts["bottom"][(circleVerts // 4) * 3 - 1]))
+                endVerts += [studVerts["bottom"][circleVerts // 4 - 1], studVerts["bottom"][(circleVerts // 4) * 3 - 1]]
+                allSemiCircleVerts += [v for v in studVerts["bottom"] if v.is_valid]
+            else:
+                _, studVerts = makeTube(r, h, t, circleVerts, co=Vector((x, y, z)), botFace=False, bme=bme)
+                # move bottom verts of tubes to slope plane
+                for key in studVerts:
+                    for v in studVerts[key]["bottom"]:
+                        curRatio = (v.co.x - sMin.x) / sDistX
+                        v.co.z = sMin.z + sDistZ * curRatio
+                if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"][::1 if underside else -1])
+                select(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
+                if edgeXp is not None:
+                    adjXNum = xNum - 1
+                    topVertsD = createVertListDict2(studVerts["bottom"] if underside else studVerts["outer"]["bottom"])
+                    topVertsDofDs["%(adjXNum)s,%(yNum)s" % locals()] = topVertsD
+    if edgeXp is not None and not underside:
+        connectCirclesToSquare(dimensions, [max(brickSize[:2]) - 1, min(brickSize[:2]), brickSize[2]], circleVerts, edgeXn[::-1], edgeXp, edgeYn, edgeYp[::-1], topVertsDofDs, xNum - 1, yNum, bme, flipNormals=not underside)
+    if underside:
+        bme.faces.new((edgeXp + allSemiCircleVerts)[::-1])
+        bme.faces.new(edgeXn[::-1] + endVerts)
+    return studVerts
+
+
 def cutVerts(dimensions, height, brickSize, verts, d, scalar, thick, bme):
     minZ = -(height / 2) + thick.z
     for v in verts:
