@@ -204,7 +204,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Type of brick used to build the model",
         items=[("STUD_HOLLOWS", "Hollow Studs", description),
                ("STUDS", "Studs", description),
-               ("SLOPES", "Slopes (fast)", description),
+               # ("SLOPES", "Slopes (fast)", description),
                ("PLATES", "Plates", description),
                ("CYLINDERS", "Cylinders", description),
                ("CUSTOM", "Custom", "Use custom object to build the model"),
