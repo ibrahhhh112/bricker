@@ -236,6 +236,16 @@ def brick_materials_installed():
     return hasattr(scn, "isBrickMaterialsInstalled") and scn.isBrickMaterialsInstalled
 
 
+def getMatNames(all=False):
+    scn = bpy.context.scene
+    materials = bpy.props.abs_mats_common.copy()
+    if scn.include_transparent or all:
+        materials += bpy.props.abs_mats_transparent
+    if scn.include_uncommon or all:
+        materials += bpy.props.abs_mats_uncommon
+    return materials
+
+
 def brick_materials_loaded():
     scn = bpy.context.scene
     # make sure abs_plastic_materials addon is installed
@@ -244,7 +254,7 @@ def brick_materials_loaded():
         return False
     # check if any of the colors haven't been loaded
     mats = bpy.data.materials.keys()
-    for color in bpy.props.abs_plastic_materials:
+    for color in getMatNames():
         if color not in mats:
             return False
     return True

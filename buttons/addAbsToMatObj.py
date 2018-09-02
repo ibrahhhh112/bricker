@@ -52,7 +52,7 @@ class addAbsToMatObj(bpy.types.Operator):
             scn, cm, _ = getActiveContextInfo()
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
             cm.materialIsDirty = True
-            for mat_name in bpy.props.abs_plastic_materials:
+            for mat_name in getMatNames():
                 mat = bpy.data.materials.get(mat_name)
                 if mat is not None and mat_name not in matObj.data.materials:
                     matObj.data.materials.append(mat)

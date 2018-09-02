@@ -721,6 +721,12 @@ class MaterialsPanel(Panel):
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
                     row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                    # import settings
+                    col = layout.column(align=True)
+                    row = col.row(align=True)
+                    row.prop(scn, "include_transparent")
+                    row = col.row(align=True)
+                    row.prop(scn, "include_uncommon")
             if cm.modelCreated or cm.animated:
                 col = layout.column(align=True)
                 row = col.row(align=True)
@@ -779,6 +785,7 @@ class MaterialsPanel(Panel):
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
+                row.active = False if not brick_materials_installed() else scn.include_transparent
 
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
@@ -801,6 +808,13 @@ class MaterialsPanel(Panel):
                         col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
+                    # import settings
+                    col = layout.column(align=True)
+                    row = col.row(align=True)
+                    row.prop(scn, "include_transparent")
+                    row = col.row(align=True)
+                    row.prop(scn, "include_uncommon")
+
                     col = layout.column(align=True)
                     split = col.split(align=True, percentage=0.25)
                     col = split.column(align=True)

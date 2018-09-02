@@ -279,7 +279,6 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            print(self.deselect)
             select(getBricks(), deselect=self.deselect)
         except:
             handle_exception()

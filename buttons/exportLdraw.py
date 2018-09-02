@@ -114,14 +114,13 @@ class exportLdraw(Operator):
                     mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
-                    if rgba in (None, "") and mat_name not in absMatCodes.keys() and bpy.data.materials.get(mat_name) is not None:
-                        rgba = getMaterialColor(mat_name)
-                    if rgba not in (None, "") and mat_name not in absMatCodes.keys():
-                        mat_name = findNearestBrickColorName(rgba, cm.transparentWeight)
+                    color = 0
                     if mat_name in absMatCodes.keys():
                         color = absMatCodes[mat_name]
-                    else:
-                        color = 0
+                    elif rgba not in (None, ""):
+                        mat_name = findNearestBrickColorName(rgba, cm.transparentWeight)
+                    elif bpy.data.materials.get(mat_name) is not None:
+                        rgba = getMaterialColor(mat_name)
                     # get part number and ldraw file name for brick
                     parts = legalBricks[size[2]][typ]
                     for i,part in enumerate(parts):
