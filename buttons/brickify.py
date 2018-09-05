@@ -396,9 +396,8 @@ class BrickerBrickify(bpy.types.Operator):
                 parent = bpy.data.objects.new(p_name, m)
                 parent.location = source_details.mid - parent0.location
                 parent.parent = parent0
-                scn.objects.link(parent)
-                scn.update()
                 safeUnlink(parent)
+                getSafeScn().update()
                 self.createdObjects.append(parent.name)
 
             # create new bricks
