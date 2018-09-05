@@ -133,10 +133,10 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         allMeshes.from_mesh(m)
 
         # reset transformations for reference mesh
+        m.transform(Matrix.Translation(-brickLoc))
         if randomRotMatrix is not None:
             randomRotMatrix.invert()
             m.transform(randomRotMatrix)
-        m.transform(Matrix.Translation(-brickLoc))
 
     return bricksDict
 
