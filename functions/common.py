@@ -46,7 +46,7 @@ def bversion():
     return bversion
 
 
-def stopWatch(text, lastTime, precision=2):
+def stopWatch(text, lastTime, precision=5):
     """From seconds to Days;Hours:Minutes;Seconds"""
     value = time.time()-lastTime
 

@@ -107,24 +107,20 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         # append to bricksCreated
         bricksCreated.append(brick)
     else:
-        # ct = time.time()
-        # create copy of mesh
-        m = m.copy()
-        # ct = stopWatch(1, ct, 5)
         # apply rotation matrices to edit mesh
         if randomRotMatrix is not None:
             m.transform(randomRotMatrix)
-        # ct = stopWatch(2, ct, 5)
         # transform brick mesh to coordinate on matrix
-        m.transform(Matrix.Translation(brickLoc))
-        # ct = stopWatch(3, ct, 5)
+        randomLocMatrix = Matrix.Translation(brickLoc)
+        m.transform(randomLocMatrix)
+
         # keep track of mats already use
         if mat in mats:
             matIdx = mats.index(mat)
         elif mat is not None:
             mats.append(mat)
             matIdx = len(mats) - 1
-        # ct = stopWatch(4, ct, 5)
+
         # set material for mesh
         if len(m.materials) > 0:
             m.materials.clear()
@@ -133,13 +129,16 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
             brickD["mat_name"] = mat.name
             for p in m.polygons:
                 p.material_index = matIdx
-        # ct = stopWatch(5, ct, 5)
+
         # append mesh to allMeshes bmesh object
         allMeshes.from_mesh(m)
-        # ct = stopWatch(6, ct, 5)
-        # remove duplicated edit mesh
-        bpy.data.meshes.remove(m)
-        # ct = stopWatch(7, ct, 5)
+
+        # reset transformations for reference mesh
+        if randomRotMatrix is not None:
+            randomRotMatrix.invert()
+            m.transform(randomRotMatrix)
+        randomLocMatrix.invert()
+        m.transform(randomLocMatrix)
 
     return bricksDict
 
