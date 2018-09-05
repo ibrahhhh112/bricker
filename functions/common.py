@@ -207,23 +207,6 @@ class Suppressor(object):
         pass
 
 
-def applyModifiers(obj, only=None, exclude=["SMOKE"], curFrame=None):
-    hasArmature = False
-    select(obj, active=True, only=True)
-    # apply modifiers
-    for mod in obj.modifiers:
-        if not (only is None or mod.type in only) or not (exclude is None or mod.type not in exclude) or not mod.show_viewport:
-            continue
-        try:
-            with Suppressor():
-                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
-        except:
-            mod.show_viewport = False
-        if mod.type == "ARMATURE" and not hasArmature and mod.show_viewport:
-            hasArmature = True
-    return hasArmature
-
-
 # code from https://stackoverflow.com/questions/1518522/python-most-common-element-in-a-list
 def most_common(L):
     # get an iterable of (item, iterable) pairs
@@ -356,7 +339,8 @@ def setLayers(layers, scn=None):
     assert len(layers) == 20
     scn = scn or bpy.context.scene
     # update scene (prevents dag ZERO errors)
-    scn.update()
+    if bpy.props.Bricker_developer_mode > 0:
+        scn.update()
     # set active layers of scn
     scn.layers = layers
 

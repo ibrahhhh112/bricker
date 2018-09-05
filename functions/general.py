@@ -176,14 +176,14 @@ def setObjOrigin(obj, loc):
     scn.cursor_location = old_loc
 
 
-def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
-    assert fromObj or fromLoc
-    setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
-    if fromObj:
-        if deleteFromObj:
-            m = fromObj.data
-            bpy.data.objects.remove(fromObj, True)
-            bpy.data.meshes.remove(m)
+# def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
+#     assert fromObj or fromLoc
+#     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
+#     if fromObj:
+#         if deleteFromObj:
+#             m = fromObj.data
+#             bpy.data.objects.remove(fromObj, True)
+#             bpy.data.meshes.remove(m)
 
 
 def getBricks(cm=None, typ=None):

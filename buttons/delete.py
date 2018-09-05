@@ -146,8 +146,6 @@ class BrickerDelete(bpy.types.Operator):
         else:
             bricks = getBricks()
             pivot_point = bricks[0].matrix_world.to_translation()
-        # store last active layers
-        lastLayers = list(scn.layers)
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
 
@@ -195,9 +193,6 @@ class BrickerDelete(bpy.types.Operator):
                     source.location -= Vector(source["local_orient_offset"])
                 except KeyError:
                     pass
-
-            # return open layers to original
-            setLayers(lastLayers)
 
         Caches.clearCache(cm, brick_mesh=False)
 

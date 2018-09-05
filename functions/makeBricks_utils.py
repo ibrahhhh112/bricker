@@ -215,11 +215,6 @@ def prepareLogoAndGetDetails(scn, logo, detail, scale, dimensions):
     """ duplicate and normalize custom logo object; return logo and bounds(logo) """
     if logo is None:
         return None, logo
-    if detail != "LEGO":
-        # prepare custom object for duplication
-        oldLayers = list(scn.layers)
-        setLayers(logo.layers)
-        logo.hide = False
     # duplicate logo object
     logo = duplicate(logo, link_to_scene=True)
     if detail != "LEGO":
@@ -229,8 +224,6 @@ def prepareLogoAndGetDetails(scn, logo, detail, scale, dimensions):
         # apply logo object transformation
         logo.parent = None
         apply_transform(logo)
-        # set scene layers back to original active layers
-        setLayers(oldLayers)
     safeUnlink(logo)
     # get logo details
     logo_details = bounds(logo)

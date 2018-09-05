@@ -161,7 +161,9 @@ class BrickerBrickify(bpy.types.Operator):
 
         # set layers to source layers
         oldLayers = list(scn.layers)
-        setLayers(source.layers)
+        sourceLayers = list(source.layers)
+        if oldLayers != sourceLayers:
+            setLayers(sourceLayers)
 
         if "ANIM" not in self.action:
             self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
@@ -200,7 +202,9 @@ class BrickerBrickify(bpy.types.Operator):
         # unlink source from scene and link to safe scene
         if source.name in scn.objects.keys():
             safeUnlink(source, hide=False)
-        setLayers(oldLayers)
+        # reset layers
+        if oldLayers != sourceLayers:
+            setLayers(oldLayers)
 
         disableRelationshipLines()
 
@@ -255,7 +259,6 @@ class BrickerBrickify(bpy.types.Operator):
             if not cm.isSmoke:
                 sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
             # apply transformation data
-            # TODO: rewrite the transform apply operator myself
             apply_transform(sourceDup)
             scn.update()
         else:
@@ -566,20 +569,6 @@ class BrickerBrickify(bpy.types.Operator):
             if logoObject.type != "MESH":
                 self.report({"WARNING"}, "Custom logo object is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).")
                 return False
-
-        # check if source or brickified object is on active layer(s)
-        success = False
-        if cm.modelCreated or cm.animated:
-            bricks = getBricks()
-            obj = bricks[0] if len(bricks) > 0 else None
-        else:
-            obj = source
-        for i in range(20):
-            if obj and obj.layers[i] and scn.layers[i]:
-                success = True
-        if not success:
-            self.report({"WARNING"}, "Object is not on active layer(s)")
-            return False
 
         return True
 
