@@ -111,8 +111,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         if randomRotMatrix is not None:
             m.transform(randomRotMatrix)
         # transform brick mesh to coordinate on matrix
-        randomLocMatrix = Matrix.Translation(brickLoc)
-        m.transform(randomLocMatrix)
+        m.transform(Matrix.Translation(brickLoc))
 
         # keep track of mats already use
         if mat in mats:
@@ -137,8 +136,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         if randomRotMatrix is not None:
             randomRotMatrix.invert()
             m.transform(randomRotMatrix)
-        randomLocMatrix.invert()
-        m.transform(randomLocMatrix)
+        m.transform(Matrix.Translation(-brickLoc))
 
     return bricksDict
 
