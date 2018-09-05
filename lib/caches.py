@@ -20,7 +20,7 @@ Created by Christopher Gearhart
 '''
 
 # initialize the brick bmesh cache dictionary
-bricker_bm_cache = {}
+bricker_mesh_cache = {}
 
 # initialize the source mesh cache dictionary
 bricker_source_mesh_cache = {}

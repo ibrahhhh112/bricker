@@ -74,7 +74,7 @@ class Caches(bpy.types.Operator):
         """clear caches for cmlist item"""
         # clear light brick mesh cache
         if brick_mesh:
-            bricker_bm_cache[cm.id] = None
+            bricker_mesh_cache[cm.id] = None
         # clear light matrix cache
         if light_matrix:
             bricker_bfm_cache[cm.id] = None
