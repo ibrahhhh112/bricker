@@ -44,6 +44,7 @@ def getLegoLogo(self, scn, typ, res, decimate, dimensions):
         refLogoName = "Bricker_LEGO_Logo_%(res)s_%(decimate)s" % locals()
         refLogo = bpy.data.objects.get(refLogoName)
         if refLogo is None:
+            print("HERE")
             # get logo text reference with current settings
             logo_txt_ref = getLegoLogoTxtObj(scn, res, "Bricker_LEGO_Logo_Text")
             # convert logo_txt_ref to mesh

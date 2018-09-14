@@ -70,7 +70,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
     # create cube
     coord1 = -d
     coord2 = vec_mult(d, scalar)
-    v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], bme=bme)
+    v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 1, 1, 1, 1], seams=True, bme=bme)
 
     # add studs
     if stud: addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=[v7, v6], edgeXn=[v8, v5], edgeYp=[v7, v8], edgeYn=[v6, v5], hollow=brickSize[2] > 3 or "HOLES" in type, loopCut=loopCut)
@@ -82,7 +82,7 @@ def makeStandardBrick(dimensions:dict, brickSize:list, type:str, brickType:str, 
         coord1 = -d + Vector((thick.x, thick.y, 0))
         coord2 = vec_mult(d, scalar) - thick
         sides = [1 if detail == "LOW" else 0, 0] + ([0]*4 if drawTickMarks else [1]*4)
-        v9, v10, v11, v12, v13, v14, v15, v16 = makeCube(coord1, coord2, sides, flipNormals=True, bme=bme)
+        v9, v10, v11, v12, v13, v14, v15, v16 = makeCube(coord1, coord2, sides, flipNormals=True, seams=True, bme=bme)
         # make tick marks inside 2 by x bricks
         if drawTickMarks:
             bottomVerts = addTickMarks(dimensions, brickSize, circleVerts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v9, npi=v10, ppi=v11, pni=v12, nnt=v13, npt=v16, ppt=v15, pnt=v14)

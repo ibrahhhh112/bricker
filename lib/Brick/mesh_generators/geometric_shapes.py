@@ -42,7 +42,7 @@ def makeSquare(coord1:Vector, coord2:Vector, face:bool=True, flipNormal:bool=Fal
     return vList
 
 
-def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:bool=False, bme:bmesh=None):
+def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:bool=False, seams:bool=False, bme:bmesh=None):
     """
     create a cube with bmesh
 
@@ -51,6 +51,7 @@ def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:boo
         coord2      -- front/right/top  corner of the cube (furthest positive in all three axes)
         sides       -- draw sides [+z, -z, +x, -x, +y, -y]
         flipNormals -- flip the normals of the cube
+        seams       -- make all edges seams
         bme         -- bmesh object in which to create verts
 
     Returns:
@@ -88,7 +89,10 @@ def makeCube(coord1:Vector, coord2:Vector, sides:list=[False]*6, flipNormals:boo
     for f in newFaces:
         if flipNormals:
             f.reverse()
-        bme.faces.new(f)
+        newF = bme.faces.new(f)
+        # if seams:
+        #     for e in newF.edges:
+        #         e.seam = True
 
     return [v1, v3, v7, v5, v2, v6, v8, v4]
 
@@ -124,7 +128,7 @@ def makeCircle(r:float, N:int, co:Vector=Vector((0,0,0)), face:bool=True, flipNo
     return verts
 
 
-def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:bool=True, topFace:bool=True, flipNormals:bool=False, loopCut:bool=False, bme:bmesh=None):
+def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:bool=True, topFace:bool=True, flipNormals:bool=False, loopCut:bool=False, seams:bool=True, bme:bmesh=None):
     """
     create a cylinder with bmesh
 
@@ -137,6 +141,7 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
         topFace     -- create face on top of cylinder
         flipNormals -- flip normals of cylinder
         loopCut     -- loop cut the cylinder in the center
+        seams       -- make horizontal edges seams
         bme         -- bmesh object in which to create verts
 
     """
@@ -161,6 +166,16 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
             coordM = co + Vector((x, y, 0))
             midVerts.append(bme.verts.new(coordM))
 
+    # if seams:
+    #     for i in range(len(topVerts)):
+    #         v1 = topVerts[i]
+    #         v2 = topVerts[(i-1)]
+    #         v3 = botVerts[i]
+    #         v4 = botVerts[(i-1)]
+    #         bme.edges.new((v1, v2)).seam = True
+    #         bme.edges.new((v3, v4)).seam = True
+    #     bme.edges.new((topVerts[0], botVerts[0])).seam = True
+
     # create faces on the sides
     if loopCut:
         _, sideFaces1 = connectCircles(topVerts if flipNormals else midVerts, midVerts if flipNormals else topVerts, bme)
@@ -180,7 +195,7 @@ def makeCylinder(r:float, h:float, N:int, co:Vector=Vector((0,0,0)), botFace:boo
     return bme, {"bottom":botVerts[::-1], "top":topVerts, "mid":midVerts}
 
 
-def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, topFaceInner:bool=False, botFaceInner:bool=False, loopCut:bool=False, loopCutTop:bool=False, flipNormals:bool=False, bme:bmesh=None):
+def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFace:bool=True, botFace:bool=True, topFaceInner:bool=False, botFaceInner:bool=False, loopCut:bool=False, loopCutTop:bool=False, flipNormals:bool=False, seams:bool=True, bme:bmesh=None):
     """
     create a tube with bmesh
 
@@ -197,6 +212,7 @@ def makeTube(r:float, h:float, t:float, N:int, co:Vector=Vector((0,0,0)), topFac
         loopCut      -- Add loop cut to cylinders
         loopCutTop   -- Add loop cut to top/bottom connected circles
         flipNormals  -- flip normals of cylinder
+        seams       -- make horizontal edges seams
         bme          -- bmesh object in which to create verts
 
     """

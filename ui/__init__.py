@@ -479,7 +479,7 @@ class SmokeSettingsPanel(Panel):
             row = col.row(align=True)
             row.prop(cm, "smokeDensity", text="Density")
             row = col.row(align=True)
-            row.prop(cm, "smokeQuality", text="Step")
+            row.prop(cm, "smokeQuality", text="Quality")
 
         if is_smoke(source):
             col = layout.column(align=True)
@@ -845,9 +845,10 @@ class MaterialsPanel(Panel):
                 row.prop(cm, "colorSnapIOR")
                 row = col.row(align=True)
                 row.prop(cm, "colorSnapTransmission")
+                col = layout.column(align=False)
+                col.scale_y = 0.5
+                col.separator()
             elif noUV:
-                col.separator()
-                col.separator()
                 col.separator()
 
 

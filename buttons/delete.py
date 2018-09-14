@@ -34,14 +34,14 @@ from .cache import *
 # from ..lib.rigid_body_props import *
 
 
-def getModelType(cm=None):
+def getModelType(cm):
     """ return 'MODEL' if modelCreated, 'ANIMATION' if animated """
-    scn = bpy.context.scene
-    cm = cm or scn.cmlist[scn.cmlist_index]
     if cm.animated:
         modelType = "ANIMATION"
     elif cm.modelCreated:
         modelType = "MODEL"
+    else:
+        raise AttributeError("Brick object is in unexpected state")
     return modelType
 
 
