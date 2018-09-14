@@ -51,7 +51,7 @@ class testBrickGenerators(bpy.types.Operator):
         return bpy.props.Bricker_developer_mode > 1
 
 
-def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0)):
+def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=True):
     scn = bpy.context.scene
     # if only one name given, use it for both names
     objName = objName or meshName
@@ -68,6 +68,10 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0)):
     # send bmesh data to object data
     bme.to_mesh(me)
     ob.data.update()
+
+    # add edge split modifier
+    if edgeSplit:
+        addEdgeSplitMod(ob)
 
     # move to appropriate layer
     layerList = [i == layer - 1 for i in range(20)]

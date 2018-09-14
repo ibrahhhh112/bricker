@@ -79,12 +79,19 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
             # NOTE: last brick mesh is left in memory (faster)
             # set brick.data to new mesh (resets materials)
             brick.data = m
-            brick.data.update()
+            # add/remove edge split modifier if necessary
+            eMod = brick.modifiers.get('Edge Split')
+            if not eMod and useEdgeSplitMod(cm, brickD):
+                addEdgeSplitMod(brick)
+            elif eMod and not useEdgeSplitMod(cm, brickD):
+                brick.modifiers.remove(eMod)
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brickD["name"], m)
             brick.cmlist_id = cm_id
-            brick.data.update()
+            # add edge split modifier
+            if useEdgeSplitMod(cm, brickD):
+                addEdgeSplitMod(brick)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
             brick.matrix_world = Matrix.Identity(4) * randomRotMatrix
@@ -132,6 +139,23 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
             m.transform(randomRotMatrix)
 
     return bricksDict
+
+
+def useEdgeSplitMod(cm, brickD):
+    typ = brickD["type"]
+    if ("CUSTOM" not in brickD["type"] or
+        (typ == "CUSTOM 1" and cm.customObjectName1.startswith("Bricker_")) or
+        (typ == "CUSTOM 2" and cm.customObjectName2.startswith("Bricker_")) or
+        (typ == "CUSTOM 3" and cm.customObjectName3.startswith("Bricker_"))):
+        return True
+    else:
+        return False
+
+
+def addEdgeSplitMod(obj):
+    """ Add edge split modifier """
+    eMod = obj.modifiers.new('Edge Split', 'EDGE_SPLIT')
+    eMod.split_angle = math.radians(44)
 
 
 def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=True):
