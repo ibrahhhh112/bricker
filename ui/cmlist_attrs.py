@@ -300,7 +300,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         default="")
     matShellDepth = IntProperty(
         name="Shell Material Depth",
-        description="Depth to which the outer materials should be applied (1 = Only exposed bricks",
+        description="Depth to which the outer materials should be applied (1 = Only exposed bricks)",
         step=1,
         min=1, max=50,
         default=1,
