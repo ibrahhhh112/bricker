@@ -297,9 +297,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         else:
             allBricksObj = bpy.data.objects.new(name, m)
             allBricksObj.cmlist_id = cm_id
-            # add edge split modifier
-            if brickType != "CUSTOM":
-                addEdgeSplitMod(allBricksObj)
+            allBricksObj.data.update()
         if brickType != "CUSTOM":
             # create vert group for bevel mod (assuming only logo verts are selected):
             vg = allBricksObj.vertex_groups.get("%(name)s_bvl" % locals())
