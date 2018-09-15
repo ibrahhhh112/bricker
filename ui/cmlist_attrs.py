@@ -310,6 +310,11 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Merge bricks whether or not they share a material",
         default=False,
         update=dirtyBuild)
+    mergeShellWithInternal = BoolProperty(
+        name="Merge Shell with Internals",
+        description="Merge bricks on shell with internal bricks",
+        default=True,
+        update=dirtyBuild)
     randomMatSeed = IntProperty(
         name="Random Seed",
         description="Random seed for material assignment",

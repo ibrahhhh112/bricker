@@ -45,19 +45,24 @@ from ..lib.caches import bricker_mesh_cache
 
 def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, brickType, split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
+    print(1)
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
         topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
     else:
         topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
 
+    print(2)
     # get brick material
     mat = getMaterial(cm, bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
+    print(3)
 
     # set up arguments for brick mesh
     useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
     logoToUse = logo if useStud else None
     undersideDetail = exposedUndersideDetail if botExposed else hiddenUndersideDetail
+
+    print(4)
 
     ### CREATE BRICK ###
 
@@ -72,6 +77,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
     # get brick location
     locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
     brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
+    print(5)
 
     if split:
         brick = bpy.data.objects.get(brickD["name"])
@@ -113,7 +119,13 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         # transform brick mesh to coordinate on matrix
         m.transform(Matrix.Translation(brickLoc))
 
-        # keep track of mats already use
+        # set to internal mat if material not set
+        internal = False
+        if mat is None:
+            mat = internalMat
+            internal = True
+
+        # keep track of mats already used
         if mat in mats:
             matIdx = mats.index(mat)
         elif mat is not None:
@@ -125,7 +137,9 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
             m.materials.clear()
         if mat is not None:
             m.materials.append(mat)
-            brickD["mat_name"] = mat.name
+            # set name of material (name should not be set for internal mats)
+            if not internal:
+                brickD["mat_name"] = mat.name
             for p in m.polygons:
                 p.material_index = matIdx
 
@@ -138,6 +152,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
             randomRotMatrix.invert()
             m.transform(randomRotMatrix)
 
+    print(6)
     return bricksDict
 
 
@@ -158,10 +173,10 @@ def addEdgeSplitMod(obj):
     eMod.split_angle = math.radians(44)
 
 
-def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=True):
+def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeShellWithInternal, materialType, mergeVertical=True):
     if brickD["size"] is None or buildIsDirty:
         preferLargest = brickD["val"] > 0 and brickD["val"] < 1
-        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
+        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeShellWithInternal, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
     else:
         brickSize = brickD["size"]
     return brickSize

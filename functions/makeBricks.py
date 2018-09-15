@@ -95,6 +95,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     maxDepth = cm.maxDepth
     legalBricksOnly = cm.legalBricksOnly
     mergeInconsistentMats = cm.mergeInconsistentMats
+    mergeShellWithInternal = cm.mergeShellWithInternal
     mergeType = cm.mergeType
     mergeSeed = cm.mergeSeed
     materialType = cm.materialType
@@ -196,7 +197,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         loc = getDictLoc(bricksDict, key)
 
                         # merge current brick with available adjacent bricks
-                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=mergeVertical)
+                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeShellWithInternal, materialType, mergeVertical=mergeVertical)
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:

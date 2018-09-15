@@ -343,7 +343,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                         break
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, faceIdxMatrix=faceIdxMatrix, axes=axes)
+    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, faceIdxMatrix=faceIdxMatrix, axes=axes)
 
     # print status to terminal
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Shell", end=True)
@@ -445,7 +445,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 colorMatrix[x][y][z] = list(c_ave) + [alpha]
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, axes=False)
+    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, axes=False)
 
     # end progress bar
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Shell", end=True)
@@ -453,7 +453,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     return brickFreqMatrix, colorMatrix
 
 
-def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
+def adjustBFM(brickFreqMatrix, matShellDepth, faceIdxMatrix=None, axes=""):
     """ adjust brickFreqMatrix values """
     shellVals = []
     xL = len(brickFreqMatrix)
@@ -520,10 +520,13 @@ def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
 
     # Update internals
     j = 1
-    for i in range(1, 51):
+    setNF = True
+    for i in range(50):
         j = round(j-0.01, 2)
         gotOne = False
         newShellVals = []
+        if setNF:
+            setNF = (1 - j) * 100 < matShellDepth
         for x, y, z in shellVals:
             idxsToCheck = ((x+1, y, z),
                            (x-1, y, z),
@@ -536,7 +539,7 @@ def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
                 if curVal == -1:
                     newShellVals.append(idx)
                     brickFreqMatrix[idx[0]][idx[1]][idx[2]] = j
-                    if faceIdxMatrix: faceIdxMatrix[idx[0]][idx[1]][idx[2]] = faceIdxMatrix[x][y][z]
+                    if faceIdxMatrix and setNF: faceIdxMatrix[idx[0]][idx[1]][idx[2]] = faceIdxMatrix[x][y][z]
                     gotOne = True
         if not gotOne:
             break

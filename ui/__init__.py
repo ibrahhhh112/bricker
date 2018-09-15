@@ -586,6 +586,8 @@ class MergeSettingsPanel(Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(cm, "mergeInconsistentMats")
+        row = col.row(align=True)
+        row.prop(cm, "mergeShellWithInternal")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)
             row.prop(cm, "alignBricks")
