@@ -1,7 +1,7 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 5, 2),
+    "version"     : (1, 6, 0),
     "blender"     : (2, 79, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
@@ -10,7 +10,7 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 
@@ -95,6 +95,11 @@ def register():
 
     # Add attribute for Bricker Instructions addon
     bpy.types.Scene.isBrickerInstalled = BoolProperty(default=True)
+
+    if not hasattr(bpy.types.Scene, "include_transparent"):
+        bpy.types.Scene.include_transparent = False
+    if not hasattr(bpy.types.Scene, "include_uncommon"):
+        bpy.types.Scene.include_uncommon = False
 
     # bpy.types.Scene.Bricker_snapping = BoolProperty(
     #     name="Bricker Snap",

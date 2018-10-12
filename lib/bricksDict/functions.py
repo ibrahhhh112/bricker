@@ -271,6 +271,8 @@ def getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImageName):
         return None
     # get uv coordinate based on nearest face intersection
     uv_coord = getUVCoord(obj.data, face, point, image)
+    if uv_coord is None:
+        return None
     # retrieve rgba value at uv coordinate
     rgba = getPixel(uv_images[image.name], uv_coord)
     return rgba

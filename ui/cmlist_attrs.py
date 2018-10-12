@@ -310,10 +310,14 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Merge bricks whether or not they share a material",
         default=False,
         update=dirtyBuild)
-    mergeShellWithInternal = BoolProperty(
-        name="Merge Shell with Internals",
+    mergeInternals = EnumProperty(
+        name="Merge Internals",
         description="Merge bricks on shell with internal bricks",
-        default=True,
+        items=[("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions"),
+               ("HORIZONTAL", "Horizontal", "Merge shell bricks with internals horizontally, but not vertically"),
+               ("VERTICAL", "Vertical", "Merge shell bricks with internals vertically, but not horizontally"),
+               ("NEITHER", "Neither", "Don't merge shell bricks with internals in either direction")],
+        default="BOTH",
         update=dirtyBuild)
     randomMatSeed = IntProperty(
         name="Random Seed",
@@ -433,7 +437,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Resolution of the brick logo",
         update=dirtyBricks,
         min=1, max=10,
-        default=3)
+        default=2)
     logoDecimate = FloatProperty(
         name="Decimate",
         description="Decimate the brick logo (lower number for higher resolution)",

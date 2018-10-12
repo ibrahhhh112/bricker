@@ -10,3 +10,7 @@
     * Use shader-based bevel as opposed to geometry-based bevel
 * Improve Performance
     * For animation, if last frame's brickFreqMatrix matches current frame's brickFreqMatrix, save time by just keeping that model around for another frame or duplicating it for the next frame or something
+
+finish inverted slope before releasing next version
+Custom objects shrink if something has changed.
+make sure materials transfer to exported Ldraw models for split and non-split

@@ -586,8 +586,10 @@ class MergeSettingsPanel(Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(cm, "mergeInconsistentMats")
-        row = col.row(align=True)
-        row.prop(cm, "mergeShellWithInternal")
+        # TODO: Introduce to everyone if deemed helpful
+        if bpy.props.Bricker_developer_mode > 0:
+            row = col.row(align=True)
+            row.prop(cm, "mergeInternals")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)
             row.prop(cm, "alignBricks")
@@ -724,11 +726,12 @@ class MaterialsPanel(Panel):
                     row = col.row(align=True)
                     row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
                     # import settings
-                    col = layout.column(align=True)
-                    row = col.row(align=True)
-                    row.prop(scn, "include_transparent")
-                    row = col.row(align=True)
-                    row.prop(scn, "include_uncommon")
+                    if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
+                        col = layout.column(align=True)
+                        row = col.row(align=True)
+                        row.prop(scn, "include_transparent")
+                        row = col.row(align=True)
+                        row.prop(scn, "include_uncommon")
             if cm.modelCreated or cm.animated:
                 col = layout.column(align=True)
                 row = col.row(align=True)
@@ -787,7 +790,8 @@ class MaterialsPanel(Panel):
             if cm.colorSnap == "ABS":
                 row = col.row(align=True)
                 row.prop(cm, "transparentWeight", text="Transparent Weight")
-                row.active = False if not brick_materials_installed() else scn.include_transparent
+                if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
+                    row.active = False if not brick_materials_installed() else scn.include_transparent
 
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
@@ -811,11 +815,12 @@ class MaterialsPanel(Panel):
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
                     # import settings
-                    col = layout.column(align=True)
-                    row = col.row(align=True)
-                    row.prop(scn, "include_transparent")
-                    row = col.row(align=True)
-                    row.prop(scn, "include_uncommon")
+                    if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
+                        col = layout.column(align=True)
+                        row = col.row(align=True)
+                        row.prop(scn, "include_transparent")
+                        row = col.row(align=True)
+                        row.prop(scn, "include_uncommon")
 
                     col = layout.column(align=True)
                     split = col.split(align=True, percentage=0.25)

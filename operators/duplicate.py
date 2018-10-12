@@ -76,7 +76,7 @@ class duplicate_override(bpy.types.Operator):
                 continue
             if obj0.isBrick:
                 obj0.isBrick = False
-                obj0.name = obj0.name[8:]
+                obj0.name = obj0.name[8:].split("__")[0]
             elif obj0.isBrickifiedObject:
                 obj0.isBrickifiedObject = False
                 cm = getItemByID(scn.cmlist, obj0.cmlist_id)

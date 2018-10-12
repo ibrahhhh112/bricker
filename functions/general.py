@@ -236,9 +236,14 @@ def brick_materials_installed():
     return hasattr(scn, "isBrickMaterialsInstalled") and scn.isBrickMaterialsInstalled
 
 
+def getABSPlasticMats():
+    """ returns list of abs plastic materials (under different names for different versions) """
+    return bpy.props.abs_mats_common if hasattr(bpy.props, "abs_mats_common") else bpy.props.abs_plastic_materials
+
+
 def getMatNames(all=False):
     scn = bpy.context.scene
-    materials = bpy.props.abs_mats_common.copy()
+    materials = getABSPlasticMats().copy()
     if scn.include_transparent or all:
         materials += bpy.props.abs_mats_transparent
     if scn.include_uncommon or all:

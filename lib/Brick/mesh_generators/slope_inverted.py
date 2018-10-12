@@ -109,7 +109,9 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
         # make upper square over slope
         coord1 = Vector((d.x, -d.y + thick.y / 2, -d.z * (0.5 if max(brickSize[:2]) == 2 else 0.625)))
         coord2 = Vector((d.x * scalar.x - thick.x, d.y * scalar.y - thick.y / 2, d.z))
-        v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 0 if sum(brickSize[:2]) == 5 else 1, 1, 1], flipNormals=True, bme=bme)
+        # v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 0 if sum(brickSize[:2]) == 5 else 1, 1, 1], flipNormals=True, bme=bme)
+        # TODO: replace the following line with line above to add support details later
+        v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 1, 1, 1], flipNormals=True, bme=bme)
         v15.co.z += (d.z * 2 - thick.z) * (0.9 if max(brickSize[:2]) == 3 else 0.8)
         v16.co.z = v15.co.z
         # make faces on edges of new square
@@ -141,9 +143,10 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
             bme.faces.new((v23, v3, v4, v24))
             bottomVerts = []
 
-        # add supports
-        if detail in ("MEDIUM", "HIGH") and min(brickSize[:2]) == 2:
-            addOblongSupport(dimensions, circleVerts, d, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme, loopCut=loopCut)
+        # # add supports
+        # if detail in ("MEDIUM", "HIGH") and min(brickSize[:2]) == 2:
+        #     addOblongSupport(dimensions, height, loopCut, circleVerts, "SLOPE_INVERTED", detail, d, scalar, thick, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
+        # def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
 
         # add small inner cylinders inside brick
         if detail in ("MEDIUM", "HIGH"):

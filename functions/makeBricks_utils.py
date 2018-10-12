@@ -45,24 +45,19 @@ from ..lib.caches import bricker_mesh_cache
 
 def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
-    print(1)
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
         topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
     else:
         topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
 
-    print(2)
     # get brick material
     mat = getMaterial(cm, bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
-    print(3)
 
     # set up arguments for brick mesh
     useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
     logoToUse = logo if useStud else None
     undersideDetail = exposedUndersideDetail if botExposed else hiddenUndersideDetail
-
-    print(4)
 
     ### CREATE BRICK ###
 
@@ -77,53 +72,72 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
     # get brick location
     locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
     brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
-    print(5)
 
     if split:
+        print(1)
         brick = bpy.data.objects.get(brickD["name"])
         if brick:
             # NOTE: last brick mesh is left in memory (faster)
             # set brick.data to new mesh (resets materials)
+            print(2)
             brick.data = m
             # add/remove edge split modifier if necessary
+            print(3)
             eMod = brick.modifiers.get('Edge Split')
             if not eMod and useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
             elif eMod and not useEdgeSplitMod(cm, brickD):
                 brick.modifiers.remove(eMod)
+            print(4)
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brickD["name"], m)
             brick.cmlist_id = cm_id
+            print(5)
             # add edge split modifier
             if useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
+            print(6)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
             brick.matrix_world = Matrix.Identity(4) * randomRotMatrix
+        print(6)
         # set brick location
         brick.location = brickLoc
+        print(7)
         # set brick material
         if len(m.materials) > 0 or len(brick.material_slots) > 0:
-            m.materials.clear(update_data=not lastSplitModel)
+            m.materials.clear(1)
+        print(8)
         if mat is not None or internalMat is not None:
             m.materials.append(mat or internalMat)
             brick.material_slots[0].link = 'OBJECT'
             brick.material_slots[0].material = mat or internalMat
+        print(9)
         # append to bricksCreated
         bricksCreated.append(brick)
+        print(10)
     else:
+        # duplicates mesh – prevents crashes (TODO: test without this line in 2.8)
+        print(1)
+        print(m)
+        m = m.copy()
+        print(m)
+        print(2)
         # apply rotation matrices to edit mesh
         if randomRotMatrix is not None:
             m.transform(randomRotMatrix)
+        print(3)
         # transform brick mesh to coordinate on matrix
         m.transform(Matrix.Translation(brickLoc))
 
+        print(4)
         # set to internal mat if material not set
         internal = False
         if mat is None:
             mat = internalMat
             internal = True
+        print(5)
 
         # keep track of mats already used
         if mat in mats:
@@ -131,28 +145,38 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         elif mat is not None:
             mats.append(mat)
             matIdx = len(mats) - 1
+        print(6)
 
-        # set material for mesh
-        if len(m.materials) > 0:
-            m.materials.clear()
+        # set material
         if mat is not None:
-            m.materials.append(mat)
-            # set name of material (name should not be set for internal mats)
+            # set material name in dictionary
+            print(7)
             if not internal:
                 brickD["mat_name"] = mat.name
+            print(8)
+            # point all polygons to target material (index will correspond in allMeshes object)
             for p in m.polygons:
                 p.material_index = matIdx
 
         # append mesh to allMeshes bmesh object
+        print(9)
         allMeshes.from_mesh(m)
 
-        # reset transformations for reference mesh
-        m.transform(Matrix.Translation(-brickLoc))
-        if randomRotMatrix is not None:
-            randomRotMatrix.invert()
-            m.transform(randomRotMatrix)
+        # remove duplicated mesh (TODO: test without this line in 2.8)
+        print(10)
+        bpy.data.meshes.remove(m)
+        # NOTE: The following lines clean up the mesh if not duplicated
+        # # reset polygon material mapping
+        # if mat is not None:
+        #     for p in m.polygons:
+        #         p.material_index = 0
+        #
+        # # reset transformations for reference mesh
+        # m.transform(Matrix.Translation(-brickLoc))
+        # if randomRotMatrix is not None:
+        #     randomRotMatrix.invert()
+        #     m.transform(randomRotMatrix)
 
-    print(6)
     return bricksDict
 
 
@@ -173,10 +197,10 @@ def addEdgeSplitMod(obj):
     eMod.split_angle = math.radians(44)
 
 
-def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeShellWithInternal, materialType, mergeVertical=True):
+def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, mergeVertical=True):
     if brickD["size"] is None or buildIsDirty:
         preferLargest = brickD["val"] > 0 and brickD["val"] < 1
-        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeShellWithInternal, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
+        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
     else:
         brickSize = brickD["size"]
     return brickSize

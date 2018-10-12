@@ -52,7 +52,10 @@ class Bricks:
             maxIdx -= 2 if flip else 0
             maxIdx += 1 if rotate90 else 0
             # make slope brick bmesh
-            brickBM = makeSlope(dimensions, size, brickType, loopCut, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
+            if type == "SLOPE_INVERTED":
+                brickBM = makeInvertedSlope(dimensions, size, brickType, loopCut, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
+            else:
+                brickBM = makeSlope(dimensions, size, brickType, loopCut, circleVerts=circleVerts, direction=directions[maxIdx], detail=undersideDetail, stud=stud)
         else:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
