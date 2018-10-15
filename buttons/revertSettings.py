@@ -37,6 +37,9 @@ class BrickerRevertSettings(Operator):
     bl_label = "Revert Matrix Settings"
     bl_options = {"REGISTER", "UNDO"}
 
+    ################################################
+    # Blender Operator methods
+
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns False) """
@@ -54,6 +57,9 @@ class BrickerRevertSettings(Operator):
         except:
             handle_exception()
         return{"FINISHED"}
+
+    ################################################
+    # class methods
 
     def revertMatrixSettings(self, cm=None):
         cm = cm or getActiveContextInfo()[1]
@@ -73,3 +79,5 @@ class BrickerRevertSettings(Operator):
         cm.brickShell = settings[12]
         cm.calculationAxes = settings[13]
         cm.matrixIsDirty = False
+
+    ################################################

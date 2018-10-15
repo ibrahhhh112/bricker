@@ -176,6 +176,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         # if randomRotMatrix is not None:
         #     randomRotMatrix.invert()
         #     m.transform(randomRotMatrix)
+    print(11)
 
     return bricksDict
 

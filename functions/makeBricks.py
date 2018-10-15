@@ -251,13 +251,18 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
         # print status to terminal and cursor
         old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
+    print(12)
 
     # end progress bars
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)
 
+    print(13)
+
     # remove duplicate of original logo
     if cm.logoType != "LEGO" and logo is not None:
         bpy.data.objects.remove(logo)
+
+    print(14)
 
     # combine meshes, link to scene, and add relevant data to the new Blender MESH object
     if split:
@@ -266,25 +271,34 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         for i, key in enumerate(keys):
             if bricksDict[key]["parent"] != "self" or not bricksDict[key]["draw"]:
                 continue
+            print("A")
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict), old_percent, "Linking to Scene")
+            print("B")
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
+            print("C")
             # create vert group for bevel mod (assuming only logo verts are selected):
             vg = brick.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 brick.vertex_groups.remove(vg)
+            print("D")
             vg = brick.vertex_groups.new("%(name)s_bvl" % locals())
+            print("E")
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
+            print("F")
             # set up remaining brick info if brick object just created
             if clearExistingGroup or brick.name not in bGroup.objects.keys():
                 bGroup.objects.link(brick)
+            print("G")
             brick.parent = parent
+            print("H")
             if not brick.isBrick:
                 scn.objects.link(brick)
                 brick.isBrick = True
+            print("I")
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
@@ -326,9 +340,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             # protect allBricksObj from being deleted
             allBricksObj.isBrickifiedObject = True
         bricksCreated.append(allBricksObj)
+    print(15)
 
     # reset 'attempted_merge' for all items in bricksDict
     for key0 in bricksDict:
         bricksDict[key0]["attempted_merge"] = False
+    print(16)
 
     return bricksCreated, bricksDict
