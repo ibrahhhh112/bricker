@@ -74,70 +74,52 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
     brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
 
     if split:
-        print(1)
         brick = bpy.data.objects.get(brickD["name"])
         if brick:
             # NOTE: last brick mesh is left in memory (faster)
             # set brick.data to new mesh (resets materials)
-            print(2)
             brick.data = m
             # add/remove edge split modifier if necessary
-            print(3)
             eMod = brick.modifiers.get('Edge Split')
             if not eMod and useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
             elif eMod and not useEdgeSplitMod(cm, brickD):
                 brick.modifiers.remove(eMod)
-            print(4)
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brickD["name"], m)
             brick.cmlist_id = cm_id
-            print(5)
             # add edge split modifier
             if useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
-            print(6)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
             brick.matrix_world = Matrix.Identity(4) * randomRotMatrix
-        print(6)
         # set brick location
         brick.location = brickLoc
-        print(7)
         # set brick material
         if len(m.materials) > 0 or len(brick.material_slots) > 0:
             m.materials.clear(1)
-        print(8)
         if mat is not None or internalMat is not None:
             m.materials.append(mat or internalMat)
             brick.material_slots[0].link = 'OBJECT'
             brick.material_slots[0].material = mat or internalMat
-        print(9)
         # append to bricksCreated
         bricksCreated.append(brick)
-        print(10)
     else:
         # duplicates mesh – prevents crashes (TODO: test without this line in 2.8)
-        print(1)
-        print(m)
         m = m.copy()
-        print(m)
-        print(2)
         # apply rotation matrices to edit mesh
         if randomRotMatrix is not None:
             m.transform(randomRotMatrix)
-        print(3)
         # transform brick mesh to coordinate on matrix
         m.transform(Matrix.Translation(brickLoc))
 
-        print(4)
         # set to internal mat if material not set
         internal = False
         if mat is None:
             mat = internalMat
             internal = True
-        print(5)
 
         # keep track of mats already used
         if mat in mats:
@@ -145,25 +127,20 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         elif mat is not None:
             mats.append(mat)
             matIdx = len(mats) - 1
-        print(6)
 
         # set material
         if mat is not None:
             # set material name in dictionary
-            print(7)
             if not internal:
                 brickD["mat_name"] = mat.name
-            print(8)
             # point all polygons to target material (index will correspond in allMeshes object)
             for p in m.polygons:
                 p.material_index = matIdx
 
         # append mesh to allMeshes bmesh object
-        print(9)
         allMeshes.from_mesh(m)
 
         # remove duplicated mesh (TODO: test without this line in 2.8)
-        print(10)
         bpy.data.meshes.remove(m)
         # NOTE: The following lines clean up the mesh if not duplicated
         # # reset polygon material mapping
@@ -176,7 +153,6 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         # if randomRotMatrix is not None:
         #     randomRotMatrix.invert()
         #     m.transform(randomRotMatrix)
-    print(11)
 
     return bricksDict
 
