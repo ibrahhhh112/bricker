@@ -32,7 +32,7 @@ from ..lib.bricksDict import *
 from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
-from ..buttons.delete import BrickerDelete
+from ..buttons.delete import BRICKER_OT_delete
 from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
@@ -53,7 +53,7 @@ class BRICKER_OT_delete_override(Operator):
 
     def execute(self, context):
         try:
-            int("running custom delete function")
+            print("running custom delete function")
             self.runDelete(context)
         except:
             handle_exception()
@@ -267,7 +267,7 @@ class BRICKER_OT_delete_override(Operator):
                     cm = cmCur
                     break
         if cm and update_model:
-            BrickerDelete.runFullDelete(cm=cm)
+            BRICKER_OT_delete.runFullDelete(cm=cm)
             scn.objects.active.select = False
         else:
             obj_users_scene = len(obj.users_scene)

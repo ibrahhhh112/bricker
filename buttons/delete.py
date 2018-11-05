@@ -45,7 +45,7 @@ def getModelType(cm):
     return modelType
 
 
-class BrickerDelete(bpy.types.Operator):
+class BRICKER_OT_delete(bpy.types.Operator):
     """ Delete Brickified model """
     bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
@@ -194,7 +194,7 @@ class BrickerDelete(bpy.types.Operator):
                 except KeyError:
                     pass
 
-        Caches.clearCache(cm, brick_mesh=False)
+        BRICKER_OT_caches.clearCache(cm, brick_mesh=False)
 
         # Scale brick height according to scale value applied to source
         cm.brickHeight = cm.brickHeight * cm.transformScale

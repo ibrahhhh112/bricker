@@ -33,7 +33,7 @@ from ..lib.caches import *
 from ..functions import *
 
 
-class Caches(bpy.types.Operator):
+class BRICKER_OT_caches(bpy.types.Operator):
     """Clear brick mesh and matrix cache (Model customizations will be lost)"""
     bl_idname = "bricker.clear_cache"
     bl_label = "Clear Cache"
@@ -87,7 +87,7 @@ class Caches(bpy.types.Operator):
         """clear all caches in cmlist"""
         scn = bpy.context.scene
         for cm in scn.cmlist:
-            Caches.clearCache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)
+            BRICKER_OT_caches.clearCache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)
 
     @staticmethod
     def cacheExists(cm=None):

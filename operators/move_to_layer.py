@@ -30,7 +30,7 @@ from bpy.props import *
 # Addon imports
 from ..functions.common import *
 
-class move_to_layer_override(Operator):
+class BRICKER_OT_move_to_layer_override(Operator):
     """Move to Layer Override"""
     bl_idname = "bricker.move_to_layer_override"
     bl_label = "Move to Layer Override"

@@ -30,7 +30,7 @@ import bpy
 from ..functions import *
 
 
-class reportError(bpy.types.Operator):
+class BRICKER_OT_report_error(bpy.types.Operator):
     """Report a bug via an automatically generated issue ticket"""
     bl_idname = "bricker.report_error"
     bl_label = "Report Error"
@@ -62,7 +62,7 @@ class reportError(bpy.types.Operator):
     ################################################
 
 
-class closeReportError(bpy.types.Operator):
+class BRICKER_OT_close_error(bpy.types.Operator):
     """Deletes error report from blender's memory (still exists in file system)"""
     bl_idname = "bricker.close_report_error"
     bl_label = "Close Report Error"

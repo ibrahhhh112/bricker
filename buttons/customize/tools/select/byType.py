@@ -33,7 +33,7 @@ from ....brickify import *
 from .....functions import *
 
 
-class selectBricksByType(Operator):
+class BRICKER_OT_select_bricks_by_type(Operator):
     """Select bricks of specified type"""
     bl_idname = "bricker.select_bricks_by_type"
     bl_label = "Select Bricks by Type"

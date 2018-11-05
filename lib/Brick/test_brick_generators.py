@@ -33,7 +33,7 @@ from ...functions.general import *
 from ...functions.makeBricks_utils import *
 
 
-class testBrickGenerators(bpy.types.Operator):
+class BRICKER_OT_test_brick_generators(bpy.types.Operator):
     """Draws some test bricks for testing of brick generators"""
     bl_idname = "bricker.test_brick_generators"
     bl_label = "Test Brick Generators"

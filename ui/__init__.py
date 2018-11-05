@@ -37,7 +37,7 @@ from .matlist_window import *
 from .matlist_actions import *
 from ..lib.bricksDict import *
 from ..lib.Brick.test_brick_generators import *
-from ..buttons.delete import BrickerDelete
+from ..buttons.delete import BRICKER_OT_delete
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
 from ..functions import *
@@ -57,8 +57,8 @@ def settingsCanBeDrawn():
     return True
 
 
-class BasicMenu(bpy.types.Menu):
-    bl_idname      = "Bricker_specials_menu"
+class BRICKER_MT_specials(bpy.types.Menu):
+    bl_idname      = "BRICKER_MT_specials"
     bl_label       = "Select"
 
     def draw(self, context):
@@ -71,11 +71,11 @@ class BasicMenu(bpy.types.Menu):
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
 
 
-class BrickModelsPanel(Panel):
+class BRICKER_PT_brick_models(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Brick Models"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_brick_models"
+    bl_idname      = "BRICKER_PT_brick_models"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
 
@@ -107,12 +107,12 @@ class BrickModelsPanel(Panel):
         else:
             rows = 4
         row = layout.row()
-        row.template_list("Bricker_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
+        row.template_list("BRICKER_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
         col = row.column(align=True)
         col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ZOOMIN").action = 'ADD'
         col.operator("cmlist.list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
-        col.menu("Bricker_specials_menu", icon='DOWNARROW_HLT', text="")
+        col.menu("BRICKER_MT_specials", icon='DOWNARROW_HLT', text="")
         if len(scn.cmlist) > 1:
             col.separator()
             col.operator("cmlist.list_action", icon='TRIA_UP', text="").action = 'UP'
@@ -143,7 +143,7 @@ class BrickModelsPanel(Panel):
                 row = col1.row(align=True)
                 row.operator("bricker.initialize", text="Initialize Bricker", icon="MODIFIER")
                 # draw test brick generator button (for testing purposes only)
-                if testBrickGenerators.drawUIButton():
+                if BRICKER_OT_test_brick_generators.drawUIButton():
                     col = layout.column(align=True)
                     col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
             # if use animation is selected, draw animation options
@@ -230,11 +230,11 @@ def is_baked(mod):
     return mod.point_cache.is_baked is not False
 
 
-class AnimationPanel(Panel):
+class BRICKER_PT_animation(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Animation"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_animation"
+    bl_idname      = "BRICKER_PT_animation"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -295,11 +295,11 @@ class AnimationPanel(Panel):
                 col.separator()
 
 
-class ModelTransformPanel(Panel):
+class BRICKER_PT_model_transform(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Model Transform"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_model_transform"
+    bl_idname      = "BRICKER_PT_model_transform"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -347,11 +347,11 @@ class ModelTransformPanel(Panel):
         layout.prop(cm, "transformScale")
 
 
-class ModelSettingsPanel(Panel):
+class BRICKER_PT_model_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Model Settings"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_model_settings"
+    bl_idname      = "BRICKER_PT_model_settings"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
 
@@ -446,11 +446,11 @@ class ModelSettingsPanel(Panel):
 
 
 
-class SmokeSettingsPanel(Panel):
+class BRICKER_PT_smoke_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Smoke Settings"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_smoke_settings"
+    bl_idname      = "BRICKER_PT_smoke_settings"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -497,11 +497,11 @@ class SmokeSettingsPanel(Panel):
             row.prop(cm, "flameIntensity", text="Intensity")
 
 
-class BrickTypesPanel(Panel):
+class BRICKER_PT_brick_types(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Brick Types"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_brick_types"
+    bl_idname      = "BRICKER_PT_brick_types"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -552,11 +552,11 @@ class BrickTypesPanel(Panel):
                 col1.operator("bricker.redraw_custom", icon="FILE_REFRESH", text="").target_prop = prop
 
 
-class MergeSettingsPanel(Panel):
+class BRICKER_PT_merge_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Merge Settings"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_merge_settings"
+    bl_idname      = "BRICKER_PT_merge_settings"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -599,11 +599,11 @@ class MergeSettingsPanel(Panel):
 
 
 
-class CustomizeModel(Panel):
+class BRICKER_PT_customize_model(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Customize Model"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_customize_mode"
+    bl_idname      = "BRICKER_PT_customize_model"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -635,7 +635,7 @@ class CustomizeModel(Panel):
         if cm.buildIsDirty:
             layout.label("Run 'Update Model' to customize")
             return
-        if not Caches.cacheExists(cm):
+        if not BRICKER_OT_caches.cacheExists(cm):
             layout.label("Matrix not cached!")
             return
         # if not bpy.props.bricker_initialized:
@@ -688,11 +688,11 @@ class CustomizeModel(Panel):
         # row.operator("bricker.redraw_bricks")
 
 
-class MaterialsPanel(Panel):
+class BRICKER_PT_materials(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Materials"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_materials"
+    bl_idname      = "BRICKER_PT_materials"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -860,11 +860,11 @@ class MaterialsPanel(Panel):
 
 
 
-class DetailingPanel(Panel):
+class BRICKER_PT_detailing(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Detailing"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_detailing"
+    bl_idname      = "BRICKER_PT_detailing"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -944,11 +944,11 @@ class DetailingPanel(Panel):
             row.operator("bricker.bevel", text="Bevel bricks", icon="MOD_BEVEL")
 
 
-class SupportsPanel(Panel):
+class BRICKER_PT_supports(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Supports"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_supports"
+    bl_idname      = "BRICKER_PT_supports"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -986,11 +986,11 @@ class SupportsPanel(Panel):
         #     row.label("(Source is NOT single closed mesh)")
 
 
-class AdvancedPanel(Panel):
+class BRICKER_PT_advanced(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Advanced"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_advanced"
+    bl_idname      = "BRICKER_PT_advanced"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -1032,17 +1032,17 @@ class AdvancedPanel(Panel):
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
         # draw test brick generator button (for testing purposes only)
-        if testBrickGenerators.drawUIButton():
+        if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
 
 
-class BrickDetailsPanel(Panel):
+class BRICKER_PT_matrix_details(Panel):
     """ Display Matrix details for specified brick location """
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Brick Details"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_brick_details"
+    bl_idname      = "BRICKER_PT_matrix_details"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -1067,7 +1067,7 @@ class BrickDetailsPanel(Panel):
         if matrixReallyIsDirty(cm):
             layout.label("Matrix is dirty!")
             return
-        if not Caches.cacheExists(cm):
+        if not BRICKER_OT_caches.cacheExists(cm):
             layout.label("Matrix not cached!")
             return
 
@@ -1119,12 +1119,12 @@ class BrickDetailsPanel(Panel):
             row = col.row(align=True)
             row.label(str(brickD[key]))
 
-class ExportPanel(Panel):
+class BRICKER_PT_export(Panel):
     """ Export Bricker Model """
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Bake/Export"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_export"
+    bl_idname      = "BRICKER_PT_export"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}

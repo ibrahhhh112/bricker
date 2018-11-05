@@ -52,7 +52,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
     # add bevel if it was previously added
     if cm.bevelAdded:
         bricks = getBricks(cm)
-        BrickerBevel.runBevelAction(bricks, cm)
+        BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
 
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):

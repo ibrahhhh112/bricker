@@ -35,7 +35,7 @@ from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 
 
-class redrawBricks(Operator):
+class BRICKER_OT_redraw_bricks(Operator):
     """redraw selected bricks from bricksDict"""
     bl_idname = "bricker.redraw_bricks"
     bl_label = "Redraw Bricks"

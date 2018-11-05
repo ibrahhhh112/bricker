@@ -33,7 +33,7 @@ from ...functions import *
 from ...ui.cmlist_actions import *
 
 
-class InitializeUndoStack(Operator):
+class BRICKER_OT_initialize_undo_stack(Operator):
     """ initializes undo stack for changes to the BFM cache """
     bl_category = "Bricker"
     bl_idname = "bricker.initialize"
@@ -71,7 +71,7 @@ class InitializeUndoStack(Operator):
         # self.ui.start()
         # add new scn.cmlist item
         if self.action == "ADD":
-            cmlist_actions.addItem()
+            BRICKER_OT_cmlist_actions.addItem()
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

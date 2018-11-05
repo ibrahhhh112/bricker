@@ -35,9 +35,9 @@ props = bpy.props
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BrickerApplyMaterial
-from .delete import BrickerDelete
-from .bevel import BrickerBevel
+from .materials import BRICKER_OT_apply_material
+from .delete import BRICKER_OT_delete
+from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
 # from ..lib.rigid_body_props import *
@@ -59,7 +59,7 @@ def updateCanRun(type):
             return commonNeedsUpdate or (groupExists(Bricker_bricks_gn) and len(bpy.data.groups[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
 
 
-class BrickerBrickify(bpy.types.Operator):
+class BRICKER_OT_brickify(bpy.types.Operator):
     """ Create brick sculpture from source object mesh """
     bl_idname = "bricker.brickify"
     bl_label = "Create/Update Brick Model from Source Object"
@@ -150,7 +150,7 @@ class BrickerBrickify(bpy.types.Operator):
 
         # clear cache if updating from previous version
         if createdWithUnsupportedVersion(cm) and "UPDATE" in self.action:
-            Caches.clearCache(cm)
+            BRICKER_OT_caches.clearCache(cm)
             cm.matrixIsDirty = True
 
         # make sure matrix really is dirty
@@ -233,7 +233,7 @@ class BrickerBrickify(bpy.types.Operator):
         # delete old bricks if present
         if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
             # skip source, dupes, and parents
-            trans_and_anim_data = BrickerDelete.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
+            trans_and_anim_data = BRICKER_OT_delete.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
         else:
             storeTransformData(cm, None)
             trans_and_anim_data = []
@@ -315,7 +315,7 @@ class BrickerBrickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="MODEL")
-            BrickerBevel.runBevelAction(bricks, cm)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
         # set active frame to original active frame
         if origFrame and scn.frame_current != origFrame:
@@ -344,7 +344,7 @@ class BrickerBrickify(bpy.types.Operator):
                 return "FINISHED"
 
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
-            Caches.clearCache(cm, brick_mesh=False)
+            BRICKER_OT_caches.clearCache(cm, brick_mesh=False)
 
         if cm.splitModel:
             cm.splitModel = False
@@ -355,7 +355,7 @@ class BrickerBrickify(bpy.types.Operator):
             if self.updatedFramesOnly:
                 # preserve duplicates, parents, and bricks for frames that haven't changed
                 preservedFrames = [cm.startFrame, cm.stopFrame]
-            BrickerDelete.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
+            BRICKER_OT_delete.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
 
         # get parent object
         parent0 = bpy.data.objects.get(Bricker_parent_on)
@@ -439,7 +439,7 @@ class BrickerBrickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="ANIM")
-            BrickerBevel.runBevelAction(bricks, cm)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
     @classmethod
     def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False, origSource=None):

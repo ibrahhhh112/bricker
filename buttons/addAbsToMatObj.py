@@ -30,7 +30,7 @@ from ..functions import *
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
-class addAbsToMatObj(bpy.types.Operator):
+class BRICKER_OT_add_abs_to_mat_bbj(bpy.types.Operator):
     """Add all ABS Plastic Materials to the list of materials to use for Brickifying object"""
     bl_idname = "bricker.add_abs_plastic_materials"
     bl_label = "Add ABS Plastic Materials"

@@ -35,7 +35,7 @@ from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 
 
-class setExposure(Operator):
+class BRICKER_OT_set_exposure(Operator):
     """Set exposure of bricks"""
     bl_idname = "bricker.set_exposure"
     bl_label = "Set Exposure"

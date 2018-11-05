@@ -35,7 +35,7 @@ from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 
 
-class splitBricks(Operator):
+class BRICKER_OT_split_bricks(Operator):
     """Split selected bricks into 1x1 bricks"""
     bl_idname = "bricker.split_bricks"
     bl_label = "Split Brick(s)"

@@ -10,7 +10,7 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for 'BRICKER_OT_test_brick_generators' button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 
@@ -41,6 +41,7 @@ Created by Christopher Gearhart
 # Blender imports
 import bpy
 from bpy.props import *
+from bpy.utils import register_class, unregister_class
 
 # Addon imports
 from .ui import *
@@ -59,8 +60,84 @@ from . import addon_updater_ops
 addon_keymaps = []
 
 
+classes = (
+    # bricker/addon_updater_ops.py
+    addon_updater_ops.OBJECT_OT_addon_updater_install_popup,
+    addon_updater_ops.OBJECT_OT_addon_updater_check_now,
+    addon_updater_ops.OBJECT_OT_addon_updater_update_now,
+    addon_updater_ops.OBJECT_OT_addon_updater_update_target,
+    addon_updater_ops.OBJECT_OT_addon_updater_install_manually,
+    addon_updater_ops.OBJECT_OT_addon_updater_updated_successful,
+    addon_updater_ops.OBJECT_OT_addon_updater_restore_backup,
+    addon_updater_ops.OBJECT_OT_addon_updater_ignore,
+    addon_updater_ops.OBJECT_OT_addon_updater_end_background,
+    # bricker/buttons
+    buttons.addAbsToMatObj.BRICKER_OT_add_abs_to_mat_bbj,
+    buttons.bake.BRICKER_OT_bake_model,
+    buttons.bevel.BRICKER_OT_bevel,
+    buttons.brickify.BRICKER_OT_brickify,
+    buttons.cache.BRICKER_OT_caches,
+    buttons.delete.BRICKER_OT_delete,
+    buttons.exportLdraw.BRICKER_OT_export_ldraw,
+    buttons.exportModelData.BRICKER_OT_export_model_data,
+    buttons.eyedropper.OBJECT_OT_eye_dropper,
+    buttons.materials.BRICKER_OT_apply_material,
+    buttons.redrawCustomBricks.BRICKER_OT_redraw_custom_bricks,
+    buttons.reportError.BRICKER_OT_report_error,
+    buttons.reportError.BRICKER_OT_close_error,
+    buttons.revertSettings.BRICKER_OT_revert_settings,
+    # bricker/buttons/customize
+    customize.initialize.BRICKER_OT_initialize_undo_stack,
+    BRICKER_OT_change_material,
+    BRICKER_OT_change_type,
+    BRICKER_OT_draw_adjacent,
+    BRICKER_OT_merge_bricks,
+    BRICKER_OT_redraw_bricks,
+    BRICKER_OT_select_bricks_by_size,
+    BRICKER_OT_select_bricks_by_type,
+    BRICKER_OT_set_exposure,
+    BRICKER_OT_split_bricks,
+    # bricker/lib
+    BRICKER_OT_test_brick_generators,
+    BRICKER_PT_preferences,
+    # bricker/operators
+    operators.delete.BRICKER_OT_delete_override,
+    operators.duplicate.BRICKER_OT_duplicate_override,
+    operators.duplicate.BRICKER_OT_duplicate_move,
+    operators.move_to_layer.BRICKER_OT_move_to_layer_override,
+    operators.move_to_layer.BRICKER_OT_move_to_layer,
+    # bricker/ui
+    BRICKER_MT_specials,
+    BRICKER_PT_brick_models,
+    BRICKER_PT_animation,
+    BRICKER_PT_model_transform,
+    BRICKER_PT_model_settings,
+    BRICKER_PT_smoke_settings,
+    BRICKER_PT_brick_types,
+    BRICKER_PT_merge_settings,
+    BRICKER_PT_customize_model,
+    BRICKER_PT_materials,
+    BRICKER_PT_detailing,
+    BRICKER_PT_supports,
+    BRICKER_PT_advanced,
+    BRICKER_PT_matrix_details,
+    BRICKER_PT_export,
+    # bricker/ui/ (cmlist)
+    BRICKER_OT_cmlist_actions,
+    BRICKER_OT_copy_settings_to_others,
+    BRICKER_OT_copy_settings,
+    BRICKER_OT_paste_settings,
+    BRICKER_OT_select_bricks,
+    BRICKER_UL_cmlist_items,
+    BRICKER_UL_created_models,
+    # bricker/ui/ (matlist)
+    BRICKER_OT_matlist_actions,
+    MATERIAL_UL_matslots_example,
+)
+
 def register():
-    bpy.utils.register_module(__name__)
+    for cls in classes:
+        bpy.utils.register_class(cls)
 
     bpy.props.bricker_module_name = __name__
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
@@ -115,7 +192,7 @@ def register():
         addon_keymaps.append(km)
 
     # other things (UI List)
-    bpy.types.Scene.cmlist = CollectionProperty(type=Bricker_CreatedModels)
+    bpy.types.Scene.cmlist = CollectionProperty(type=BRICKER_UL_created_models)
     bpy.types.Scene.cmlist_index = IntProperty(default=-1)
 
     # addon updater code and configurations
@@ -157,7 +234,8 @@ def unregister():
         wm.keyconfigs.addon.keymaps.remove(km)
     addon_keymaps.clear()
 
-    bpy.utils.unregister_module(__name__)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":

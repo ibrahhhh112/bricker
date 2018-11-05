@@ -27,7 +27,7 @@ from bpy.props import *
 # updater import
 from .. import addon_updater_ops
 
-class BrickerPreferences(AddonPreferences):
+class BRICKER_PT_preferences(AddonPreferences):
     bl_idname = __package__[:__package__.index(".lib")]
 
     # Bricker preferences

@@ -28,7 +28,7 @@ from bpy.props import StringProperty
 from ..functions import *
 
 
-class EyeDropper(bpy.types.Operator):
+class OBJECT_OT_eye_dropper(bpy.types.Operator):
     '''Use Eyedropper To pick object from scene'''
     bl_idname = "bricker.eye_dropper"
     bl_label = "Eye Dropper"

@@ -33,7 +33,7 @@ from .cmlist_utils import *
 
 
 # ui list item actions
-class cmlist_actions(bpy.types.Operator):
+class BRICKER_OT_cmlist_actions(bpy.types.Operator):
     bl_idname = "cmlist.list_action"
     bl_label = "Brick Model List Action"
 
@@ -190,7 +190,7 @@ class cmlist_actions(bpy.types.Operator):
 
 
 # copy settings from current index to all other indices
-class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
+class BRICKER_OT_copy_settings_to_others(bpy.types.Operator):
     bl_idname = "cmlist.copy_to_others"
     bl_label = "Copy Settings to Other Brick Models"
     bl_description = "Copies the settings from the current model to all other Brick Models"
@@ -217,7 +217,7 @@ class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
 
 
 # copy settings from current index to memory
-class Bricker_Uilist_copySettings(bpy.types.Operator):
+class BRICKER_OT_copy_settings(bpy.types.Operator):
     bl_idname = "cmlist.copy_settings"
     bl_label = "Copy Settings from Current Brick Model"
     bl_description = "Stores the ID of the current model for pasting"
@@ -240,7 +240,7 @@ class Bricker_Uilist_copySettings(bpy.types.Operator):
 
 
 # paste settings from index in memory to current index
-class Bricker_Uilist_pasteSettings(bpy.types.Operator):
+class BRICKER_OT_paste_settings(bpy.types.Operator):
     bl_idname = "cmlist.paste_settings"
     bl_label = "Paste Settings to Current Brick Model"
     bl_description = "Pastes the settings from stored model ID to the current index"
@@ -266,7 +266,7 @@ class Bricker_Uilist_pasteSettings(bpy.types.Operator):
 
 
 # select bricks from current model
-class Bricker_Uilist_selectBricks(bpy.types.Operator):
+class BRICKER_OT_select_bricks(bpy.types.Operator):
     bl_idname = "cmlist.select_bricks"
     bl_label = "Select All Bricks in Current Brick Model"
     bl_description = "Select all bricks in the current model"
@@ -294,7 +294,7 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
 # draw
 # -------------------------------------------------------------------
 
-class Bricker_UL_cmlist_items(UIList):
+class BRICKER_UL_cmlist_items(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # Make sure your code supports all 3 layout types

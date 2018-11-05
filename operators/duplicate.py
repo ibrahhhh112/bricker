@@ -32,7 +32,7 @@ from bpy.props import *
 from ..functions import *
 from ..ui.cmlist_actions import *
 
-class duplicate_override(bpy.types.Operator):
+class BRICKER_OT_duplicate_override(bpy.types.Operator):
     """Duplicate selected objects (Bricker object duplicates will baked)"""
     bl_idname = "bricker.duplicate"
     bl_label = "Duplicate Objects"

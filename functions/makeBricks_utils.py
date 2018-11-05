@@ -297,6 +297,7 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
 
     # check for bmesh in cache
     meshes = bricker_mesh_cache.get(bm_cache_string)
+    print(meshes)
     # if not found create new brick mesh(es) and store to cache
     if meshes is None:
         # create new brick bmeshes

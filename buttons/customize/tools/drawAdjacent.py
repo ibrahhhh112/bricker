@@ -37,7 +37,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class drawAdjacent(Operator):
+class BRICKER_OT_draw_adjacent(Operator):
     """Draw brick to one side of active brick"""
     bl_idname = "bricker.draw_adjacent"
     bl_label = "Draw Adjacent Bricks"
@@ -119,7 +119,7 @@ class drawAdjacent(Operator):
 
             # attempt to merge created bricks
             height3Only = "PLATES" in cm.brickType and targetType in getBrickTypes(height=3)
-            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, keysToMerge, cm, mergeVertical=targetType in getBrickTypes(height=3), targetType=targetType, height3Only=height3Only)
+            keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, keysToMerge, cm, mergeVertical=targetType in getBrickTypes(height=3), targetType=targetType, height3Only=height3Only)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.zPos or self.zNeg:
