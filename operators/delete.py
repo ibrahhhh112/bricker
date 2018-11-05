@@ -53,7 +53,7 @@ class BRICKER_OT_delete_override(Operator):
 
     def execute(self, context):
         try:
-            int("running custom delete function")
+            print("running custom delete function")
             self.runDelete(context)
         except:
             handle_exception()
