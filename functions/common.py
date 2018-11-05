@@ -603,11 +603,9 @@ def parent_clear(objs, apply_transform=True):
     if apply_transform:
         for obj in objs:
             obj.rotation_mode = "XYZ"
-            loc = obj.matrix_world.to_translation()
-            rot = obj.matrix_world.to_euler()
-            scale = obj.matrix_world.to_scale()
+            loc, rot, scale = obj.matrix_world.decompose()
             obj.location = loc
-            obj.rotation_euler = rot
+            obj.rotation_euler = rot.to_euler()
             obj.scale = scale
     for obj in objs:
         obj.parent = None

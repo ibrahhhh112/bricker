@@ -203,8 +203,8 @@ def addColumnSupports(bricksDict, keys, thickness, step):
         if not isInternal(bricksDict, key):
             continue
         x,y,z = getDictLoc(bricksDict, key)
-        if (x % step < colThickness and
-            y % step < colThickness):
+        if (x % step < thickness and
+            y % step < thickness):
             bricksDict[key]["draw"] = True
 
 def addLatticeSupports(bricksDict, keys, step, height, alternateXY):
