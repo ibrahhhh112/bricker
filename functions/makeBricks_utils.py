@@ -74,70 +74,52 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
     brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
 
     if split:
-        print(1)
         brick = bpy.data.objects.get(brickD["name"])
         if brick:
             # NOTE: last brick mesh is left in memory (faster)
             # set brick.data to new mesh (resets materials)
-            print(2)
             brick.data = m
             # add/remove edge split modifier if necessary
-            print(3)
             eMod = brick.modifiers.get('Edge Split')
             if not eMod and useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
             elif eMod and not useEdgeSplitMod(cm, brickD):
                 brick.modifiers.remove(eMod)
-            print(4)
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brickD["name"], m)
             brick.cmlist_id = cm_id
-            print(5)
             # add edge split modifier
             if useEdgeSplitMod(cm, brickD):
                 addEdgeSplitMod(brick)
-            print(6)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
             brick.matrix_world = Matrix.Identity(4) * randomRotMatrix
-        print(6)
         # set brick location
         brick.location = brickLoc
-        print(7)
         # set brick material
         if len(m.materials) > 0 or len(brick.material_slots) > 0:
             m.materials.clear(1)
-        print(8)
         if mat is not None or internalMat is not None:
             m.materials.append(mat or internalMat)
             brick.material_slots[0].link = 'OBJECT'
             brick.material_slots[0].material = mat or internalMat
-        print(9)
         # append to bricksCreated
         bricksCreated.append(brick)
-        print(10)
     else:
         # duplicates mesh – prevents crashes (TODO: test without this line in 2.8)
-        print(1)
-        print(m)
         m = m.copy()
-        print(m)
-        print(2)
         # apply rotation matrices to edit mesh
         if randomRotMatrix is not None:
             m.transform(randomRotMatrix)
-        print(3)
         # transform brick mesh to coordinate on matrix
         m.transform(Matrix.Translation(brickLoc))
 
-        print(4)
         # set to internal mat if material not set
         internal = False
         if mat is None:
             mat = internalMat
             internal = True
-        print(5)
 
         # keep track of mats already used
         if mat in mats:
@@ -145,25 +127,20 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         elif mat is not None:
             mats.append(mat)
             matIdx = len(mats) - 1
-        print(6)
 
         # set material
         if mat is not None:
             # set material name in dictionary
-            print(7)
             if not internal:
                 brickD["mat_name"] = mat.name
-            print(8)
             # point all polygons to target material (index will correspond in allMeshes object)
             for p in m.polygons:
                 p.material_index = matIdx
 
         # append mesh to allMeshes bmesh object
-        print(9)
         allMeshes.from_mesh(m)
 
         # remove duplicated mesh (TODO: test without this line in 2.8)
-        print(10)
         bpy.data.meshes.remove(m)
         # NOTE: The following lines clean up the mesh if not duplicated
         # # reset polygon material mapping
@@ -176,7 +153,6 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
         # if randomRotMatrix is not None:
         #     randomRotMatrix.invert()
         #     m.transform(randomRotMatrix)
-    print(11)
 
     return bricksDict
 
@@ -295,30 +271,60 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
                                       brickD["flipped"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
                                       brickD["rotated"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None))
 
+    # NOTE: Stable implementation for Blender 2.79
     # check for bmesh in cache
-    meshes = bricker_mesh_cache.get(bm_cache_string)
-    print(meshes)
+    bms = bricker_mesh_cache.get(bm_cache_string)
     # if not found create new brick mesh(es) and store to cache
-    if meshes is None:
+    if bms is None:
         # create new brick bmeshes
         bms = Bricks.new_mesh(dimensions, brickType, size=brickSize, type=brickD["type"], flip=brickD["flipped"], rotate90=brickD["rotated"], loopCut=loopCut, logo=logoToUse, logoType=logoType, logoScale=logoScale, logoInset=logoInset, all_vars=logoToUse is not None, logo_details=logo_details, undersideDetail=undersideDetail, stud=useStud, circleVerts=circleVerts)
-        # create edit mesh for each bmesh
-        meshes = []
-        for i,bm in enumerate(bms):
-            # create new mesh and send bm to it
-            bmcs_hash = hash_str(bm_cache_string)
-            meshName = "%(bmcs_hash)s_%(i)s" % locals()
-            m = bpy.data.meshes.get(meshName)
-            # create new edit mesh and send bmesh data to it
-            if m is None:
-                m = bpy.data.meshes.new(meshName)
-                bm.to_mesh(m)
-                # center mesh origin
-                centerMeshOrigin(m, dimensions, brickSize)
-            meshes.append(m)
         # store newly created meshes to cache
         if brickType != "CUSTOM":
-            bricker_mesh_cache[bm_cache_string] = meshes
+            bricker_mesh_cache[bm_cache_string] = bms
+    # create edit mesh for each bmesh
+    meshes = []
+    for i,bm in enumerate(bms):
+        # create new mesh and send bm to it
+        bmcs_hash = hash_str(bm_cache_string)
+        meshName = "%(bmcs_hash)s_%(i)s" % locals()
+        m = bpy.data.meshes.get(meshName)
+        # create new edit mesh and send bmesh data to it
+        if m is None:
+            m = bpy.data.meshes.new(meshName)
+            bm.to_mesh(m)
+            # center mesh origin
+            centerMeshOrigin(m, dimensions, brickSize)
+        meshes.append(m)
+    # # TODO: Try the following code instead in Blender 2.8 – see if it crashes with the following steps:
+    # #     Open new file
+    # #     Create new bricker model and Brickify with default settings
+    # #     Delete the brickified model with the 'x > OK?' shortcut
+    # #     Undo with 'ctrl + z'
+    # #     Enable 'Update Model' button by clicking on and off of 'Gap Between Bricks'
+    # #     Press 'Update Model'
+    # # check for bmesh in cache
+    # meshes = bricker_mesh_cache.get(bm_cache_string)
+    # # if not found create new brick mesh(es) and store to cache
+    # if meshes is None:
+    #     # create new brick bmeshes
+    #     bms = Bricks.new_mesh(dimensions, brickType, size=brickSize, type=brickD["type"], flip=brickD["flipped"], rotate90=brickD["rotated"], loopCut=loopCut, logo=logoToUse, logoType=logoType, logoScale=logoScale, logoInset=logoInset, all_vars=logoToUse is not None, logo_details=logo_details, undersideDetail=undersideDetail, stud=useStud, circleVerts=circleVerts)
+    #     # create edit mesh for each bmesh
+    #     meshes = []
+    #     for i,bm in enumerate(bms):
+    #         # create new mesh and send bm to it
+    #         bmcs_hash = hash_str(bm_cache_string)
+    #         meshName = "%(bmcs_hash)s_%(i)s" % locals()
+    #         m = bpy.data.meshes.get(meshName)
+    #         # create new edit mesh and send bmesh data to it
+    #         if m is None:
+    #             m = bpy.data.meshes.new(meshName)
+    #             bm.to_mesh(m)
+    #             # center mesh origin
+    #             centerMeshOrigin(m, dimensions, brickSize)
+    #         meshes.append(m)
+    #     # store newly created meshes to cache
+    #     if brickType != "CUSTOM":
+    #         bricker_mesh_cache[bm_cache_string] = meshes
 
     # pick edit mesh randomly from options
     m0 = meshes[rand.randint(0, len(meshes))] if len(meshes) > 1 else meshes[0]
