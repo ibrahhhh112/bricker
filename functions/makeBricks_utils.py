@@ -271,29 +271,60 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
                                       brickD["flipped"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None,
                                       brickD["rotated"] if brickD["type"] in ("SLOPE", "SLOPE_INVERTED") else None))
 
+    # NOTE: Stable implementation for Blender 2.79
     # check for bmesh in cache
-    meshes = bricker_mesh_cache.get(bm_cache_string)
+    bms = bricker_mesh_cache.get(bm_cache_string)
     # if not found create new brick mesh(es) and store to cache
-    if meshes is None:
+    if bms is None:
         # create new brick bmeshes
         bms = Bricks.new_mesh(dimensions, brickType, size=brickSize, type=brickD["type"], flip=brickD["flipped"], rotate90=brickD["rotated"], loopCut=loopCut, logo=logoToUse, logoType=logoType, logoScale=logoScale, logoInset=logoInset, all_vars=logoToUse is not None, logo_details=logo_details, undersideDetail=undersideDetail, stud=useStud, circleVerts=circleVerts)
-        # create edit mesh for each bmesh
-        meshes = []
-        for i,bm in enumerate(bms):
-            # create new mesh and send bm to it
-            bmcs_hash = hash_str(bm_cache_string)
-            meshName = "%(bmcs_hash)s_%(i)s" % locals()
-            m = bpy.data.meshes.get(meshName)
-            # create new edit mesh and send bmesh data to it
-            if m is None:
-                m = bpy.data.meshes.new(meshName)
-                bm.to_mesh(m)
-                # center mesh origin
-                centerMeshOrigin(m, dimensions, brickSize)
-            meshes.append(m)
         # store newly created meshes to cache
         if brickType != "CUSTOM":
-            bricker_mesh_cache[bm_cache_string] = meshes
+            bricker_mesh_cache[bm_cache_string] = bms
+    # create edit mesh for each bmesh
+    meshes = []
+    for i,bm in enumerate(bms):
+        # create new mesh and send bm to it
+        bmcs_hash = hash_str(bm_cache_string)
+        meshName = "%(bmcs_hash)s_%(i)s" % locals()
+        m = bpy.data.meshes.get(meshName)
+        # create new edit mesh and send bmesh data to it
+        if m is None:
+            m = bpy.data.meshes.new(meshName)
+            bm.to_mesh(m)
+            # center mesh origin
+            centerMeshOrigin(m, dimensions, brickSize)
+        meshes.append(m)
+    # # TODO: Try the following code instead in Blender 2.8 – see if it crashes with the following steps:
+    # #     Open new file
+    # #     Create new bricker model and Brickify with default settings
+    # #     Delete the brickified model with the 'x > OK?' shortcut
+    # #     Undo with 'ctrl + z'
+    # #     Enable 'Update Model' button by clicking on and off of 'Gap Between Bricks'
+    # #     Press 'Update Model'
+    # # check for bmesh in cache
+    # meshes = bricker_mesh_cache.get(bm_cache_string)
+    # # if not found create new brick mesh(es) and store to cache
+    # if meshes is None:
+    #     # create new brick bmeshes
+    #     bms = Bricks.new_mesh(dimensions, brickType, size=brickSize, type=brickD["type"], flip=brickD["flipped"], rotate90=brickD["rotated"], loopCut=loopCut, logo=logoToUse, logoType=logoType, logoScale=logoScale, logoInset=logoInset, all_vars=logoToUse is not None, logo_details=logo_details, undersideDetail=undersideDetail, stud=useStud, circleVerts=circleVerts)
+    #     # create edit mesh for each bmesh
+    #     meshes = []
+    #     for i,bm in enumerate(bms):
+    #         # create new mesh and send bm to it
+    #         bmcs_hash = hash_str(bm_cache_string)
+    #         meshName = "%(bmcs_hash)s_%(i)s" % locals()
+    #         m = bpy.data.meshes.get(meshName)
+    #         # create new edit mesh and send bmesh data to it
+    #         if m is None:
+    #             m = bpy.data.meshes.new(meshName)
+    #             bm.to_mesh(m)
+    #             # center mesh origin
+    #             centerMeshOrigin(m, dimensions, brickSize)
+    #         meshes.append(m)
+    #     # store newly created meshes to cache
+    #     if brickType != "CUSTOM":
+    #         bricker_mesh_cache[bm_cache_string] = meshes
 
     # pick edit mesh randomly from options
     m0 = meshes[rand.randint(0, len(meshes))] if len(meshes) > 1 else meshes[0]
