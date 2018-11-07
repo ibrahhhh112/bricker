@@ -33,7 +33,7 @@ from ..ui.cmlist_actions import *
 
 class BRICKER_OT_bake_model(bpy.types.Operator):
     """Convert model from Bricker model to standard Blender object (source object will be lost)"""
-    bl_idname = "bricker.bake_model"
+    bl_idname = "BRICKER_OT_bake_model"
     bl_label = "Bake Model"
     bl_options = {"REGISTER", "UNDO"}
 

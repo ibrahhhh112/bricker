@@ -35,7 +35,7 @@ from ..functions import *
 
 class BRICKER_OT_caches(bpy.types.Operator):
     """Clear brick mesh and matrix cache (Model customizations will be lost)"""
-    bl_idname = "bricker.clear_cache"
+    bl_idname = "BRICKER_OT_caches"
     bl_label = "Clear Cache"
     bl_options = {"REGISTER", "UNDO"}
 

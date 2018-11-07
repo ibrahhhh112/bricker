@@ -30,9 +30,9 @@ from bpy.props import *
 # Addon imports
 from ..functions.common import *
 
-class BRICKER_OT_move_to_layer_override(Operator):
-    """Move to Layer Override"""
-    bl_idname = "bricker.move_to_layer_override"
+class OBJECT_OT_move_to_layer_method(Operator):
+    """Move to Layer Functionality"""
+    bl_idname = "OBJECT_OT_move_to_layer_method"
     bl_label = "Move to Layer Override"
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
@@ -110,14 +110,14 @@ class BRICKER_OT_move_to_layer_override(Operator):
                 if bricksCurF is not None and bricksCurF.name != obj.name:
                     bricksCurF.layers = self.layers
 
-class BRICKER_OT_move_to_layer(bpy.types.Operator):
+class OBJECT_OT_move_to_layer_override(bpy.types.Operator):
     """Move to Layer"""
-    bl_idname = "bricker.move_to_layer"
+    bl_idname = "OBJECT_OT_move_to_layer_override"
     bl_label = "Move to Layer"
     bl_options = {'REGISTER', 'UNDO'}
 
     def invoke(self, context, event):
-        return bpy.ops.bricker.move_to_layer_override('INVOKE_DEFAULT')
+        return bpy.ops.OBJECT_OT_move_to_layer_method('INVOKE_DEFAULT')
 
 
 # def register():

@@ -428,6 +428,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                             d_acc += _d
                             f_acc += f
                             cur_idx_ext = cur_idx * 4
+                            # TODO: MATRIX MULT
                             cs_acc += _d * Vector((color_grid[cur_idx_ext], color_grid[cur_idx_ext + 1], color_grid[cur_idx_ext + 2]))
                             cf_acc += Vector(f * flameIntensity * f * flameColor)
                             ave_denom += 1
@@ -440,6 +441,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 # add brightness
                 c_ave += brightness
                 # add saturation
+                # TODO: MATRIX MULT
                 c_ave = c_ave * sat_mat
                 brickFreqMatrix[x][y][z] = 0 if alpha < (1 - smokeDensity) else 1
                 colorMatrix[x][y][z] = list(c_ave) + [alpha]

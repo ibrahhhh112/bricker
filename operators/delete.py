@@ -32,14 +32,14 @@ from ..lib.bricksDict import *
 from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
-from ..buttons.delete import BRICKER_OT_delete
+from ..buttons.delete import BRICKER_OT_delete_model
 from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
 
-class BRICKER_OT_delete_override(Operator):
+class OBJECT_OT_delete_override(Operator):
     """OK?"""
-    bl_idname = "bricker.delete"
+    bl_idname = "OBJECT_OT_delete_override"
     bl_label = "Delete"
     bl_options = {'REGISTER', 'INTERNAL'}
 
@@ -267,7 +267,7 @@ class BRICKER_OT_delete_override(Operator):
                     cm = cmCur
                     break
         if cm and update_model:
-            BRICKER_OT_delete.runFullDelete(cm=cm)
+            BRICKER_OT_delete_model.runFullDelete(cm=cm)
             scn.objects.active.select = False
         else:
             obj_users_scene = len(obj.users_scene)

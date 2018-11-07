@@ -33,13 +33,13 @@ props = bpy.props
 
 # Addon imports
 from ..functions import *
-from .delete import BRICKER_OT_delete
+from .delete import BRICKER_OT_delete_model
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
 class BRICKER_OT_apply_material(bpy.types.Operator):
     """Apply specified material to all bricks """
-    bl_idname = "bricker.apply_material"
+    bl_idname = "BRICKER_OT_apply_material"
     bl_label = "Apply Material"
     bl_options = {"REGISTER", "UNDO"}
 

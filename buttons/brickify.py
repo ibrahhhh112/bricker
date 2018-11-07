@@ -36,7 +36,7 @@ props = bpy.props
 # Addon imports
 from .customize.undo_stack import *
 from .materials import BRICKER_OT_apply_material
-from .delete import BRICKER_OT_delete
+from .delete import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
@@ -61,7 +61,7 @@ def updateCanRun(type):
 
 class BRICKER_OT_brickify(bpy.types.Operator):
     """ Create brick sculpture from source object mesh """
-    bl_idname = "bricker.brickify"
+    bl_idname = "BRICKER_OT_brickify"
     bl_label = "Create/Update Brick Model from Source Object"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -233,7 +233,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # delete old bricks if present
         if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
             # skip source, dupes, and parents
-            trans_and_anim_data = BRICKER_OT_delete.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
+            trans_and_anim_data = BRICKER_OT_delete_model.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
         else:
             storeTransformData(cm, None)
             trans_and_anim_data = []
@@ -355,7 +355,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if self.updatedFramesOnly:
                 # preserve duplicates, parents, and bricks for frames that haven't changed
                 preservedFrames = [cm.startFrame, cm.stopFrame]
-            BRICKER_OT_delete.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
+            BRICKER_OT_delete_model.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
 
         # get parent object
         parent0 = bpy.data.objects.get(Bricker_parent_on)

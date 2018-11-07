@@ -177,7 +177,7 @@ def handle_selections(scene):
         scn.cmlist_index = -1
 
 
-bpy.app.handlers.scene_update_pre.append(handle_selections)
+# bpy.app.handlers.scene_update_pre.append(handle_selections)
 
 
 @persistent
@@ -193,7 +193,7 @@ def prevent_user_from_viewing_storage_scene(scene):
         showErrorMessage("This scene is for Bricker internal use only")
 
 
-bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
+# bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
 
 
 def find_3dview_space():
