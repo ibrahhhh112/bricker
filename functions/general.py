@@ -373,7 +373,7 @@ def getDictLoc(bricksDict, key):
     return loc
 
 
-def getBrickCenter(bricksDict, key, loc=None, zStep=None):
+def getBrickCenter(bricksDict, key, zStep, loc=None):
     brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key, loc=loc)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
@@ -552,3 +552,11 @@ def getSaturationMatrix(s:float):
     sg = (1 - s) * 0.6094  # or 0.7154
     sb = (1 - s) * 0.0820  # or 0.0721
     return Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))
+
+
+def getBrickMats(materialType, cm_id):
+    brick_mats = []
+    if materialType == "RANDOM":
+        matObj = getMatObject(cm_id, typ="RANDOM")
+        brick_mats = list(matObj.data.materials.keys())
+    return brick_mats
