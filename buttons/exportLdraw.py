@@ -112,15 +112,21 @@ class exportLdraw(Operator):
                     co = self.blendToLdrawUnits(cm, bricksDict, zStep, key, idx)
                     # get color code of brick
                     mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed)
+                    print(mat)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0
+                    print(mat_name)
                     if mat_name in absMatCodes.keys():
+                        print(1)
                         color = absMatCodes[mat_name]
                     elif rgba not in (None, ""):
+                        print(2)
                         mat_name = findNearestBrickColorName(rgba, cm.transparentWeight)
                     elif bpy.data.materials.get(mat_name) is not None:
+                        print(3)
                         rgba = getMaterialColor(mat_name)
+                    print("COLOR:", color)
                     # get part number and ldraw file name for brick
                     parts = legalBricks[size[2]][typ]
                     for i,part in enumerate(parts):

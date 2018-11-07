@@ -1149,9 +1149,9 @@ class ExportPanel(Panel):
         col = layout.column(align=True)
         col.prop(cm, "exportPath", text="")
         col = layout.column(align=True)
-        if bpy.props.Bricker_developer_mode > 0:
-            row = col.row(align=True)
-            row.operator("bricker.export_model_data", text="Export Model Data", icon="EXPORT")
         if (cm.modelCreated or cm.animated) and cm.brickType != "CUSTOM":
             row = col.row(align=True)
             row.operator("bricker.export_ldraw", text="Export Ldraw", icon="EXPORT")
+        if bpy.props.Bricker_developer_mode > 0:
+            row = col.row(align=True)
+            row.operator("bricker.export_model_data", text="Export Model Data", icon="EXPORT")
