@@ -13,4 +13,3 @@
 
 finish inverted slope before releasing next version
 Custom objects shrink if something has changed.
-make sure materials transfer to exported Ldraw models for split and non-split

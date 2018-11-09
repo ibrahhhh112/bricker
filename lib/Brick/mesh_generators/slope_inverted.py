@@ -127,7 +127,7 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
     if detail != "FLAT":
         # making verts for hollow portion
         coord1 = -d + Vector((thick.x, thick.y, 0))
-        coord2 = Vector((d.x, d.y * scalar.y, d.z * scalar.z)) - thick
+        coord2 = Vector((d.x + (dimensions["tick_depth"] if detail == "HIGH" else 0), d.y * scalar.y, d.z * scalar.z)) - thick
         sides = [1 if detail == "LOW" else 0, 0, 0 if detail == "HIGH" else 1, 1, 1, 1]
         v21, v22, v23, v24, v25, v26, v27, v28 = makeCube(coord1, coord2, sides, flipNormals=True, bme=bme)
         # make faces on bottom edges of brick
@@ -137,16 +137,15 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
 
         # make tick marks inside
         if detail == "HIGH":
-            bottomVertsD = addTickMarks(dimensions, [1, min(brickSize[:2]), brickSize[2]], circleVerts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v21, npi=v22, ppi=v23, pni=v24, nnt=v25, npt=v28, ppt=v27, pnt=v26, sideMarks=False)
+            bottomVertsD = addTickMarks(dimensions, [1, min(brickSize[:2]), brickSize[2]], circleVerts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v21, npi=v22, ppi=v23, pni=v24, nnt=v25, npt=v28, ppt=v27, pnt=v26, inverted_slope=True, sideMarks=False)
             bottomVerts = bottomVertsD["X+"][::-1]
         else:
             bme.faces.new((v23, v3, v4, v24))
             bottomVerts = []
 
-        # # add supports
-        # if detail in ("MEDIUM", "HIGH") and min(brickSize[:2]) == 2:
-        #     addOblongSupport(dimensions, height, loopCut, circleVerts, "SLOPE_INVERTED", detail, d, scalar, thick, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
-        # def addOblongSupport(dimensions, height, loopCut, circleVerts, type, detail, d, scalar, thick, bme, hollow=None, add_beams=None):
+        # add supports
+        if detail in ("MEDIUM", "HIGH") and min(brickSize[:2]) == 2:
+            addOblongSupport(dimensions, height, loopCut, circleVerts, "SLOPE_INVERTED", detail, d, scalar, thick, bme) # [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add small inner cylinders inside brick
         if detail in ("MEDIUM", "HIGH"):
@@ -155,6 +154,7 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
         # add half-cylinder insets on slope underside
         if detail in ("MEDIUM", "HIGH") and max(brickSize[:2]) == 3:
             # TODO: Rewrite this as dedicated function
+            # TODO: Add loopCut functionality for half-cylinder insets
             addSlopeStuds(dimensions, height, [2, min(brickSize[:2]), brickSize[2]], brickType, circleVerts, bme, edgeXp=[v3, v4], edgeXn=[v9, v10], edgeYp=[v4, v9], edgeYn=[v10, v3], underside=True, loopCut=loopCut)
 
     # translate slope to adjust for flipped brick

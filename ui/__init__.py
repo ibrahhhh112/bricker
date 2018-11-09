@@ -879,6 +879,14 @@ class DetailingPanel(Panel):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
 
+        if cm.brickType == "CUSTOM":
+            col = layout.column(align=True)
+            col.scale_y = 0.7
+            row = col.row(align=True)
+            row.label("(not applied to custom")
+            row = col.row(align=True)
+            row.label("brick types)")
+            layout.separator()
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label("Studs:")
@@ -920,12 +928,6 @@ class DetailingPanel(Panel):
 
         row = col.row(align=True)
         row.label("Bevel:")
-        if cm.lastBrickType == "CUSTOM":
-            col = layout.column(align=True)
-            col.scale_y = 0.7
-            col.label("Not available for custom")
-            col.label("brick types")
-            return
         row = col.row(align=True)
         if not (cm.modelCreated or cm.animated):
             row.prop(cm, "bevelAdded", text="Bevel Bricks")
