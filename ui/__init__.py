@@ -138,8 +138,16 @@ class BrickModelsPanel(Panel):
             # initialize obj variable
             obj = bpy.data.objects.get(cm.source_name)
 
+            # if model created with newer version, disable
+            if createdWithNewerVersion(cm):
+                col = layout.column(align=True)
+                col.label("Model was created with")
+                col.label("Bricker v%(v_str)s. Please" % locals())
+                col.label("update Bricker in your")
+                col.label("addon preferences to edit")
+                col.label("this model.")
             # if undo stack not initialized, draw initialize button
-            if not bpy.props.bricker_initialized:
+            elif not bpy.props.bricker_initialized:
                 row = col1.row(align=True)
                 row.operator("bricker.initialize", text="Initialize Bricker", icon="MODIFIER")
                 # draw test brick generator button (for testing purposes only)

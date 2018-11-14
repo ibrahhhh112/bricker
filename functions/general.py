@@ -340,6 +340,12 @@ def createdWithUnsupportedVersion(cm):
     return cm.version[:3] != bpy.props.bricker_version[:3]
 
 
+def createdWithNewerVersion(cm):
+    modelVersion = cm.version.split(".")
+    brickerVersion = bpy.props.bricker_version.split(".")
+    return (int(modelVersion[0]) > int(brickerVersion[0])) or (int(modelVersion[0]) == int(brickerVersion[0]) and int(modelVersion[1]) > int(brickerVersion[1]))
+
+
 def getLocsInBrick(bricksDict, size, zStep, key, loc=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
