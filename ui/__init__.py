@@ -123,24 +123,27 @@ class BrickModelsPanel(Panel):
             layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ZOOMIN").action = 'ADD'
         else:
             cm, n = getActiveContextInfo()[1:]
-            # first, draw source object text
-            source_name = " %(n)s" % locals() if cm.animated or cm.modelCreated else ""
-            col1 = layout.column(align=True)
-            col1.label("Source Object:%(source_name)s" % locals())
-            if not (cm.animated or cm.modelCreated):
-                split = col1.split(align=True, percentage=0.85)
-                col = split.column(align=True)
-                col.prop_search(cm, "source_name", scn, "objects", text='')
-                col = split.column(align=True)
-                col.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
+            if not createdWithNewerVersion(cm):
+                # first, draw source object text
+                source_name = " %(n)s" % locals() if cm.animated or cm.modelCreated else ""
                 col1 = layout.column(align=True)
+                col1.label("Source Object:%(source_name)s" % locals())
+                if not (cm.animated or cm.modelCreated):
+                    split = col1.split(align=True, percentage=0.85)
+                    col = split.column(align=True)
+                    col.prop_search(cm, "source_name", scn, "objects", text='')
+                    col = split.column(align=True)
+                    col.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
+                    col1 = layout.column(align=True)
 
-            # initialize obj variable
+            # initialize variables
             obj = bpy.data.objects.get(cm.source_name)
+            v_str = cm.version[:3]
 
             # if model created with newer version, disable
             if createdWithNewerVersion(cm):
                 col = layout.column(align=True)
+                col.scale_y = 0.7
                 col.label("Model was created with")
                 col.label("Bricker v%(v_str)s. Please" % locals())
                 col.label("update Bricker in your")
@@ -207,7 +210,6 @@ class BrickModelsPanel(Panel):
                     col = layout.column(align=True)
                     col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
-                        v_str = cm.version[:3]
                         col = layout.column(align=True)
                         col.scale_y = 0.7
                         col.label("Model was created with")
