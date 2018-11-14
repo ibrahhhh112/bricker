@@ -42,7 +42,7 @@ class BrickerPreferences(AddonPreferences):
         description="Default height for bricker models in bricks (standard deviation of 1 brick)",
         min=1,
         default=20)
-    absoluteBrickHeight=bpy.props.FloatProperty(
+    absoluteBrickHeight = bpy.props.FloatProperty(
         name="Brick Height (dm)",
         description="Default brick height in decimeters",
         min=0.00001,

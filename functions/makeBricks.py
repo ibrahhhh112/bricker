@@ -264,34 +264,25 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         for i, key in enumerate(keys):
             if bricksDict[key]["parent"] != "self" or not bricksDict[key]["draw"]:
                 continue
-            print("A")
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict), old_percent, "Linking to Scene")
-            print("B")
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
-            print("C")
             # create vert group for bevel mod (assuming only logo verts are selected):
             vg = brick.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 brick.vertex_groups.remove(vg)
-            print("D")
             vg = brick.vertex_groups.new("%(name)s_bvl" % locals())
-            print("E")
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
-            print("F")
             # set up remaining brick info if brick object just created
             if clearExistingGroup or brick.name not in bGroup.objects.keys():
                 bGroup.objects.link(brick)
-            print("G")
             brick.parent = parent
-            print("H")
             if not brick.isBrick:
                 scn.objects.link(brick)
                 brick.isBrick = True
-            print("I")
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
