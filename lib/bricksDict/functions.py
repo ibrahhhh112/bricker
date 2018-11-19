@@ -153,9 +153,8 @@ def getAverage(rgba0:Vector, rgba1:Vector, weight:float):
     return (rgba1 * weight + rgba0) / (weight + 1)
 
 
-def getFirstNode(mat, types:list=["BSDF_DIFFUSE"]):
+def getFirstNode(mat, types:list=["BSDF_DIFFUSE", "BSDF_PRINCIPLED", "OCT_DIFFUSE_MAT"]):
     """ get first node in material of specified type """
-    diffuse = None
     mat_nodes = mat.node_tree.nodes
     for node in mat_nodes:
         if node.type in types:
@@ -219,7 +218,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
         else:
             if not mat.use_nodes:
                 mat.use_nodes = True
-            first_node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"])
+            first_node = getFirstNode(mat)
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
                 newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
@@ -284,7 +283,7 @@ def getMaterialColor(matName):
     if mat is None:
         return None
     if mat.use_nodes:
-        node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"])
+        node = getFirstNode(mat)
         if not node:
             return None
         r, g, b, a = node.inputs[0].default_value

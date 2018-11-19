@@ -311,7 +311,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         default=False,
         update=dirtyBuild)
     mergeInternals = EnumProperty(
-        name="Merge Internals",
+        name="Merge Shell with Internals",
         description="Merge bricks on shell with internal bricks",
         items=[("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions"),
                ("HORIZONTAL", "Horizontal", "Merge shell bricks with internals horizontally, but not vertically"),

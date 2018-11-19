@@ -53,7 +53,6 @@ class OBJECT_OT_delete_override(Operator):
 
     def execute(self, context):
         try:
-            print("CUSTOM DELETE: Execute")
             self.runDelete(context)
         except:
             handle_exception()
@@ -61,7 +60,6 @@ class OBJECT_OT_delete_override(Operator):
 
     def invoke(self, context, event):
         # Run confirmation popup for delete action
-        print("CUSTOM DELETE: Invoke")
         confirmation_returned = context.window_manager.invoke_confirm(self, event)
         if confirmation_returned != {'FINISHED'}:
             return confirmation_returned
@@ -76,7 +74,6 @@ class OBJECT_OT_delete_override(Operator):
     # initialization method
 
     def __init__(self):
-        print("CUSTOM DELETE: Init")
         self.undo_stack = UndoStack.get_instance()
         self.iteratedStatesAtLeastOnce = False
         self.objsToDelete = bpy.context.selected_objects
@@ -94,9 +91,7 @@ class OBJECT_OT_delete_override(Operator):
     # class methods
 
     def runDelete(self, context):
-        print("CUSTOM DELETE: Run Delete 1")
         if bpy.props.bricker_initialized:
-            print("CUSTOM DELETE: Run Delete 2")
             for obj in self.objsToDelete:
                 if obj.isBrick:
                     self.undo_stack.undo_push('delete_override')
@@ -113,7 +108,6 @@ class OBJECT_OT_delete_override(Operator):
                     if not self.warnInitialize:
                         self.report({"WARNING"}, "Please initialize the Bricker [shift+i] before attempting to delete bricks")
                         self.warnInitialize = True
-        print("CUSTOM DELETE: Run Delete 3")
         # run deleteUnprotected
         protected = self.deleteUnprotected(context, self.use_global, self.update_model)
         # alert user of protected objects
@@ -124,7 +118,6 @@ class OBJECT_OT_delete_override(Operator):
             bpy.ops.ed.undo_push(message="Delete")
 
     def deleteUnprotected(self, context, use_global=False, update_model=True):
-        print("CUSTOM DELETE: Delete Unprotected")
         scn = context.scene
         protected = []
         objNamesToDelete = [obj.name for obj in self.objsToDelete]
