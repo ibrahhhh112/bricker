@@ -658,7 +658,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                 nf = faceIdxMatrix[x][y][z]["idx"] if type(faceIdxMatrix[x][y][z]) == dict else None
                 ni = faceIdxMatrix[x][y][z]["loc"].to_tuple() if type(faceIdxMatrix[x][y][z]) == dict else None
                 nn = faceIdxMatrix[x][y][z]["normal"] if type(faceIdxMatrix[x][y][z]) == dict else None
-                norm_dir = getNormalDirection(nn)
+                norm_dir = getNormalDirection(nn, slopes=True)
                 bType = "PLATE" if brickType == "BRICKS AND PLATES" else (brickType[:-1] if brickType.endswith("S") else ("CUSTOM 1" if brickType == "CUSTOM" else brickType))
                 flipped, rotated = getFlipRot("" if norm_dir is None else norm_dir[1:])
                 rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uvImageName)

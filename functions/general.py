@@ -386,7 +386,25 @@ def getBrickCenter(bricksDict, key, zStep, loc=None):
     return coord_ave
 
 
-def getNormalDirection(normal, maxDist=0.77):
+def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, maxDist=0.77):
+    d = Vector((dimensions["width"] / 2.2, dimensions["width"] / 2.2, dimensions["height"] / 2.2))
+    nextLoc = Vector(curLoc)
+    if locDiff.z > d.z - dimensions["stud_height"]:
+        nextLoc.z += math.ceil(1 / zStep)
+    elif locDiff.z < d.z:
+        nextLoc.z -= 1
+    if locDiff.x > d.x:
+        nextLoc.x += math.ceil((locDiff.x - d.x) / (d.x * 2))
+    elif locDiff.x < -d.x:
+        nextLoc.x += math.floor((locDiff.x + d.x) / (d.x * 2))
+    if locDiff.y > d.y:
+        nextLoc.y += math.ceil((locDiff.y - d.y) / (d.y * 2))
+    elif locDiff.y < -d.y:
+        nextLoc.y += math.floor((locDiff.y + d.y) / (d.y * 2))
+    return nextLoc
+
+
+def getNormalDirection(normal, maxDist=0.77, slopes=False):
     # initialize vars
     minDist = maxDist
     minDir = None
@@ -394,14 +412,22 @@ def getNormalDirection(normal, maxDist=0.77):
     if normal is None or ((normal.z > -0.2 and normal.z < 0.2) or normal.z > 0.8 or normal.z < -0.8):
         return minDir
     # set Vectors for perfect normal directions
-    normDirs = {"^X+":Vector((1, 0, 0.5)),
-                "^Y+":Vector((0, 1, 0.5)),
-                "^X-":Vector((-1, 0, 0.5)),
-                "^Y-":Vector((0, -1, 0.5)),
-                "vX+":Vector((1, 0, -0.5)),
-                "vY+":Vector((0, 1, -0.5)),
-                "vX-":Vector((-1, 0, -0.5)),
-                "vY-":Vector((0, -1, -0.5))}
+    if slopes:
+        normDirs = {"^X+":Vector((1, 0, 0.5)),
+                    "^Y+":Vector((0, 1, 0.5)),
+                    "^X-":Vector((-1, 0, 0.5)),
+                    "^Y-":Vector((0, -1, 0.5)),
+                    "vX+":Vector((1, 0, -0.5)),
+                    "vY+":Vector((0, 1, -0.5)),
+                    "vX-":Vector((-1, 0, -0.5)),
+                    "vY-":Vector((0, -1, -0.5))}
+    else:
+        normDirs = {"X+":Vector((1, 0, 0)),
+                    "Y+":Vector((0, 1, 0)),
+                    "Z+":Vector((0, 0, 1)),
+                    "X-":Vector((-1, 0, 0)),
+                    "Y-":Vector((0, -1, 0)),
+                    "Z-":Vector((0, 0, -1))}
     # calculate nearest
     for dir,v in normDirs.items():
         dist = (v - normal).length

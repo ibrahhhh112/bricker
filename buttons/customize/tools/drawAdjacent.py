@@ -93,7 +93,6 @@ class drawAdjacent(Operator):
 
             zStep = getZStep(cm)
             decriment = 0
-            dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
             # check all 6 directions for action to be executed
             for i in range(6):
                 # if checking beneath obj, check 3 keys below instead of 1 key below
@@ -107,7 +106,11 @@ class drawAdjacent(Operator):
                         if decriment != 0:
                             adjDictLoc = adjDictLoc.copy()
                             adjDictLoc[2] -= decriment
-                        self.toggleBrick(cm, dimensions, adjDictLoc, dictKey, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
+                        status = self.toggleBrick(cm, self.bricksDict, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
+                        if not status["val"]:
+                            self.report({status["report_type"]}, status["msg"])
+                        if status["dirBool"] is not None:
+                            self.setDirBool(status["dirBool"][0], status["dirBool"][1])
                     # after ALL bricks toggled, check exposure of bricks above and below new ones
                     for j,adjDictLoc in enumerate(self.adjDKLs[i]):
                         self.bricksDict = verifyBrickExposureAboveAndBelow(scn, zStep, adjDictLoc.copy(), self.bricksDict, decriment=decriment + 1, zNeg=self.zNeg, zPos=self.zPos)
@@ -148,35 +151,20 @@ class drawAdjacent(Operator):
             self.orig_undo_stack_length = self.undo_stack.getLength()
             scn, cm, _ = getActiveContextInfo()
             obj = scn.objects.active
+            dictKey = getDictKey(obj.name)
+            zStep = getZStep(cm)
             cm.customized = True
 
             # initialize self.bricksDict
             self.bricksDict, _ = getBricksDict(cm=cm)
-
             # initialize direction bools
             self.zPos, self.zNeg, self.yPos, self.yNeg, self.xPos, self.xNeg = [False] * 6
-
-            # initialize vars for self.adjDKLs setup
-            dictKey = getDictKey(obj.name)
-            x,y,z = getDictLoc(self.bricksDict, dictKey)
-            objSize = self.bricksDict[dictKey]["size"]
-            sX, sY, sZ = objSize[0], objSize[1], objSize[2] // getZStep(cm)
-            self.adjDKLs = [[],[],[],[],[],[]]
-            # initialize ranges
-            rgs = [range(x, x + sX),
-                   range(y, y + sY),
-                   range(z, z + sZ)]
-            # set up self.adjDKLs
-            self.adjDKLs[0] += [[x + sX, y0, z0] for z0 in rgs[2] for y0 in rgs[1]]
-            self.adjDKLs[1] += [[x - 1, y0, z0]  for z0 in rgs[2] for y0 in rgs[1]]
-            self.adjDKLs[2] += [[x0, y + sY, z0] for z0 in rgs[2] for x0 in rgs[0]]
-            self.adjDKLs[3] += [[x0, y - 1, z0]  for z0 in rgs[2] for x0 in rgs[0]]
-            self.adjDKLs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
-            self.adjDKLs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
-
+            # initialize self.dimensions
+            self.dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
+            # initialize self.adjDKLs
+            self.adjDKLs = getAdjDKLs(cm, self.bricksDict, dictKey, obj)
             # initialize self.adjBricksCreated
             self.adjBricksCreated = [[False] * len(self.adjDKLs[i]) for i in range(6)]
-
             # initialize self.brickType
             objType = self.bricksDict[dictKey]["type"]
             try:
@@ -248,14 +236,16 @@ class drawAdjacent(Operator):
         return not (brickNum == len(self.adjDKLs[side]) - 1 and
                     not any(self.adjBricksCreated[side])) # evaluates True if all values in this list are False
 
-    def toggleBrick(self, cm, dimensions, adjacent_loc, dictKey, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
+    @staticmethod
+    def toggleBrick(cm, bricksDict, adjBricksCreated, dimensions, adjacent_loc, dictKey, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
-        newBrickHeight = self.getNewBrickHeight(targetType)
+        newBrickHeight = drawAdjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
         zStep = getZStep(cm)
         n = cm.source_name
+        dirBool = None
 
-        adjacent_key, adjBrickD = self.getBrickD(adjacent_loc)
+        adjacent_key, adjBrickD = drawAdjacent.getBrickD(adjacent_loc)
 
         # if key doesn't exist in bricksDict, create it
         if not adjBrickD:
@@ -265,91 +255,87 @@ class drawAdjacent(Operator):
             else:                  # negative directions
                 newDictLoc[side//2] += (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
             theKey = listToStr(newDictLoc)
-            co0 = self.bricksDict[theKey]["co"]
-            co = self.getNewCoord(cm, co0, dimensions, side, newBrickHeight)
-            self.bricksDict[adjacent_key] = createBricksDictEntry(
+            co0 = bricksDict[theKey]["co"]
+            co = drawAdjacent.getNewCoord(cm, co0, dimensions, side, newBrickHeight)
+            bricksDict[adjacent_key] = createBricksDictEntry(
                 name=              'Bricker_%(n)s_brick__%(adjacent_key)s' % locals(),
                 loc=               adjacent_loc,
                 co=                co,
-                near_face=         self.bricksDict[dictKey]["near_face"],
-                near_intersection= tuple(self.bricksDict[dictKey]["near_intersection"]),
-                mat_name=          self.bricksDict[dictKey]["mat_name"],
+                near_face=         bricksDict[dictKey]["near_face"],
+                near_intersection= tuple(bricksDict[dictKey]["near_intersection"]),
+                mat_name=          bricksDict[dictKey]["mat_name"],
             )
-            adjBrickD = self.bricksDict[adjacent_key]
-            # self.report({"WARNING"}, "Matrix not available at the following location: %(adjacent_key)s" % locals())
-            # self.setDirBool(side, False)
-            # return False
+            adjBrickD = bricksDict[adjacent_key]
+            # dirBool = [side, False]
+            # return {"val":False, "dirBool":dirBool, "report_type":"WARNING", "msg":"Matrix not available at the following location: %(adjacent_key)s" % locals()}
 
         # if brick exists there
-        if adjBrickD["draw"] and not (addBrick and self.adjBricksCreated[side][brickNum]):
+        if adjBrickD["draw"] and not (addBrick and adjBricksCreated[side][brickNum]):
             # if attempting to add brick
             if addBrick:
                 # reset direction bool if no bricks could be added
-                if not self.isBrickAlreadyCreated(brickNum, side):
-                    self.setDirBool(side, False)
-                self.report({"INFO"}, "Brick already exists in the following location: %(adjacent_key)s" % locals())
-                return False
+                if not drawAdjacent.isBrickAlreadyCreated(brickNum, side):
+                    dirBool = [side, False]
+                return {"val":False, "dirBool":dirBool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
             elif adjBrickD["created_from"] == dictKey:
                 # update bricksDict values for brick being removed
                 x0, y0, z0 = adjacent_loc
                 brickKeys = [listToStr((x0, y0, z0 + z)) for z in range((zStep + 2) % 4 if side in (4, 5) else 1)]
                 for k in brickKeys:
-                    self.bricksDict[k]["draw"] = False
-                    setCurBrickVal(self.bricksDict, getDictLoc(self.bricksDict, k), k, action="REMOVE")
-                    self.bricksDict[k]["size"] = None
-                    self.bricksDict[k]["parent"] = None
-                    self.bricksDict[k]["bot_exposed"] = None
-                    self.bricksDict[k]["top_exposed"] = None
-                    self.bricksDict[k]["created_from"] = None
-                self.adjBricksCreated[side][brickNum] = False
-                return True
+                    bricksDict[k]["draw"] = False
+                    setCurBrickVal(bricksDict, getDictLoc(bricksDict, k), k, action="REMOVE")
+                    bricksDict[k]["size"] = None
+                    bricksDict[k]["parent"] = None
+                    bricksDict[k]["bot_exposed"] = None
+                    bricksDict[k]["top_exposed"] = None
+                    bricksDict[k]["created_from"] = None
+                adjBricksCreated[side][brickNum] = False
+                return {"val":True, "dirBool":dirBool, "report_type":None, "msg":None}
         # if brick doesn't exist there
         else:
             # if attempting to remove brick
             if not addBrick:
-                self.report({"INFO"}, "Brick does not exist in the following location: %(adjacent_key)s" % locals())
-                return False
+                return {"val":False, "dirBool":dirBool, "report_type":"INFO", "msg":"Brick does not exist in the following location: %(adjacent_key)s" % locals()}
             # check if locs above current are available
-            curType = self.adjBricksCreated[side][brickNum] if self.adjBricksCreated[side][brickNum] else "PLATE"
+            curType = adjBricksCreated[side][brickNum] if adjBricksCreated[side][brickNum] else "PLATE"
             if checkTwoMoreAbove:
                 x0, y0, z0 = adjacent_loc
                 for z in range(1, 3):
                     newKey = listToStr((x0, y0, z0 + z))
                     # if brick drawn in next loc and not just rerunning based on new direction selection
-                    if (newKey in self.bricksDict and self.bricksDict[newKey]["draw"] and
-                        (not self.isBrickAlreadyCreated(brickNum, side) or
+                    if (newKey in bricksDict and bricksDict[newKey]["draw"] and
+                        (not drawAdjacent.isBrickAlreadyCreated(brickNum, side) or
                          curType not in getBrickTypes(height=3)) and not
                          (z == 2 and curType in getBrickTypes(height=1) and targetType not in getBrickTypes(height=1))):
-                        self.report({"INFO"}, "Brick already exists in the following location: %(newKey)s" % locals())
-                        self.setDirBool(side, False)
                         # reset values at failed location, in case brick was previously drawn there
-                        self.adjBricksCreated[side][brickNum] = False
+                        adjBricksCreated[side][brickNum] = False
                         adjBrickD["draw"] = False
-                        return False
+                        dirBool = [side, False]
+                        return {"val":False, "dirBool":dirBool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(newKey)s" % locals()}
                     elif side in (4, 5):
                         keysToMerge.append(newKey)
             # update dictionary of locations above brick
             if flatBrickType(cm.brickType) and side in (4, 5):
-                updateBrickSizeAndDict(dimensions, n, self.bricksDict, [1, 1, newBrickHeight], adjacent_key, adjacent_loc, dec=2 if side == 5 else 0, curType=curType, targetType=targetType, createdFrom=dictKey)
+                updateBrickSizeAndDict(dimensions, n, bricksDict, [1, 1, newBrickHeight], adjacent_key, adjacent_loc, dec=2 if side == 5 else 0, curType=curType, targetType=targetType, createdFrom=dictKey)
             # update dictionary location of adjacent brick created
             adjBrickD["draw"] = True
             adjBrickD["type"] = targetType
-            adjBrickD["flipped"] = self.bricksDict[dictKey]["flipped"]
-            adjBrickD["rotated"] = self.bricksDict[dictKey]["rotated"]
-            setCurBrickVal(self.bricksDict, adjacent_loc, adjacent_key)
-            adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"]
+            adjBrickD["flipped"] = bricksDict[dictKey]["flipped"]
+            adjBrickD["rotated"] = bricksDict[dictKey]["rotated"]
+            setCurBrickVal(bricksDict, adjacent_loc, adjacent_key)
+            adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"]
             adjBrickD["size"] = [1, 1, newBrickHeight if side in (4, 5) else zStep]
             adjBrickD["parent"] = "self"
-            adjBrickD["mat_name"] = self.bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
-            adjBrickD["near_face"] = adjBrickD["near_face"] or self.bricksDict[dictKey]["near_face"]
-            adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or tuple(self.bricksDict[dictKey]["near_intersection"])
-            setAllBrickExposures(self.bricksDict, zStep, adjacent_key)
+            adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
+            adjBrickD["near_face"] = adjBrickD["near_face"] or bricksDict[dictKey]["near_face"]
+            adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or tuple(bricksDict[dictKey]["near_intersection"])
+            setAllBrickExposures(bricksDict, zStep, adjacent_key)
             adjBrickD["created_from"] = dictKey
             keysToMerge.append(adjacent_key)
             # set adjBricksCreated to target brick type for current side
-            self.adjBricksCreated[side][brickNum] = targetType
+            adjBricksCreated[side][brickNum] = targetType
 
-            return True
+            return {"val":True, "dirBool":dirBool, "report_type":None, "msg":None}
 
     #############################################

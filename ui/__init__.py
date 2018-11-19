@@ -697,6 +697,12 @@ class CustomizeModel(Panel):
         # row = col.row(align=True)
         # row.operator("bricker.redraw_bricks")
 
+        col = layout.column(align=True)
+        col.label("Tools:")
+        # run brick paintbrush
+        row = col.row(align=True)
+        row.operator("bricker.brick_paintbrush", text="Brick Paintbrush")
+
 
 class MaterialsPanel(Panel):
     bl_space_type  = "VIEW_3D"

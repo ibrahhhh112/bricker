@@ -305,3 +305,23 @@ def removeUnusedFromList(cm, brickType="NULL", brickSize="NULL", selectedSomethi
         cm.brickSizesUsed = newLst
     else:
         cm.brickTypesUsed = newLst
+
+
+def getAdjDKLs(cm, bricksDict, dictKey, obj):
+    # initialize vars for self.adjDKLs setup
+    x,y,z = getDictLoc(bricksDict, dictKey)
+    objSize = bricksDict[dictKey]["size"]
+    sX, sY, sZ = objSize[0], objSize[1], objSize[2] // getZStep(cm)
+    adjDKLs = [[],[],[],[],[],[]]
+    # initialize ranges
+    rgs = [range(x, x + sX),
+           range(y, y + sY),
+           range(z, z + sZ)]
+    # set up self.adjDKLs
+    adjDKLs[0] += [[x + sX, y0, z0] for z0 in rgs[2] for y0 in rgs[1]]
+    adjDKLs[1] += [[x - 1, y0, z0]  for z0 in rgs[2] for y0 in rgs[1]]
+    adjDKLs[2] += [[x0, y + sY, z0] for z0 in rgs[2] for x0 in rgs[0]]
+    adjDKLs[3] += [[x0, y - 1, z0]  for z0 in rgs[2] for x0 in rgs[0]]
+    adjDKLs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
+    adjDKLs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
+    return adjDKLs

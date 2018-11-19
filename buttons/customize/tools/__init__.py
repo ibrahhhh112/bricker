@@ -19,6 +19,7 @@
         along with this program.  If not, see <http://www.gnu.org/licenses/>.
     """
 
+from .brickPaintbrush import *
 from .changeBrickType import *
 from .changeBrickMaterial import *
 from .drawAdjacent import *
