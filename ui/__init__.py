@@ -870,6 +870,9 @@ class MaterialsPanel(Panel):
                     row.prop(cm, "colorSnapSubsurfaceSaturation")
                     row = col.row(align=True)
                     row.prop(cm, "colorSnapTransmission")
+                if scn.render.engine in ["CYCLES", "octane"]:
+                    row = col.row(align=True)
+                    row.prop(cm, "includeTransparency")
                 col = layout.column(align=False)
                 col.scale_y = 0.5
                 col.separator()

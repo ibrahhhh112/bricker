@@ -247,6 +247,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 oct_glossy.inputs['Roughness'].default_value = roughness
                 oct_glossy.inputs['Index'].default_value = ior
                 oct_glossy.inputs['Opacity'].default_value = rgba[3]
+                oct_glossy.inputs['Smooth'].default_value = True
                 mat_links.new(oct_glossy.outputs['OutMat'], output.inputs['Surface'])
             # elif scn.render.engine == "LUXCORE":
             #     # get default Matte shader
