@@ -153,8 +153,18 @@ def getAverage(rgba0:Vector, rgba1:Vector, weight:float):
     return (rgba1 * weight + rgba0) / (weight + 1)
 
 
-def getFirstNode(mat, types:list=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"]):
+def getFirstNode(mat, types:list=None):
     """ get first node in material of specified type """
+    scn = bpy.context.scene
+    if types is None:
+        # get material type(s) based on render engine
+        if scn.render.engine == "CYCLES":
+            types = ["BSDF_DIFFUSE", "BSDF_PRINCIPLED"]
+        elif scn.render.engine == "octane":
+            types = ["OCT_DIFFUSE_MAT"]
+        # elif scn.render.engine == "LUXCORE":
+        #     types = ["CUSTOM"]
+    # get first node of target type
     mat_nodes = mat.node_tree.nodes
     for node in mat_nodes:
         if node.type in types:
@@ -194,12 +204,12 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
             mat.use_nodes = True
             mat_nodes = mat.node_tree.nodes
             mat_links = mat.node_tree.links
-            # a new material node tree already has a diffuse and material output node
-            output = mat_nodes['Material Output']
-            # remove default Diffuse BSDF
-            diffuse = mat_nodes['Diffuse BSDF']
-            mat_nodes.remove(diffuse)
             if scn.render.engine == "CYCLES":
+                # a new material node tree already has a diffuse and material output node
+                output = mat_nodes['Material Output']
+                # remove default Diffuse BSDF
+                diffuse = mat_nodes['Diffuse BSDF']
+                mat_nodes.remove(diffuse)
                 # add Principled BSDF
                 principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
                 # set values for Principled BSDF
@@ -224,15 +234,26 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 else:
                     mat_links.new(principled.outputs['BSDF'], output.inputs['Surface'])
             elif scn.render.engine == "octane":
-                # add Octane Glossy node
+                # a new material node tree already has a diffuse and material output node
+                output = mat_nodes['Material Output']
+                # remove default Diffuse shader
+                diffuse = mat_nodes['Octane Diffuse Mat']
+                mat_nodes.remove(diffuse)
+                # add Octane Glossy shader
                 oct_glossy = mat_nodes.new('ShaderNodeOctGlossyMat')
-                # set values for Octane Glossy node
+                # set values for Octane Glossy shader
                 oct_glossy.inputs[0].default_value = rgba
                 oct_glossy.inputs['Specular'].default_value = specular
                 oct_glossy.inputs['Roughness'].default_value = roughness
                 oct_glossy.inputs['Index'].default_value = ior
                 oct_glossy.inputs['Opacity'].default_value = rgba[3]
                 mat_links.new(oct_glossy.outputs['OutMat'], output.inputs['Surface'])
+            # elif scn.render.engine == "LUXCORE":
+            #     # get default Matte shader
+            #     matte = mat_nodes['Matte Material']
+            #     # set values for Matte shader
+            #     matte.inputs[0].default_value = rgba
+            #     matte.inputs['Opacity'].default_value = rgba[3]
     else:
         if scn.render.engine == "BLENDER_RENDER":
             # make sure 'use_nodes' is disabled
@@ -243,11 +264,12 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
             r2, g2, b2, a2 = getAverage(Vector(rgba), Vector((r1, g1, b1, a1)), mat.num_averaged)
             mat.diffuse_color = [r2, g2, b2]
             mat.alpha = a2
+        # elif scn.render.engine in ["CYCLES", "octane", "LUXCORE"]:
         elif scn.render.engine in ["CYCLES", "octane"]:
             # make sure 'use_nodes' is enabled
             mat.use_nodes = True
             # get first node
-            first_node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"] if scn.render.engine == "CYCLES" else ["OCT_DIFFUSE_MAT"])
+            first_node = getFirstNode(mat)
             # update first node's color
             if first_node:
                 rgba1 = first_node.inputs[0].default_value
@@ -295,7 +317,7 @@ def getMaterialColor(matName):
     if mat is None:
         return None
     if mat.use_nodes:
-        node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED", "OCT_DIFFUSE_MAT"])
+        node = getFirstNode(mat)
         if not node:
             return None
         r, g, b, a = node.inputs[0].default_value

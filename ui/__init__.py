@@ -848,6 +848,8 @@ class MaterialsPanel(Panel):
                 col.separator()
                 if scn.render.engine == "octane":
                     nodeNamesStr = "'Octane Diffuse' node"
+                elif scn.render.engine == "LUXCORE":
+                    nodeNamesStr = "'Matte Material' node"
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
                 col.label(nodeNames)
