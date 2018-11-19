@@ -846,22 +846,28 @@ class MaterialsPanel(Panel):
                 col.scale_y = 0.5
                 col.label("Based on RGB value of first")
                 col.separator()
-                col.label("'Diffuse' or 'Principled' node")
+                if scn.render.engine == "octane":
+                    nodeNamesStr = "'Octane Diffuse' node"
+                else:
+                    nodeNamesStr = "'Diffuse' or 'Principled' node"
+                col.label(nodeNames)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
-                col = layout.column(align=True)
-                col.label("Material Properties:")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSpecular")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapRoughness")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSubsurface")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSubsurfaceSaturation")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapIOR")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapTransmission")
+                if scn.render.engine in ["CYCLES", "octane"]:
+                    col = layout.column(align=True)
+                    col.label("Material Properties:")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapSpecular")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapRoughness")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapIOR")
+                if scn.render.engine == "CYCLES":
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapSubsurface")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapSubsurfaceSaturation")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapTransmission")
                 col = layout.column(align=False)
                 col.scale_y = 0.5
                 col.separator()

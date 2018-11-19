@@ -153,7 +153,7 @@ def getAverage(rgba0:Vector, rgba1:Vector, weight:float):
     return (rgba1 * weight + rgba0) / (weight + 1)
 
 
-def getFirstNode(mat, types:list=["BSDF_DIFFUSE", "BSDF_PRINCIPLED", "OCT_DIFFUSE_MAT"]):
+def getFirstNode(mat, types:list=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"]):
     """ get first node in material of specified type """
     mat_nodes = mat.node_tree.nodes
     for node in mat_nodes:
@@ -183,68 +183,82 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
     mat_is_new = mat is None
     mat = mat or bpy.data.materials.new(name=mat_name)
     # set diffuse and transparency of material
-    if scn.render.engine == "CYCLES":
-        if mat_is_new:
-            mat.use_nodes = True
-            mat_nodes = mat.node_tree.nodes
-            mat_links = mat.node_tree.links
-            # a new material node tree already has a diffuse and material output node
-            output = mat_nodes['Material Output']
-            # add Principled BSDF
-            diffuse = mat_nodes['Diffuse BSDF']
-            mat_nodes.remove(diffuse)
-            principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
-            # set values for Principled BSDF
-            principled.inputs[0].default_value = rgba
-            principled.inputs[1].default_value = sss
-            sat_mat = getSaturationMatrix(sssSat)
-            principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) * sat_mat).to_tuple()
-            principled.inputs[5].default_value = specular
-            principled.inputs[7].default_value = roughness
-            principled.inputs[14].default_value = ior
-            principled.inputs[15].default_value = transmission
-            if includeTransparency:
-                # create transparent and mix nodes
-                transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
-                mix = mat_nodes.new("ShaderNodeMixShader")
-                # link these nodes together
-                mat_links.new(principled.outputs['BSDF'], mix.inputs[1])
-                mat_links.new(transparent.outputs['BSDF'], mix.inputs[2])
-                mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
-                # set mix factor to 1 - alpha
-                mix.inputs[0].default_value = 1 - rgba[3]
-            else:
-                mat_links.new(principled.outputs['BSDF'], output.inputs['Surface'])
-        else:
-            if not mat.use_nodes:
-                mat.use_nodes = True
-            first_node = getFirstNode(mat)
-            if first_node:
-                rgba1 = first_node.inputs[0].default_value
-                newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
-                # if diffuse.inputs[0].is_linked:
-                #     # TODO: read different types of input to the diffuse node
-                first_node.inputs[0].default_value = newRGBA
-    else:
-        if mat_is_new:
+    if mat_is_new:
+        if scn.render.engine == "BLENDER_RENDER":
             mat.diffuse_color = rgba[:3]
             mat.diffuse_intensity = 1.0
             if a0 < 1.0:
                 mat.use_transparency = True
                 mat.alpha = rgba[3]
-        else:
-            if mat.use_nodes:
-                mat.use_nodes = False
+        elif scn.render.engine in ["CYCLES", "octane"]:
+            mat.use_nodes = True
+            mat_nodes = mat.node_tree.nodes
+            mat_links = mat.node_tree.links
+            # a new material node tree already has a diffuse and material output node
+            output = mat_nodes['Material Output']
+            # remove default Diffuse BSDF
+            diffuse = mat_nodes['Diffuse BSDF']
+            mat_nodes.remove(diffuse)
+            if scn.render.engine == "CYCLES":
+                # add Principled BSDF
+                principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
+                # set values for Principled BSDF
+                principled.inputs[0].default_value = rgba
+                principled.inputs[1].default_value = sss
+                sat_mat = getSaturationMatrix(sssSat)
+                principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) * sat_mat).to_tuple()
+                principled.inputs[5].default_value = specular
+                principled.inputs[7].default_value = roughness
+                principled.inputs[14].default_value = ior
+                principled.inputs[15].default_value = transmission
+                if includeTransparency:
+                    # create transparent and mix nodes
+                    transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
+                    mix = mat_nodes.new("ShaderNodeMixShader")
+                    # link these nodes together
+                    mat_links.new(principled.outputs['BSDF'], mix.inputs[1])
+                    mat_links.new(transparent.outputs['BSDF'], mix.inputs[2])
+                    mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
+                    # set mix factor to 1 - alpha
+                    mix.inputs[0].default_value = 1 - rgba[3]
+                else:
+                    mat_links.new(principled.outputs['BSDF'], output.inputs['Surface'])
+            elif scn.render.engine == "octane":
+                # add Octane Glossy node
+                oct_glossy = mat_nodes.new('ShaderNodeOctGlossyMat')
+                # set values for Octane Glossy node
+                oct_glossy.inputs[0].default_value = rgba
+                oct_glossy.inputs['Specular'].default_value = specular
+                oct_glossy.inputs['Roughness'].default_value = roughness
+                oct_glossy.inputs['Index'].default_value = ior
+                oct_glossy.inputs['Opacity'].default_value = rgba[3]
+                mat_links.new(oct_glossy.outputs['OutMat'], output.inputs['Surface'])
+    else:
+        if scn.render.engine == "BLENDER_RENDER":
+            # make sure 'use_nodes' is disabled
+            mat.use_nodes = False
+            # update material color
             r1, g1, b1 = mat.diffuse_color
             a1 = mat.alpha
             r2, g2, b2, a2 = getAverage(Vector(rgba), Vector((r1, g1, b1, a1)), mat.num_averaged)
             mat.diffuse_color = [r2, g2, b2]
             mat.alpha = a2
+        elif scn.render.engine in ["CYCLES", "octane"]:
+            # make sure 'use_nodes' is enabled
+            mat.use_nodes = True
+            # get first node
+            first_node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED"] if scn.render.engine == "CYCLES" else ["OCT_DIFFUSE_MAT"])
+            # update first node's color
+            if first_node:
+                rgba1 = first_node.inputs[0].default_value
+                newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
+                first_node.inputs[0].default_value = newRGBA
     mat.num_averaged += 1
     return mat_name
 
 
 def verifyImg(im):
+    """ verify image has pixel data """
     return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
 
 
@@ -270,8 +284,6 @@ def getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImageName):
         return None
     # get uv coordinate based on nearest face intersection
     uv_coord = getUVCoord(obj.data, face, point, image)
-    if uv_coord is None:
-        return None
     # retrieve rgba value at uv coordinate
     rgba = getPixel(uv_images[image.name], uv_coord)
     return rgba
@@ -283,7 +295,7 @@ def getMaterialColor(matName):
     if mat is None:
         return None
     if mat.use_nodes:
-        node = getFirstNode(mat)
+        node = getFirstNode(mat, types=["BSDF_DIFFUSE", "BSDF_PRINCIPLED", "OCT_DIFFUSE_MAT"])
         if not node:
             return None
         r, g, b, a = node.inputs[0].default_value
@@ -378,6 +390,7 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
 
 
 def isBrickExposed(bricksDict, zStep, key=None, loc=None):
+    """ return top and bottom exposure of brick loc/key """
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
@@ -391,6 +404,7 @@ def isBrickExposed(bricksDict, zStep, key=None, loc=None):
 
 
 def setAllBrickExposures(bricksDict, zStep, key=None, loc=None):
+    """ updates top_exposed/bot_exposed for all bricks in bricksDict """
     assert key is not None or loc is not None
     # initialize vars
     key = key or listToStr(loc)
@@ -405,7 +419,7 @@ def setAllBrickExposures(bricksDict, zStep, key=None, loc=None):
 
 
 def setBrickExposure(bricksDict, key=None, loc=None):
-    """ return top and bottom exposure of brick loc/key """
+    """ set top and bottom exposure of brick loc/key """
     assert key is not None or loc is not None
     # initialize parameters unspecified
     loc = loc or getDictLoc(bricksDict, key)
@@ -425,6 +439,7 @@ def setBrickExposure(bricksDict, key=None, loc=None):
 
 
 def checkExposure(bricksDict, key, obscuringTypes=[]):
+    """ checks if brick at given key is exposed """
     try:
         val = bricksDict[key]["val"]
     except KeyError:
