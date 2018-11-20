@@ -52,23 +52,15 @@ class brickPaintbrush(Operator):
         """ ensures operator can execute (if not, returns False) """
         if not bpy.props.bricker_initialized:
             return False
-        scn = bpy.context.scene
-        objs = bpy.context.selected_objects
-        # check that at least 1 selected object is a brick
-        for obj in objs:
-            if not obj.isBrick:
-                continue
-            # get cmlist item referred to by object
-            cm = getItemByID(scn.cmlist, obj.cmlist_id)
-            if cm.lastBrickType != "CUSTOM":
-                return True
-        return False
+        return True
 
     def modal(self, context, event):
         try:
-            if event.type in {"ESC"} and event.value == "PRESS":
+            if event.type == "RET" and event.value == "PRESS":
+                self.commitChanges()
                 bpy.context.window.cursor_set("DEFAULT")
-                return{"CANCELLED"}
+                self.cancel(context)
+                return{"FINISHED"}
 
             if event.type == "LEFTMOUSE" and event.value == "PRESS":
                 self.left_click = True
@@ -112,13 +104,14 @@ class brickPaintbrush(Operator):
                     nextKey, adjBrickD = drawAdjacent.getBrickD(self.bricksDict, nextLoc)
                     if not adjBrickD or not self.bricksDict[nextKey]["draw"] and self.bricksDict[curKey]["name"] not in self.recentlyAddedBricks:
                         self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
-                        targetType = self.bricksDict[curKey]["type"]
+                        # targetType = self.bricksDict[curKey]["type"]
                         # add or remove brick
-                        status = drawAdjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, targetType, 0, 0, self.keysToMerge)
+                        status = drawAdjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMerge)
                         if not status["val"]:
                             self.report({status["report_type"]}, status["msg"])
                         self.addedBricks.append(self.bricksDict[nextKey]["name"])
                         self.recentlyAddedBricks.append(self.bricksDict[nextKey]["name"])
+                        self.targettedBrickKeys.append(curKey)
                     # draw created bricks
                     drawUpdatedBricks(cm, self.bricksDict, [nextKey], selectCreated=False)
 
@@ -146,15 +139,16 @@ class brickPaintbrush(Operator):
             return {"CANCELLED"}
 
     def execute(self, context):
-        print("running execute")
+        if self.brickType == "":
+            return {"CANCELLED"}
         scn, cm, _ = getActiveContextInfo()
-        # revert to last bricksDict
-        self.undo_stack.matchPythonToBlenderState()
-        # push to undo stack
-        if self.orig_undo_stack_length == self.undo_stack.getLength():
-            self.undo_stack.undo_push('brick_paintbrush', affected_ids=[cm.id])
-        scn.update()
-        self.undo_stack.iterateStates(cm)
+        # # revert to last bricksDict
+        # self.undo_stack.matchPythonToBlenderState()
+        # # push to undo stack
+        # if self.orig_undo_stack_length == self.undo_stack.getLength():
+        #     self.undo_stack.undo_push('brick_paintbrush', affected_ids=[cm.id])
+        # scn.update()
+        # self.undo_stack.iterateStates(cm)
         # get fresh copy of self.bricksDict
         self.bricksDict, _ = getBricksDict(cm=cm)
         # create timer for modal
@@ -162,6 +156,9 @@ class brickPaintbrush(Operator):
         self._timer = wm.event_timer_add(0.01, context.window)
         wm.modal_handler_add(self)
         return{"RUNNING_MODAL"}
+
+    # def invoke(self, context, event):
+    #     return context.window_manager.invoke_props_popup(self, event)
 
     ################################################
     # initialization method
@@ -180,11 +177,30 @@ class brickPaintbrush(Operator):
         self.shift = False
         self.obj = None
         self.keysToMerge = []
+        self.targettedBrickKeys = []
+        self.brickType = "BRICK"
 
     ###################################################
     # class variables
 
-    # NONE!
+    # # get items for brickType prop
+    # def get_items(self, context):
+    #     scn, cm, _ = getActiveContextInfo()
+    #     zStep = getZStep(cm)
+    #     legalBS = bpy.props.Bricker_legal_brick_sizes
+    #     items = [itemFromType(typ) for typ in legalBS[zStep]]
+    #     if zStep == 1:
+    #         items += [itemFromType(typ) for typ in legalBS[3]]
+    #     items.append(("", "", ""))
+    #     # items = getAvailableTypes(by="ACTIVE", includeSizes="ALL")
+    #     return items
+    #
+    # # define props for popup
+    # brickType = bpy.props.EnumProperty(
+    #     name="Brick Type",
+    #     description="Type of brick to draw adjacent to current brick",
+    #     items=get_items,
+    #     default=None)
 
     #############################################
     # class methods
@@ -209,5 +225,30 @@ class brickPaintbrush(Operator):
         else:
             self.obj = None
             self.normal = None
+
+    def commitChanges(self):
+        scn, cm, _ = getActiveContextInfo()
+        zStep = getZStep(cm)
+        keysToUpdate = []
+        # attempt to merge created bricks
+        if mergableBrickType(self.brickType):
+            height3Only = "PLATES" in cm.brickType and self.brickType in getBrickTypes(height=3)
+            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, self.keysToMerge, cm, mergeVertical=self.brickType in getBrickTypes(height=3), targetType=self.brickType, height3Only=height3Only)
+
+        # set exposure of created bricks and targetted bricks
+        allKeysToUpdate = uniquify(keysToUpdate + self.targettedBrickKeys)
+        for k in allKeysToUpdate:
+            setAllBrickExposures(self.bricksDict, zStep, k)
+        # remove merged 1x1 bricks
+        for k in self.keysToMerge:
+            if k not in keysToUpdate:
+                delete(bpy.data.objects.get(self.bricksDict[k]["name"]))
+
+        # draw updated bricks
+        drawUpdatedBricks(cm, self.bricksDict, allKeysToUpdate, selectCreated=False)
+
+    def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
 
     #############################################

@@ -63,6 +63,7 @@ class BrickerRevertSettings(Operator):
 
     def revertMatrixSettings(self, cm=None):
         cm = cm or getActiveContextInfo()[1]
+        regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
         settings = cm.lastMatrixSettings.split(",")
         cm.brickHeight = float(settings[0])
         cm.gap = float(settings[1])
@@ -70,14 +71,23 @@ class BrickerRevertSettings(Operator):
         cm.distOffset[0] = float(settings[3])
         cm.distOffset[1] = float(settings[4])
         cm.distOffset[2] = float(settings[5])
-        cm.customObjectName1 = settings[6]
-        cm.customObjectName2 = settings[7]
-        cm.customObjectName3 = settings[8]
-        cm.useNormals = str_to_bool(settings[9])
-        cm.insidenessRayCastDir = settings[10]
-        cm.castDoubleCheckRays = str_to_bool(settings[11])
-        cm.brickShell = settings[12]
-        cm.calculationAxes = settings[13]
+        cm.includeTransparency = str_to_bool(settings[6])
+        cm.customObjectName1 = settings[7]
+        cm.customObjectName2 = settings[8]
+        cm.customObjectName3 = settings[9]
+        cm.useNormals = str_to_bool(settings[10])
+        cm.verifyExposure = str_to_bool(settings[11])
+        cm.insidenessRayCastDir = settings[12]
+        cm.castDoubleCheckRays = str_to_bool(settings[13])
+        cm.brickShell = settings[14]
+        cm.calculationAxes = settings[15]
+        if cm.lastIsSmoke:
+            cm.smokeDensity = settings[16]
+            cm.smokeQuality = settings[17]
+            cm.smokeBrightness = settings[18]
+            cm.smokeSaturation = settings[19]
+            cm.flameColor = settings[20]
+            cm.flameIntensity = settings[21]
         cm.matrixIsDirty = False
 
     ################################################

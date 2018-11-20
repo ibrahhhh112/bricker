@@ -6,3 +6,4 @@
     * Add many more brick types
     * Improve brick topology for 3D printing
     * Use shader-based bevel as opposed to geometry-based bevel
+    * move zStep to cm.zStep
