@@ -75,49 +75,69 @@ class brickPaintbrush(Operator):
             if event.type == "LEFTMOUSE" and event.value == "RELEASE":
                 self.left_click = False
 
-            if event.type == "OPTION" and event.value == "PRESS":
+            if event.type == "MOUSEMOVE" and len(self.recentlyAddedBricks) > 0 and not self.left_click:
+                self.recentlyAddedBricks = []
+
+            if event.type in ["LEFT_ALT", "RIGHT_ALT"] and event.value == "PRESS":
                 self.shift = True
-            if event.type == "OPTION" and event.value == "RELEASE":
+            if event.type in ["LEFT_ALT", "RIGHT_ALT"] and event.value == "RELEASE":
                 self.shift = False
 
-            if event.type == 'MOUSEMOVE':
-                bpy.context.window.cursor_set("PAINT_BRUSH")
-
-            if self.left_click:
+            if event.type == 'MOUSEMOVE' or self.left_click:
                 scn, cm, _ = getActiveContextInfo()
                 x, y = event.mouse_region_x, event.mouse_region_y
-                self.hover_scene(context, x, y, cm.source_name, exclude_added=not self.shift)
-                if self.obj is not None:
-                    if self.shift:
-                        print("remove brick")
-                    else:
-                        print("add brick")
+                self.hover_scene(context, x, y, cm.source_name)
+                if self.obj is None:
+                    bpy.context.window.cursor_set("DEFAULT")
+                    return {"PASS_THROUGH"}
+                else:
+                    bpy.context.window.cursor_set("PAINT_BRUSH")
+
+            if self.left_click:
+                addBrick = not (self.shift or self.obj.name in self.recentlyAddedBricks)
+                removeBrick = self.shift and self.obj.name in self.addedBricks
+                if addBrick or removeBrick:
                     # get key of current brick in bricksDict
                     curKey = getDictKey(self.obj.name)
                     curLoc = getDictLoc(self.bricksDict, curKey)
                     objSize = self.bricksDict[curKey]["size"]
                     zStep = getZStep(cm)
+                # add brick next to existing brick
+                if addBrick and self.bricksDict[curKey]["name"] not in self.recentlyAddedBricks:
                     # get difference between intersection loc and object loc
                     locDiff = self.loc - Vector(self.bricksDict[curKey]["co"])
                     nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, zStep)
-                    print(nextLoc)
                     context.area.header_text_set('Target location: (' + str(int(nextLoc[0])) + ", " + str(int(nextLoc[1])) + ", " + str(int(nextLoc[2])) + ")")
-                    # # if difference is significantly to one side, draw brick on that side
-                    # if nextLoc is not None:
-                    #     self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
-                    #     # add or remove bricks in all adjacent locations in current direction
-                    #     for j,adjDictLoc in enumerate(self.adjDKLs[i]):
-                    #         if decriment != 0:
-                    #             adjDictLoc = adjDictLoc.copy()
-                    #             adjDictLoc[2] -= decriment
-                    #         status = drawAdjacent.toggleBrick(cm, self.bricksDict, [[False] * len(self.adjDKLs[i]) for i in range(6)], self.dimensions, adjDictLoc, curKey, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
-                    #         if not status["val"]:
-                    #             self.report({status["report_type"]}, status["msg"])
-                    #     # after ALL bricks toggled, check exposure of bricks above and below new ones
-                    #     for j,adjDictLoc in enumerate(self.adjDKLs[i]):
-                    #         self.bricksDict = verifyBrickExposureAboveAndBelow(scn, zStep, adjDictLoc.copy(), self.bricksDict, decriment=decriment + 1, zNeg=self.zNeg, zPos=self.zPos)
+                    # draw brick at nextLoc location
+                    nextKey, adjBrickD = drawAdjacent.getBrickD(self.bricksDict, nextLoc)
+                    if not adjBrickD or not self.bricksDict[nextKey]["draw"] and self.bricksDict[curKey]["name"] not in self.recentlyAddedBricks:
+                        self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
+                        targetType = self.bricksDict[curKey]["type"]
+                        # add or remove brick
+                        status = drawAdjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, targetType, 0, 0, self.keysToMerge)
+                        if not status["val"]:
+                            self.report({status["report_type"]}, status["msg"])
+                        self.addedBricks.append(self.bricksDict[nextKey]["name"])
+                        self.recentlyAddedBricks.append(self.bricksDict[nextKey]["name"])
+                    # draw created bricks
+                    drawUpdatedBricks(cm, self.bricksDict, [nextKey], selectCreated=False)
 
-                    # self.addedBricks.append(brick.name)
+                # remove existing brick
+                elif removeBrick and self.bricksDict[curKey]["name"] in self.addedBricks:
+                    self.addedBricks.remove(self.bricksDict[curKey]["name"])
+                    # reset bricksDict values
+                    self.bricksDict[curKey]["draw"] = False
+                    self.bricksDict[curKey]["val"] = 0
+                    self.bricksDict[curKey]["parent"] = None
+                    self.bricksDict[curKey]["created_from"] = None
+                    self.bricksDict[curKey]["flipped"] = False
+                    self.bricksDict[curKey]["rotated"] = False
+                    self.bricksDict[curKey]["top_exposed"] = False
+                    self.bricksDict[curKey]["bot_exposed"] = False
+                    brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+                    delete(brick)
+                    tag_redraw_areas()
+                    # draw created bricks
                 return {"RUNNING_MODAL"}
 
             return {"PASS_THROUGH"}
@@ -139,7 +159,7 @@ class brickPaintbrush(Operator):
         self.bricksDict, _ = getBricksDict(cm=cm)
         # create timer for modal
         wm = context.window_manager
-        self._timer = wm.event_timer_add(0.1, context.window)
+        self._timer = wm.event_timer_add(0.01, context.window)
         wm.modal_handler_add(self)
         return{"RUNNING_MODAL"}
 
@@ -152,12 +172,14 @@ class brickPaintbrush(Operator):
         self.undo_stack = UndoStack.get_instance()
         self.orig_undo_stack_length = self.undo_stack.getLength()
         self.addedBricks = []
+        self.recentlyAddedBricks = []
         zStep = getZStep(cm)
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
         cm.customized = True
         self.left_click = False
         self.shift = False
         self.obj = None
+        self.keysToMerge = []
 
     ###################################################
     # class variables
@@ -168,7 +190,7 @@ class brickPaintbrush(Operator):
     # class methods
 
     # from CG Cookie's retopoflow plugin
-    def hover_scene(self, context, x, y, source_name, exclude_added=False):
+    def hover_scene(self, context, x, y, source_name):
         """ casts ray through point x,y and sets self.obj if obj intersected """
         scn = context.scene
         region = context.region
@@ -181,7 +203,7 @@ class brickPaintbrush(Operator):
 
         result, loc, normal, idx, ob, mx = scn.ray_cast(ray_origin, ray_target)
 
-        if result and ob.name.startswith('Bricker_' + source_name) and not (exclude_added and ob.name in self.addedBricks):
+        if result and ob.name.startswith('Bricker_' + source_name):
             self.obj = ob
             self.loc = loc
         else:

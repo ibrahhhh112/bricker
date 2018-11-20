@@ -106,7 +106,7 @@ class drawAdjacent(Operator):
                         if decriment != 0:
                             adjDictLoc = adjDictLoc.copy()
                             adjDictLoc[2] -= decriment
-                        status = self.toggleBrick(cm, self.bricksDict, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
+                        status = self.toggleBrick(cm, self.bricksDict, self.adjDKLs, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, dictLoc, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
                         if not status["val"]:
                             self.report({status["report_type"]}, status["msg"])
                         if status["dirBool"] is not None:
@@ -210,34 +210,42 @@ class drawAdjacent(Operator):
         elif idx == 4: self.zPos = val
         elif idx == 5: self.zNeg = val
 
-    def getBrickD(self, dkl):
+    @staticmethod
+    def getBrickD(bricksDict, dkl):
         """ set up adjBrickD """
         adjacent_key = listToStr(dkl)
         try:
-            brickD = self.bricksDict[adjacent_key]
+            brickD = bricksDict[adjacent_key]
             return adjacent_key, brickD
         except:
             return adjacent_key, False
 
-    def getNewBrickHeight(self, targetType):
+    @staticmethod
+    def getNewBrickHeight(targetType):
         newBrickHeight = 1 if targetType in getBrickTypes(height=1) else 3
         return newBrickHeight
 
-    def getNewCoord(self, cm, co, dimensions, side, newBrickHeight):
+    @staticmethod
+    def getNewCoord(cm, bricksDict, origKey, origLoc, newKey, newLoc, dimensions):
         full_d = [dimensions["width"], dimensions["width"], dimensions["height"]]
-        co = list(co)
-        if side in (0, 2, 4):  # positive directions
-            co[side//2] += full_d[side//2]
-        else:                  # negative directions
-            co[side//2] -= full_d[side//2] * (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
-        return tuple(co)
-
-    def isBrickAlreadyCreated(self, brickNum, side):
-        return not (brickNum == len(self.adjDKLs[side]) - 1 and
-                    not any(self.adjBricksCreated[side])) # evaluates True if all values in this list are False
+        cur_co = bricksDict[origKey]["co"]
+        new_co = Vector(cur_co)
+        loc_diff = (newLoc[0] - origLoc[0], newLoc[1] - origLoc[1], newLoc[2] - origLoc[2])
+        new_co.x += full_d[0] * loc_diff[0]
+        new_co.y += full_d[1] * loc_diff[1]
+        new_co.z += full_d[2] * loc_diff[2]
+        new_co.x += dimensions["gap"] * (loc_diff[0] - (0 if loc_diff[0] == 0 else 1)) + (0 if loc_diff[0] == 0 else dimensions["gap"])
+        new_co.y += dimensions["gap"] * (loc_diff[1] - (0 if loc_diff[1] == 0 else 1)) + (0 if loc_diff[1] == 0 else dimensions["gap"])
+        new_co.z += dimensions["gap"] * (loc_diff[2] - (0 if loc_diff[2] == 0 else 1)) + (0 if loc_diff[2] == 0 else dimensions["gap"])
+        return tuple(new_co)
 
     @staticmethod
-    def toggleBrick(cm, bricksDict, adjBricksCreated, dimensions, adjacent_loc, dictKey, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
+    def isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side):
+        return not (brickNum == len(adjDKLs[side]) - 1 and
+                    not any(adjBricksCreated[side])) # evaluates True if all values in this list are False
+
+    @staticmethod
+    def toggleBrick(cm, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = drawAdjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
@@ -245,18 +253,11 @@ class drawAdjacent(Operator):
         n = cm.source_name
         dirBool = None
 
-        adjacent_key, adjBrickD = drawAdjacent.getBrickD(adjacent_loc)
+        adjacent_key, adjBrickD = drawAdjacent.getBrickD(bricksDict, adjacent_loc)
 
         # if key doesn't exist in bricksDict, create it
         if not adjBrickD:
-            newDictLoc = adjacent_loc.copy()
-            if side in (0, 2, 4):  # positive directions
-                newDictLoc[side//2] -= 1
-            else:                  # negative directions
-                newDictLoc[side//2] += (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
-            theKey = listToStr(newDictLoc)
-            co0 = bricksDict[theKey]["co"]
-            co = drawAdjacent.getNewCoord(cm, co0, dimensions, side, newBrickHeight)
+            co = drawAdjacent.getNewCoord(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
             bricksDict[adjacent_key] = createBricksDictEntry(
                 name=              'Bricker_%(n)s_brick__%(adjacent_key)s' % locals(),
                 loc=               adjacent_loc,
@@ -274,7 +275,7 @@ class drawAdjacent(Operator):
             # if attempting to add brick
             if addBrick:
                 # reset direction bool if no bricks could be added
-                if not drawAdjacent.isBrickAlreadyCreated(brickNum, side):
+                if not drawAdjacent.isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side):
                     dirBool = [side, False]
                 return {"val":False, "dirBool":dirBool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
@@ -305,7 +306,7 @@ class drawAdjacent(Operator):
                     newKey = listToStr((x0, y0, z0 + z))
                     # if brick drawn in next loc and not just rerunning based on new direction selection
                     if (newKey in bricksDict and bricksDict[newKey]["draw"] and
-                        (not drawAdjacent.isBrickAlreadyCreated(brickNum, side) or
+                        (not drawAdjacent.isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side) or
                          curType not in getBrickTypes(height=3)) and not
                          (z == 2 and curType in getBrickTypes(height=1) and targetType not in getBrickTypes(height=1))):
                         # reset values at failed location, in case brick was previously drawn there

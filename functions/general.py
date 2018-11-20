@@ -386,12 +386,12 @@ def getBrickCenter(bricksDict, key, zStep, loc=None):
     return coord_ave
 
 
-def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, maxDist=0.77):
-    d = Vector((dimensions["width"] / 2.2, dimensions["width"] / 2.2, dimensions["height"] / 2.2))
+def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep):
+    d = Vector((dimensions["width"] / 2.05, dimensions["width"] / 2.05, dimensions["height"] / 2.05))
     nextLoc = Vector(curLoc)
     if locDiff.z > d.z - dimensions["stud_height"]:
         nextLoc.z += math.ceil(1 / zStep)
-    elif locDiff.z < d.z:
+    elif locDiff.z < -d.z:
         nextLoc.z -= 1
     if locDiff.x > d.x:
         nextLoc.x += math.ceil((locDiff.x - d.x) / (d.x * 2))
@@ -401,7 +401,7 @@ def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, maxDist=0.77):
         nextLoc.y += math.ceil((locDiff.y - d.y) / (d.y * 2))
     elif locDiff.y < -d.y:
         nextLoc.y += math.floor((locDiff.y + d.y) / (d.y * 2))
-    return nextLoc
+    return [int(nextLoc.x), int(nextLoc.y), int(nextLoc.z)]
 
 
 def getNormalDirection(normal, maxDist=0.77, slopes=False):
