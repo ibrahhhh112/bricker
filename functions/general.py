@@ -24,6 +24,7 @@ import collections
 import json
 import math
 import numpy as np
+import bmesh
 
 # Blender imports
 import bpy
@@ -592,3 +593,40 @@ def getBrickMats(materialType, cm_id):
         matObj = getMatObject(cm_id, typ="RANDOM")
         brick_mats = list(matObj.data.materials.keys())
     return brick_mats
+
+
+def transformToWorld(vec, mat, junk_bme=None):
+    # decompose matrix
+    loc = mat.to_translation()
+    rot = mat.to_euler()
+    scale = mat.to_scale()[0]
+    # apply rotation
+    if rot != Euler((0, 0, 0), "XYZ"):
+        junk_bme = bmesh.new() if junk_bme is None else junk_bme
+        v1 = junk_bme.verts.new(vec)
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.x, 3, 'X'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.y, 3, 'Y'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.z, 3, 'Z'))
+        vec = v1.co
+    # apply scale
+    vec = vec * scale
+    # apply translation
+    vec += loc
+    return vec
+
+
+def transformToLocal(vec, mat, junk_bme=None):
+    loc = mat.to_translation()
+    # apply scale
+    vec = vec_div(vec, mat.to_scale())
+    # apply rotation
+    junk_bme = bmesh.new() if junk_bme is None else junk_bme
+    rot = mat.to_euler()
+    v1 = junk_bme.verts.new(vec)
+    bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.z, 3, 'Z'))
+    bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.y, 3, 'Y'))
+    bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
+    vec = v1.co
+    # # apply translation
+    # vec += loc
+    return vec

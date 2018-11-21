@@ -245,7 +245,7 @@ class drawAdjacent(Operator):
                     not any(adjBricksCreated[side])) # evaluates True if all values in this list are False
 
     @staticmethod
-    def toggleBrick(cm, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
+    def toggleBrick(cm, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, temporaryBrick=False, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = drawAdjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
@@ -331,7 +331,11 @@ class drawAdjacent(Operator):
             adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or bricksDict[dictKey]["near_face"]
             adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or tuple(bricksDict[dictKey]["near_intersection"])
-            setAllBrickExposures(bricksDict, zStep, adjacent_key)
+            if temporaryBrick:
+                adjBrickD["top_exposed"] = True
+                adjBrickD["bot_exposed"] = False
+            else:
+                setAllBrickExposures(bricksDict, zStep, adjacent_key)
             adjBrickD["created_from"] = dictKey
             keysToMerge.append(adjacent_key)
             # set adjBricksCreated to target brick type for current side

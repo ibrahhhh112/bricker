@@ -20,7 +20,7 @@
     """
 
 # System imports
-# NONE!
+import bmesh
 
 # Blender imports
 import bpy
@@ -57,9 +57,9 @@ class brickPaintbrush(Operator):
     def modal(self, context, event):
         try:
             if event.type == "RET" and event.value == "PRESS":
-                self.commitChanges()
                 bpy.context.window.cursor_set("DEFAULT")
                 self.cancel(context)
+                self.commitChanges()
                 return{"FINISHED"}
 
             if event.type == "LEFTMOUSE" and event.value == "PRESS":
@@ -75,9 +75,10 @@ class brickPaintbrush(Operator):
             if event.type in ["LEFT_ALT", "RIGHT_ALT"] and event.value == "RELEASE":
                 self.shift = False
 
-            if event.type == 'MOUSEMOVE' or self.left_click:
-                scn, cm, _ = getActiveContextInfo()
+            if event.type in ['TIMER', 'MOUSEMOVE'] or self.left_click:
+                scn, cm, n = getActiveContextInfo()
                 x, y = event.mouse_region_x, event.mouse_region_y
+                self.mouseTravel = abs(x - self.lastMousePos[0]) + abs(y - self.lastMousePos[1])
                 self.hover_scene(context, x, y, cm.source_name)
                 if self.obj is None:
                     bpy.context.window.cursor_set("DEFAULT")
@@ -85,7 +86,8 @@ class brickPaintbrush(Operator):
                 else:
                     bpy.context.window.cursor_set("PAINT_BRUSH")
 
-            if self.left_click:
+            if self.left_click and (event.type == 'LEFTMOUSE' or (event.type == "MOUSEMOVE" and (not self.shift or self.mouseTravel > 5))):
+                self.lastMousePos = [x, y]
                 addBrick = not (self.shift or self.obj.name in self.recentlyAddedBricks)
                 removeBrick = self.shift and self.obj.name in self.addedBricks
                 if addBrick or removeBrick:
@@ -97,23 +99,37 @@ class brickPaintbrush(Operator):
                 # add brick next to existing brick
                 if addBrick and self.bricksDict[curKey]["name"] not in self.recentlyAddedBricks:
                     # get difference between intersection loc and object loc
-                    locDiff = self.loc - Vector(self.bricksDict[curKey]["co"])
+                    Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
+                    parent = bpy.data.objects.get(Bricker_parent_on)
+                    locDiff = self.loc - transformToWorld(Vector(self.bricksDict[curKey]["co"]), parent.matrix_world, self.junk_bme)
+                    locDiff = transformToLocal(locDiff, parent.matrix_world)
                     nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, zStep)
-                    context.area.header_text_set('Target location: (' + str(int(nextLoc[0])) + ", " + str(int(nextLoc[1])) + ", " + str(int(nextLoc[2])) + ")")
+                    print()
+                    print(curLoc)
+                    print(nextLoc)
                     # draw brick at nextLoc location
                     nextKey, adjBrickD = drawAdjacent.getBrickD(self.bricksDict, nextLoc)
                     if not adjBrickD or not self.bricksDict[nextKey]["draw"] and self.bricksDict[curKey]["name"] not in self.recentlyAddedBricks:
                         self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
-                        # targetType = self.bricksDict[curKey]["type"]
                         # add or remove brick
-                        status = drawAdjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMerge)
+                        status = drawAdjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMerge, temporaryBrick=True)
                         if not status["val"]:
                             self.report({status["report_type"]}, status["msg"])
                         self.addedBricks.append(self.bricksDict[nextKey]["name"])
                         self.recentlyAddedBricks.append(self.bricksDict[nextKey]["name"])
                         self.targettedBrickKeys.append(curKey)
+                    # disable logo and bevel detailing for temporary bricks
+                    lastBricksAreDirty = cm.bricksAreDirty
+                    lastLogoType = cm.logoType
+                    lastBevel = cm.bevelAdded
+                    cm.logoType = "NONE"
+                    cm.bevelAdded = False
                     # draw created bricks
                     drawUpdatedBricks(cm, self.bricksDict, [nextKey], selectCreated=False)
+                    # reset logo and bevel detailing
+                    cm.logoType = lastLogoType
+                    cm.bevelAdded = lastBevel
+                    cm.bricksAreDirty = lastBricksAreDirty
 
                 # remove existing brick
                 elif removeBrick and self.bricksDict[curKey]["name"] in self.addedBricks:
@@ -139,8 +155,9 @@ class brickPaintbrush(Operator):
             return {"CANCELLED"}
 
     def execute(self, context):
-        if self.brickType == "":
+        if self.brickType == "" or bpy.props.running_paintbrush:
             return {"CANCELLED"}
+        bpy.props.running_paintbrush = True
         scn, cm, _ = getActiveContextInfo()
         # # revert to last bricksDict
         # self.undo_stack.matchPythonToBlenderState()
@@ -164,7 +181,6 @@ class brickPaintbrush(Operator):
     # initialization method
 
     def __init__(self):
-        print("running init")
         scn, cm, _ = getActiveContextInfo()
         self.undo_stack = UndoStack.get_instance()
         self.orig_undo_stack_length = self.undo_stack.getLength()
@@ -179,6 +195,9 @@ class brickPaintbrush(Operator):
         self.keysToMerge = []
         self.targettedBrickKeys = []
         self.brickType = "BRICK"
+        self.lastMousePos = [0, 0]
+        self.mouseTravel = 0
+        self.junk_bme = bmesh.new()
 
     ###################################################
     # class variables
@@ -211,20 +230,24 @@ class brickPaintbrush(Operator):
         scn = context.scene
         region = context.region
         rv3d = context.region_data
+        if rv3d is None:
+            return None
         coord = x, y
-        ray_max = 10000
+        ray_max = 1000000  # changed from 10000 to 1000000 to increase accuracy
         view_vector = region_2d_to_vector_3d(region, rv3d, coord)
         ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
         ray_target = ray_origin + (view_vector * ray_max)
 
-        result, loc, normal, idx, ob, mx = scn.ray_cast(ray_origin, ray_target)
+        result, loc, normal, idx, obj, mx = scn.ray_cast(ray_origin, ray_target)
 
-        if result and ob.name.startswith('Bricker_' + source_name):
-            self.obj = ob
+        if result and obj.name.startswith('Bricker_' + source_name):
+            self.obj = obj
             self.loc = loc
+            context.area.header_text_set('Painting on brick: (' + obj.name.split("__")[1] + ")")
         else:
             self.obj = None
             self.normal = None
+            context.area.header_text_set()
 
     def commitChanges(self):
         scn, cm, _ = getActiveContextInfo()
@@ -250,5 +273,7 @@ class brickPaintbrush(Operator):
     def cancel(self, context):
         wm = context.window_manager
         wm.event_timer_remove(self._timer)
+        context.area.header_text_set()
+        bpy.props.running_paintbrush = False
 
     #############################################
