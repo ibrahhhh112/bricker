@@ -34,14 +34,14 @@ from .cache import *
 # from ..lib.rigid_body_props import *
 
 
-def getModelType(cm=None):
+def getModelType(cm):
     """ return 'MODEL' if modelCreated, 'ANIMATION' if animated """
-    scn = bpy.context.scene
-    cm = cm or scn.cmlist[scn.cmlist_index]
     if cm.animated:
         modelType = "ANIMATION"
     elif cm.modelCreated:
         modelType = "MODEL"
+    else:
+        raise AttributeError("Brick object is in unexpected state")
     return modelType
 
 
@@ -146,8 +146,6 @@ class BrickerDelete(bpy.types.Operator):
         else:
             bricks = getBricks()
             pivot_point = bricks[0].matrix_world.to_translation()
-        # store last active layers
-        lastLayers = list(scn.layers)
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
 
@@ -195,9 +193,6 @@ class BrickerDelete(bpy.types.Operator):
                     source.location -= Vector(source["local_orient_offset"])
                 except KeyError:
                     pass
-
-            # return open layers to original
-            setLayers(lastLayers)
 
         Caches.clearCache(cm, brick_mesh=False)
 

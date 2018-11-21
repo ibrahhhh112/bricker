@@ -120,9 +120,9 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         update=dirtyMatrix,
         min=0, max=1,
         default=0.9)
-    smokeStep = IntProperty(
-        name="Smoke Step",
-        description="Amount of data to analyze for density and color of brickified smoke (higher values are faster, but lower quality)",
+    smokeQuality = FloatProperty(
+        name="Smoke Quality",
+        description="Amount of data to analyze for density and color of brickified smoke",
         update=dirtyMatrix,
         min=1, max=100,
         default=1)
@@ -300,7 +300,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         default="")
     matShellDepth = IntProperty(
         name="Shell Material Depth",
-        description="Depth to which the outer materials should be applied (1 = Only exposed bricks",
+        description="Depth to which the outer materials should be applied (1 = Only exposed bricks)",
         step=1,
         min=1, max=50,
         default=1,
@@ -309,6 +309,15 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         name="Merge Inconsistent Materials",
         description="Merge bricks whether or not they share a material",
         default=False,
+        update=dirtyBuild)
+    mergeInternals = EnumProperty(
+        name="Merge Shell with Internals",
+        description="Merge bricks on shell with internal bricks",
+        items=[("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions"),
+               ("HORIZONTAL", "Horizontal", "Merge shell bricks with internals horizontally, but not vertically"),
+               ("VERTICAL", "Vertical", "Merge shell bricks with internals vertically, but not horizontally"),
+               ("NEITHER", "Neither", "Don't merge shell bricks with internals in either direction")],
+        default="BOTH",
         update=dirtyBuild)
     randomMatSeed = IntProperty(
         name="Random Seed",
@@ -428,7 +437,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Resolution of the brick logo",
         update=dirtyBricks,
         min=1, max=10,
-        default=3)
+        default=2)
     logoDecimate = FloatProperty(
         name="Decimate",
         description="Decimate the brick logo (lower number for higher resolution)",

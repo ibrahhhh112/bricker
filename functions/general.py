@@ -176,14 +176,14 @@ def setObjOrigin(obj, loc):
     scn.cursor_location = old_loc
 
 
-def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
-    assert fromObj or fromLoc
-    setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
-    if fromObj:
-        if deleteFromObj:
-            m = fromObj.data
-            bpy.data.objects.remove(fromObj, True)
-            bpy.data.meshes.remove(m)
+# def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
+#     assert fromObj or fromLoc
+#     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
+#     if fromObj:
+#         if deleteFromObj:
+#             m = fromObj.data
+#             bpy.data.objects.remove(fromObj, True)
+#             bpy.data.meshes.remove(m)
 
 
 def getBricks(cm=None, typ=None):
@@ -236,6 +236,21 @@ def brick_materials_installed():
     return hasattr(scn, "isBrickMaterialsInstalled") and scn.isBrickMaterialsInstalled
 
 
+def getABSPlasticMats():
+    """ returns list of abs plastic materials (under different names for different versions) """
+    return bpy.props.abs_mats_common if hasattr(bpy.props, "abs_mats_common") else bpy.props.abs_plastic_materials
+
+
+def getMatNames(all=False):
+    scn = bpy.context.scene
+    materials = getABSPlasticMats().copy()
+    if scn.include_transparent or all:
+        materials += bpy.props.abs_mats_transparent
+    if scn.include_uncommon or all:
+        materials += bpy.props.abs_mats_uncommon
+    return materials
+
+
 def brick_materials_loaded():
     scn = bpy.context.scene
     # make sure abs_plastic_materials addon is installed
@@ -244,7 +259,7 @@ def brick_materials_loaded():
         return False
     # check if any of the colors haven't been loaded
     mats = bpy.data.materials.keys()
-    for color in bpy.props.abs_plastic_materials:
+    for color in getMatNames():
         if color not in mats:
             return False
     return True
@@ -254,7 +269,7 @@ def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
     regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
-    smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeStep, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
+    smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
     return listToStr(regularSettings + smokeSettings)
 
 
@@ -325,6 +340,12 @@ def createdWithUnsupportedVersion(cm):
     return cm.version[:3] != bpy.props.bricker_version[:3]
 
 
+def createdWithNewerVersion(cm):
+    modelVersion = cm.version.split(".")
+    brickerVersion = bpy.props.bricker_version.split(".")
+    return (int(modelVersion[0]) > int(brickerVersion[0])) or (int(modelVersion[0]) == int(brickerVersion[0]) and int(modelVersion[1]) > int(brickerVersion[1]))
+
+
 def getLocsInBrick(bricksDict, size, zStep, key, loc=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
@@ -358,7 +379,7 @@ def getDictLoc(bricksDict, key):
     return loc
 
 
-def getBrickCenter(bricksDict, key, loc=None, zStep=None):
+def getBrickCenter(bricksDict, key, zStep, loc=None):
     brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key, loc=loc)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
@@ -396,8 +417,8 @@ def getFlipRot(dir):
     return flip, rot
 
 
-def legalBrickSize(s, t):
-     return s[:2] in bpy.props.Bricker_legal_brick_sizes[s[2]][t]
+def legalBrickSize(size, type):
+     return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
 
 
 def get_override(area_type, region_type):
@@ -537,3 +558,11 @@ def getSaturationMatrix(s:float):
     sg = (1 - s) * 0.6094  # or 0.7154
     sb = (1 - s) * 0.0820  # or 0.0721
     return Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))
+
+
+def getBrickMats(materialType, cm_id):
+    brick_mats = []
+    if materialType == "RANDOM":
+        matObj = getMatObject(cm_id, typ="RANDOM")
+        brick_mats = list(matObj.data.materials.keys())
+    return brick_mats

@@ -203,8 +203,8 @@ def addColumnSupports(bricksDict, keys, thickness, step):
         if not isInternal(bricksDict, key):
             continue
         x,y,z = getDictLoc(bricksDict, key)
-        if (x % step < colThickness and
-            y % step < colThickness):
+        if (x % step < thickness and
+            y % step < thickness):
             bricksDict[key]["draw"] = True
 
 def addLatticeSupports(bricksDict, keys, step, height, alternateXY):
@@ -343,7 +343,7 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
                         break
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, faceIdxMatrix=faceIdxMatrix, axes=axes)
+    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, faceIdxMatrix=faceIdxMatrix, axes=axes)
 
     # print status to terminal
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Shell", end=True)
@@ -359,7 +359,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     old_percent = 0
     brightness = Vector([(cm.smokeBrightness - 1) / 5]*3)
     sat_mat = getSaturationMatrix(cm.smokeSaturation)
-    step = cm.smokeStep
+    quality = cm.smokeQuality
 
     # get starting and ending idx
     if adapt:
@@ -415,10 +415,13 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 xn[1] += 1 if xn[1] == xn[0] else 0
                 yn[1] += 1 if yn[1] == yn[0] else 0
                 zn[1] += 1 if zn[1] == zn[0] else 0
+                xStep = math.ceil((xn[1] - xn[0]) / quality)
+                yStep = math.ceil((yn[1] - yn[0]) / quality)
+                zStep = math.ceil((zn[1] - zn[0]) / quality)
                 ave_denom = 0
-                for x1 in range(xn[0], xn[1], step):
-                    for y1 in range(yn[0], yn[1], step):
-                        for z1 in range(zn[0], zn[1], step):
+                for x1 in range(xn[0], xn[1], xStep):
+                    for y1 in range(yn[0], yn[1], yStep):
+                        for z1 in range(zn[0], zn[1], zStep):
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
                             _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]
@@ -442,7 +445,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 colorMatrix[x][y][z] = list(c_ave) + [alpha]
 
     # mark inside freqs as internal (-1) and outside next to outsides for removal
-    adjustBFM(brickFreqMatrix, axes=False)
+    adjustBFM(brickFreqMatrix, matShellDepth=cm.matShellDepth, axes=False)
 
     # end progress bar
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Shell", end=True)
@@ -450,7 +453,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
     return brickFreqMatrix, colorMatrix
 
 
-def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
+def adjustBFM(brickFreqMatrix, matShellDepth, faceIdxMatrix=None, axes=""):
     """ adjust brickFreqMatrix values """
     shellVals = []
     xL = len(brickFreqMatrix)
@@ -517,10 +520,13 @@ def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
 
     # Update internals
     j = 1
-    for i in range(1, 51):
+    setNF = True
+    for i in range(50):
         j = round(j-0.01, 2)
         gotOne = False
         newShellVals = []
+        if setNF:
+            setNF = (1 - j) * 100 < matShellDepth
         for x, y, z in shellVals:
             idxsToCheck = ((x+1, y, z),
                            (x-1, y, z),
@@ -533,7 +539,7 @@ def adjustBFM(brickFreqMatrix, faceIdxMatrix=None, axes=""):
                 if curVal == -1:
                     newShellVals.append(idx)
                     brickFreqMatrix[idx[0]][idx[1]][idx[2]] = j
-                    if faceIdxMatrix: faceIdxMatrix[idx[0]][idx[1]][idx[2]] = faceIdxMatrix[x][y][z]
+                    if faceIdxMatrix and setNF: faceIdxMatrix[idx[0]][idx[1]][idx[2]] = faceIdxMatrix[x][y][z]
                     gotOne = True
         if not gotOne:
             break

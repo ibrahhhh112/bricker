@@ -27,6 +27,7 @@ import bpy
 
 # Addon imports
 from ..functions import *
+from ..lib.abs_plastic_materials import *
 
 
 def addMaterialToList(self, context):
@@ -40,7 +41,7 @@ def addMaterialToList(self, context):
         return
     elif mat.name in matObj.data.materials.keys():
         cm.targetMaterial = "Already in list!"
-    elif typ == "ABS" and brick_mats_installed and mat.name not in bpy.props.abs_plastic_materials:
+    elif typ == "ABS" and brick_mats_installed and mat.name not in getAbsPlasticMaterialNames():
         cm.targetMaterial = "Not ABS Plastic material"
     elif matObj is not None:
         matObj.data.materials.append(mat)

@@ -136,6 +136,7 @@ class mergeBricks(Operator):
         maxDepth = cm.maxDepth
         legalBricksOnly = cm.legalBricksOnly
         mergeInconsistentMats = cm.mergeInconsistentMats
+        mergeInternals = cm.mergeInternals
         materialType = cm.materialType
         zStep = getZStep(cm)
         randState = np.random.RandomState(cm.mergeSeed)
@@ -148,7 +149,7 @@ class mergeBricks(Operator):
             if bricksDict[key]["parent"] not in (None, "self"):
                 continue
             # attempt to merge current brick with other bricks in keys, according to available brick types
-            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
+            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
             updatedKeys.append(key)
         return updatedKeys
 

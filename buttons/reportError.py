@@ -36,6 +36,9 @@ class reportError(bpy.types.Operator):
     bl_label = "Report Error"
     bl_options = {"REGISTER", "UNDO"}
 
+    ################################################
+    # Blender Operator methods
+
     def execute(self, context):
         # try:
         # set up file paths
@@ -43,17 +46,20 @@ class reportError(bpy.types.Operator):
         # write necessary debugging information to text file
         writeErrorToFile(libraryServersPath, 'Bricker_log', bpy.props.bricker_version)
         # open error report in UI with text editor
-        changeContext(context, "TEXT_EDITOR")
+        lastType = changeContext(context, "TEXT_EDITOR")
         try:
             bpy.ops.text.open(filepath=os.path.join(libraryServersPath, "Bricker_error_report.txt"))
             bpy.context.space_data.show_word_wrap = True
             self.report({"INFO"}, "Opened 'Bricker_error_report.txt'")
             bpy.props.needsUpdating = True
         except:
+            changeContext(context, lastType)
             self.report({"ERROR"}, "ERROR: Could not open 'Bricker_error_report.txt'. If the problem persists, try reinstalling the add-on.")
         # except:
         #     self.report({"ERROR"}, "[Bricker] Could not generate error report. Please use the 'Report a Bug' button in the Bricker Preferences (found in Add-On User Preferences)")
         return{"FINISHED"}
+
+    ################################################
 
 
 class closeReportError(bpy.types.Operator):
@@ -62,6 +68,9 @@ class closeReportError(bpy.types.Operator):
     bl_label = "Close Report Error"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
+    ################################################
+    # Blender Operator methods
+
     def execute(self, context):
         try:
             txt = bpy.data.texts['Bricker_log']
@@ -69,3 +78,5 @@ class closeReportError(bpy.types.Operator):
         except:
             handle_exception()
         return{"FINISHED"}
+
+    ################################################

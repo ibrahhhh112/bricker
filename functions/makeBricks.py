@@ -39,7 +39,7 @@ from ..lib.bricksDict import *
 from .common import *
 from .wrappers import *
 from .general import bounds
-from ..lib.caches import bricker_bm_cache
+from ..lib.caches import bricker_mesh_cache
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 from .makeBricks_utils import *
 from .mat_utils import *
@@ -80,12 +80,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         for obj0 in bGroup.objects:
             bGroup.objects.unlink(obj0)
 
-    brick_mats = []
-    if cm.materialType == "RANDOM":
-        matObj = getMatObject(cm.id, typ="RANDOM")
-        brick_mats = list(matObj.data.materials.keys())
-
-
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
     buildIsDirty = cm.buildIsDirty
@@ -95,6 +89,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     maxDepth = cm.maxDepth
     legalBricksOnly = cm.legalBricksOnly
     mergeInconsistentMats = cm.mergeInconsistentMats
+    mergeInternals = cm.mergeInternals
     mergeType = cm.mergeType
     mergeSeed = cm.mergeSeed
     materialType = cm.materialType
@@ -103,6 +98,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     studDetail = cm.studDetail
     exposedUndersideDetail = cm.exposedUndersideDetail
     hiddenUndersideDetail = cm.hiddenUndersideDetail
+    lastSplitModel = cm.lastSplitModel
     randomRot = cm.randomRot
     randomLoc = cm.randomLoc
     logoType = cm.logoType
@@ -120,6 +116,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     randS2 = np.random.RandomState(cm.mergeSeed+1)
     randS3 = np.random.RandomState(cm.mergeSeed+2)
     # initialize other variables
+    brick_mats = getBrickMats(cm.materialType, cm.id)
     brickSizeStrings = {}
     mats = []
     allMeshes = bmesh.new()
@@ -201,7 +198,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         loc = getDictLoc(bricksDict, key)
 
                         # merge current brick with available adjacent bricks
-                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, materialType, mergeVertical=mergeVertical)
+                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, mergeVertical=mergeVertical)
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:
@@ -246,14 +243,17 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     old_percent = updateProgressBars(printStatus, cursorStatus, 0, -1, "Building")
 
     # draw merged bricks
-    for i, k2 in enumerate(keys):
-        if bricksDict[k2]["parent"] != "self" or not bricksDict[k2]["draw"]:
-            continue
-        loc = getDictLoc(bricksDict, k2)
-        # create brick based on the current brick info
-        drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
-        # print status to terminal and cursor
-        old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
+    i = 0
+    for z in sorted(keysDict.keys()):
+        for k2 in keysDict[z]:
+            if bricksDict[k2]["parent"] != "self" or not bricksDict[k2]["draw"]:
+                continue
+            loc = getDictLoc(bricksDict, k2)
+            # create brick based on the current brick info
+            drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
+            # print status to terminal and cursor
+            old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
+            i += 1
 
     # end progress bars
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)

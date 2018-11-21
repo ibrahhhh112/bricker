@@ -37,11 +37,11 @@ from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
 
-class BRICKER_OT_delete_override(Operator):
+class OBJECT_OT_delete_override(Operator):
     """OK?"""
     bl_idname = "bricker.delete"
     bl_label = "Delete"
-    bl_options = {'REGISTER', 'INTERNAL'}
+    bl_options = {'REGISTER'}
 
     ################################################
     # Blender Operator methods

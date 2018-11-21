@@ -46,7 +46,7 @@ def bversion():
     return bversion
 
 
-def stopWatch(text, lastTime, precision=2):
+def stopWatch(text, lastTime, precision=5):
     """From seconds to Days;Hours:Minutes;Seconds"""
     value = time.time()-lastTime
 
@@ -207,23 +207,6 @@ class Suppressor(object):
         pass
 
 
-def applyModifiers(obj, only=None, exclude=["SMOKE"], curFrame=None):
-    hasArmature = False
-    select(obj, active=True, only=True)
-    # apply modifiers
-    for mod in obj.modifiers:
-        if not (only is None or mod.type in only) or not (exclude is None or mod.type not in exclude) or not mod.show_viewport:
-            continue
-        try:
-            with Suppressor():
-                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
-        except:
-            mod.show_viewport = False
-        if mod.type == "ARMATURE" and not hasArmature and mod.show_viewport:
-            hasArmature = True
-    return hasArmature
-
-
 # code from https://stackoverflow.com/questions/1518522/python-most-common-element-in-a-list
 def most_common(L):
     # get an iterable of (item, iterable) pairs
@@ -293,6 +276,7 @@ def rreplace(s, old, new, occurrence=1):
 
 
 def round_nearest(num, divisor):
+    """ round to nearest multiple of 'divisor' """
     rem = num % divisor
     if rem > divisor / 2:
         return round_up(num, divisor)
@@ -301,10 +285,12 @@ def round_nearest(num, divisor):
 
 
 def round_up(num, divisor):
+    """ round up to nearest multiple of 'divisor' """
     return num + divisor - (num % divisor)
 
 
 def round_down(num, divisor):
+    """ round down to nearest multiple of 'divisor' """
     return num - (num % divisor)
 
 
@@ -353,7 +339,8 @@ def setLayers(layers, scn=None):
     assert len(layers) == 20
     scn = scn or bpy.context.scene
     # update scene (prevents dag ZERO errors)
-    scn.update()
+    if bpy.props.Bricker_developer_mode > 0:
+        scn.update()
     # set active layers of scn
     scn.layers = layers
 
@@ -616,11 +603,9 @@ def parent_clear(objs, apply_transform=True):
     if apply_transform:
         for obj in objs:
             obj.rotation_mode = "XYZ"
-            loc = obj.matrix_world.to_translation()
-            rot = obj.matrix_world.to_euler()
-            scale = obj.matrix_world.to_scale()
+            loc, rot, scale = obj.matrix_world.decompose()
             obj.location = loc
-            obj.rotation_euler = rot
+            obj.rotation_euler = rot.to_euler()
             obj.scale = scale
     for obj in objs:
         obj.parent = None
@@ -632,7 +617,7 @@ def writeErrorToFile(errorReportPath, txtName, addonVersion):
         os.makedirs(errorReportPath)
     fullFilePath = os.path.join(errorReportPath, "Bricker_error_report.txt")
     f = open(fullFilePath, "w")
-    f.write("\nPlease copy the following form and paste it into a new issue at https://github.com/bblanimation/rebrickr/issues")
+    f.write("\nPlease copy the following form and paste it into a new issue at https://github.com/bblanimation/bricker/issues")
     f.write("\n\nDon't forget to include a description of your problem! The more information you provide (what you were trying to do, what action directly preceeded the error, etc.), the easier it will be for us to squash the bug.")
     f.write("\n\n### COPY EVERYTHING BELOW THIS LINE ###\n")
     f.write("\nDescription of the Problem:\n")

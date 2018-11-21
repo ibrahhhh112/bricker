@@ -115,13 +115,18 @@ class cmlist_actions(bpy.types.Operator):
             item.source_name = active_object.name
             item.name = active_object.name
             item.version = bpy.props.bricker_version
-            # set up default brickHeight values
-            source = bpy.data.objects.get(item.source_name)
-            if source:
-                source_details = bounds(source, use_adaptive_domain=False)
-                h = max(source_details.dist)
-                # update brick height based on model height
-                item.brickHeight = h / 20
+            # get Bricker preferences
+            prefs = bpy.props.bricker_preferences
+            if prefs.brickHeightDefault == "ABSOLUTE":
+                # set absolute brick height
+                item.brickHeight = prefs.absoluteBrickHeight
+            else:
+                # set brick height based on model height
+                source = bpy.data.objects.get(item.source_name)
+                if source:
+                    source_details = bounds(source, use_adaptive_domain=False)
+                    h = max(source_details.dist)
+                    item.brickHeight = h / prefs.relativeBrickHeight
 
         else:
             item.source_name = ""
@@ -279,7 +284,6 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            print(self.deselect)
             select(getBricks(), deselect=self.deselect)
         except:
             handle_exception()

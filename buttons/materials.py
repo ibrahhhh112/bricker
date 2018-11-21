@@ -88,48 +88,49 @@ class BrickerApplyMaterial(bpy.types.Operator):
 
         # set up variables
         scn, cm, _ = getActiveContextInfo()
-        bricksDict, _ = getBricksDict(cm=cm)
-        if bricksDict is None:
-            self.report({"WARNING"}, "Materials could not be applied manually. Please run 'Update Model'")
-            cm.matrixIsDirty = True
-            return
         bricks = getBricks()
         zStep = getZStep(cm)
         cm.lastMaterialType = cm.materialType
-        if self.action == "CUSTOM":
-            matName = cm.materialName
-        elif self.action == "INTERNAL":
-            matName = cm.internalMatName
-        elif self.action == "RANDOM":
-            BrickerApplyMaterial.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
+        lastSplitModel = cm.lastSplitModel
+        for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
+            # get bricksDict
+            bricksDict, _ = getBricksDict(dType="ANIM" if cm.animated else "MODEL", curFrame=frame, cm=cm)
+            if bricksDict is None:
+                self.report({"WARNING"}, "Materials could not be applied manually. Please run 'Update Model'")
+                cm.matrixIsDirty = True
+                return
+            # apply random material
+            if self.action == "RANDOM":
+                BrickerApplyMaterial.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
+            # apply custom or internal material
+            else:
+                # set matName
+                if self.action == "CUSTOM":
+                    matName = cm.materialName
+                elif self.action == "INTERNAL":
+                    matName = cm.internalMatName
+                # get material from matName
+                mat = bpy.data.materials.get(matName)
+                if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
 
-        if self.action != "RANDOM":
-            # get material from matName
-            mat = bpy.data.materials.get(matName)
-            if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
-            # initialize variables
-            lastSplitModel = cm.lastSplitModel
-
-            for brick in bricks:
-                if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
-                    if len(brick.material_slots) == 0:
-                        # Assign material to object data
-                        brick.data.materials.append(mat)
-                        brick.material_slots[0].link = 'OBJECT'
-                    elif self.action == "CUSTOM" and len(brick.material_slots) > 1:
-                        clearExistingMaterials(brick, from_idx=1)
-                    # assign material to mat slot
-                    brick.material_slots[0].material = mat
-                # update bricksDict mat_name values for split models
-                if lastSplitModel:
-                    bricksDict[brick.name.split("__")[-1]]["mat_name"] = matName
-            # update bricksDict mat_name values for not split models
-            if self.action == "CUSTOM" and not cm.lastSplitModel:
-                for k in bricksDict.keys():
-                    print(k)
-                    print(bricksDict[k])
-                    if bricksDict[k]["draw"] and bricksDict[k]["parent"] == "self":
-                        bricksDict[k]["mat_name"] = matName
+                for brick in bricks:
+                    if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
+                        if len(brick.material_slots) == 0:
+                            # Assign material to object data
+                            brick.data.materials.append(mat)
+                            brick.material_slots[0].link = 'OBJECT'
+                        elif self.action == "CUSTOM" and len(brick.material_slots) > 1:
+                            clearExistingMaterials(brick, from_idx=1)
+                        # assign material to mat slot
+                        brick.material_slots[0].material = mat
+                    # update bricksDict mat_name values for split models
+                    if lastSplitModel:
+                        bricksDict[brick.name.split("__")[-1]]["mat_name"] = matName
+                # update bricksDict mat_name values for not split models
+                if self.action == "CUSTOM" and not cm.lastSplitModel:
+                    for k in bricksDict.keys():
+                        if bricksDict[k]["draw"] and bricksDict[k]["parent"] == "self":
+                            bricksDict[k]["mat_name"] = matName
 
         tag_redraw_areas(("VIEW_3D", "PROPERTIES", "NODE_EDITOR"))
         cm.materialIsDirty = False

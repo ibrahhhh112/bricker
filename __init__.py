@@ -1,17 +1,18 @@
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 5, 1),
+    "version"     : (1, 6, 0),
     "blender"     : (2, 79, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "",  # used for warning icon and text in addons panel
-    "wiki_url"    : "https://www.blendermarket.com/products/rebrickr/",
-    "tracker_url" : "https://github.com/bblanimation/rebrickr/issues",
+    "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
+    "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
+# NOTE: Disable "Slopes" brick type for releases
 
 """
 Copyright (C) 2018 Bricks Brought to Life
@@ -62,13 +63,11 @@ def register():
     bpy.utils.register_module(__name__)
 
     bpy.props.bricker_module_name = __name__
+    bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
+    bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
 
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False
-    bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
-
-    bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
-
     bpy.props.Bricker_developer_mode = developer_mode
 
     bpy.types.Object.protected = BoolProperty(name='protected', default=False)
@@ -94,6 +93,11 @@ def register():
 
     # Add attribute for Bricker Instructions addon
     bpy.types.Scene.isBrickerInstalled = BoolProperty(default=True)
+
+    if not hasattr(bpy.types.Scene, "include_transparent"):
+        bpy.types.Scene.include_transparent = False
+    if not hasattr(bpy.types.Scene, "include_uncommon"):
+        bpy.types.Scene.include_uncommon = False
 
     # bpy.types.Scene.Bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
@@ -141,9 +145,10 @@ def unregister():
     del bpy.types.Object.isBrickifiedObject
     del bpy.types.Object.protected
     del bpy.props.Bricker_developer_mode
-    del bpy.props.bricker_version
     del bpy.props.bricker_undoUpdating
     del bpy.props.bricker_initialized
+    del bpy.props.bricker_preferences
+    del bpy.props.bricker_version
     del bpy.props.bricker_module_name
 
     # handle the keymaps

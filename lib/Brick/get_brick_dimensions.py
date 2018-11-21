@@ -19,13 +19,18 @@ def get_brick_dimensions(height=1, zScale=1, gap_percentage=0.01):
     dimensions["thickness"] = scale*1.6
     dimensions["tube_thickness"] = scale*0.855
     dimensions["support_width"] = scale*0.8
+    dimensions["support_height"] = dimensions["height"]*0.65
+    dimensions["slope_support_width"] = scale*0.6  # eyeballed
+    dimensions["slope_support_height"] = scale*2.4  # eyeballed
     dimensions["bar_radius"] = scale*1.6
     dimensions["logo_width"] = scale*4.8 # originally scale*3.74
     dimensions["tick_width"] = scale*0.6
     dimensions["tick_depth"] = scale*0.3
+    dimensions["slope_tick_depth"] = scale*0.375
     dimensions["slit_height"] = scale*0.3
     dimensions["slit_depth"] = scale*0.3
-    dimensions["support_height"] = dimensions["height"]*0.65
+    dimensions["oblong_support_dist"] = scale
+    dimensions["oblong_support_radius"] = scale*0.6
     dimensions["support_height_triple"] = (dimensions["height"]*3)*0.65
     dimensions["logo_offset"] = (dimensions["height"] / 2) + (dimensions["stud_height"])
     # round all values in dimensions

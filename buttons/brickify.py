@@ -132,19 +132,18 @@ class BrickerBrickify(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo()
         self.undo_stack.iterateStates(cm)
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-        source = self.getObjectToBrickify(cm)
 
         # ensure that Bricker can run successfully
-        if not self.isValid(scn, cm, source, Bricker_bricks_gn):
+        if not self.isValid(scn, cm, self.source, Bricker_bricks_gn):
             return {"CANCELLED"}
 
         # initialize variables
-        source.cmlist_id = cm.id
+        self.source.cmlist_id = cm.id
         matrixDirty = matrixReallyIsDirty(cm)
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
 
         # # check if source object is smoke simulation domain
-        cm.isSmoke = is_smoke(source)
+        cm.isSmoke = is_smoke(self.source)
         if cm.isSmoke != cm.lastIsSmoke:
             cm.matrixIsDirty = True
 
@@ -161,7 +160,9 @@ class BrickerBrickify(bpy.types.Operator):
 
         # set layers to source layers
         oldLayers = list(scn.layers)
-        setLayers(source.layers)
+        sourceLayers = list(self.source.layers)
+        if oldLayers != sourceLayers:
+            setLayers(sourceLayers)
 
         if "ANIM" not in self.action:
             self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
@@ -198,9 +199,11 @@ class BrickerBrickify(bpy.types.Operator):
         cm.exposeParent = False
 
         # unlink source from scene and link to safe scene
-        if source.name in scn.objects.keys():
-            safeUnlink(source, hide=False)
-        setLayers(oldLayers)
+        if self.source.name in scn.objects.keys():
+            safeUnlink(self.source, hide=False)
+        # reset layers
+        if oldLayers != sourceLayers:
+            setLayers(oldLayers)
 
         disableRelationshipLines()
 
@@ -255,7 +258,6 @@ class BrickerBrickify(bpy.types.Operator):
             if not cm.isSmoke:
                 sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
             # apply transformation data
-            # TODO: rewrite the transform apply operator myself
             apply_transform(sourceDup)
             scn.update()
         else:
@@ -393,9 +395,8 @@ class BrickerBrickify(bpy.types.Operator):
                 parent = bpy.data.objects.new(p_name, m)
                 parent.location = source_details.mid - parent0.location
                 parent.parent = parent0
-                scn.objects.link(parent)
-                scn.update()
                 safeUnlink(parent)
+                getSafeScn().update()
                 self.createdObjects.append(parent.name)
 
             # create new bricks
@@ -492,6 +493,10 @@ class BrickerBrickify(bpy.types.Operator):
             if warningMsg is not None:
                 self.report({"WARNING"}, warningMsg)
                 return False
+        # ensure source is defined
+        if source is None:
+            self.report({"WARNING"}, "Source object '{n}' could not be found".format(n=cm.source_name))
+            return False
         # ensure source name isn't too long
         if len(cm.source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
@@ -566,20 +571,6 @@ class BrickerBrickify(bpy.types.Operator):
             if logoObject.type != "MESH":
                 self.report({"WARNING"}, "Custom logo object is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).")
                 return False
-
-        # check if source or brickified object is on active layer(s)
-        success = False
-        if cm.modelCreated or cm.animated:
-            bricks = getBricks()
-            obj = bricks[0] if len(bricks) > 0 else None
-        else:
-            obj = source
-        for i in range(20):
-            if obj and obj.layers[i] and scn.layers[i]:
-                success = True
-        if not success:
-            self.report({"WARNING"}, "Object is not on active layer(s)")
-            return False
 
         return True
 
@@ -723,7 +714,7 @@ class BrickerBrickify(bpy.types.Operator):
         return duplicates
 
     def getObjectToBrickify(self, cm):
-        objToBrickify = bpy.data.objects.get(cm.source_name) or bpy.context.active_object
+        objToBrickify = bpy.data.objects.get(cm.source_name)
         return objToBrickify
 
     def getNewParent(self, Bricker_parent_on, loc):
