@@ -417,8 +417,8 @@ def getFlipRot(dir):
     return flip, rot
 
 
-def legalBrickSize(s, t):
-     return s[:2] in bpy.props.Bricker_legal_brick_sizes[s[2]][t]
+def legalBrickSize(size, type):
+     return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
 
 
 def get_override(area_type, region_type):

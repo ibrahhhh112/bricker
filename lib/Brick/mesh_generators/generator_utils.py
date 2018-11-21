@@ -192,8 +192,10 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
     if underside: circleVerts = round_up(circleVerts, 4)
     # make studs
     topVertsDofDs = {}
-    for xNum in range(1, max(brickSize[:2])):
-        for yNum in range(min(brickSize[:2])):
+    # for xNum in range(1, max(brickSize[:2])):
+    #     for yNum in range(min(brickSize[:2])):
+    for xNum in range(1, brickSize[0]):
+        for yNum in range(brickSize[1]):
             x = dimensions["width"] * xNum
             y = dimensions["width"] * yNum
             if underside:
@@ -238,7 +240,7 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
                     topVertsD = createVertListDict2(studVerts["bottom"] if underside else studVerts["outer"]["bottom"])
                     topVertsDofDs["%(adjXNum)s,%(yNum)s" % locals()] = topVertsD
     if edgeXp is not None and not underside:
-        connectCirclesToSquare(dimensions, [max(brickSize[:2]) - 1, min(brickSize[:2]), brickSize[2]], circleVerts, edgeXn[::-1], edgeXp, edgeYn, edgeYp[::-1], topVertsDofDs, xNum - 1, yNum, bme, flipNormals=not underside)
+        connectCirclesToSquare(dimensions, [brickSize[0] - 1, brickSize[1], brickSize[2]], circleVerts, edgeXn[::-1], edgeXp, edgeYn, edgeYp[::-1], topVertsDofDs, xNum - 1, yNum, bme, flipNormals=not underside)
     if underside:
         bme.faces.new((edgeXp + allSemiCircleVerts)[::-1])
         bme.faces.new(edgeXn[::-1] + endVerts)

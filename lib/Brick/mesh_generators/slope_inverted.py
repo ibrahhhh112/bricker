@@ -80,10 +80,11 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
     # make brick body cube
     coord1 = -d
     coord2 = vec_mult(d, [1, scalar.y, 1])
-    v1, v2, v3, v4, v5, d0, d1, v8 = makeCube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 0, 0, 1, 1], bme=bme)
-    # remove bottom verts on slope side
-    bme.verts.remove(d0)
-    bme.verts.remove(d1)
+    v1, v2, v3, v4, v5, v6, v7, v8 = makeCube(coord1, coord2, [0 if stud else 1, 1 if detail == "FLAT" else 0, 0, 0, 1, 1], bme=bme)
+    if adjustedBrickSize[0] > 1:
+        # remove bottom verts on slope side
+        bme.verts.remove(v6)
+        bme.verts.remove(v7)
     # add face to opposite side from slope
     bme.faces.new((v1, v5, v8, v2))
 
@@ -106,21 +107,28 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
     if not stud:
         bme.faces.new((v12, v11, v8, v5))
     else:
-        # make upper square over slope
-        coord1 = Vector((d.x, -d.y + thick.y / 2, -d.z * (0.5 if max(brickSize[:2]) == 2 else 0.625)))
-        coord2 = Vector((d.x * scalar.x - thick.x, d.y * scalar.y - thick.y / 2, d.z))
-        # v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 0 if sum(brickSize[:2]) == 5 else 1, 1, 1], flipNormals=True, bme=bme)
-        # TODO: replace the following line with line above to add support details later
-        v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 1, 1, 1], flipNormals=True, bme=bme)
-        v15.co.z += (d.z * 2 - thick.z) * (0.9 if max(brickSize[:2]) == 3 else 0.8)
-        v16.co.z = v15.co.z
-        # make faces on edges of new square
-        bme.faces.new((v18, v17, v5, v12))
-        bme.faces.new((v19, v18, v12, v11))
-        bme.faces.new((v20, v19, v11, v8))
+        if adjustedBrickSize[0] > 1:
+            # make upper square over slope
+            coord1 = Vector((d.x, -d.y + thick.y / 2, -d.z * (0.5 if max(adjustedBrickSize[:2]) == 2 else 0.625)))
+            coord2 = Vector((d.x * scalar.x - thick.x, d.y * scalar.y - thick.y / 2, d.z))
+            # v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 0 if sum(adjustedBrickSize[:2]) == 5 else 1, 1, 1], flipNormals=True, bme=bme)
+            # TODO: replace the following line with line above to add support details later
+            print()
+            print(coord1)
+            print(coord2)
+            print(scalar)
+            v13, v14, v15, v16, v17, v18, v19, v20 = makeCube(coord1, coord2, [0, 0, 1, 1, 1, 1], flipNormals=True, bme=bme)
+            v15.co.z += (d.z * 2 - thick.z) * (0.9 if max(adjustedBrickSize[:2]) == 3 else 0.8)
+            v16.co.z = v15.co.z
+            # make faces on edges of new square
+            bme.faces.new((v18, v17, v5, v12))
+            bme.faces.new((v19, v18, v12, v11))
+            bme.faces.new((v20, v19, v11, v8))
+            addSlopeStuds(dimensions, height, adjustedBrickSize, brickType, circleVerts, bme, edgeXp=[v14, v13], edgeXn=[v16, v15], edgeYp=[v13, v16], edgeYn=[v15, v14], loopCut=loopCut)
+        else:
+            v17, v20 = v6, v7
 
-        addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=[v14, v13], edgeXn=[v16, v15], edgeYp=[v13, v16], edgeYn=[v15, v14], loopCut=loopCut)
-        addStuds(dimensions, height, [1, min(brickSize[:2]), brickSize[2]], brickType, circleVerts, bme, edgeXp=[v20, v17], edgeXn=[v8, v5], edgeYp=[v20, v8], edgeYn=[v17, v5], hollow=False, loopCut=loopCut)
+        addStuds(dimensions, height, [1, adjustedBrickSize[1], adjustedBrickSize[2]], brickType, circleVerts, bme, edgeXp=[v20, v17], edgeXn=[v8, v5], edgeYp=[v20, v8], edgeYn=[v17, v5], hollow=False, loopCut=loopCut)
         pass
 
     # add details underneath
@@ -137,25 +145,25 @@ def makeInvertedSlope(dimensions:dict, brickSize:list, brickType:str, loopCut:bo
 
         # make tick marks inside
         if detail == "HIGH":
-            bottomVertsD = addTickMarks(dimensions, [1, min(brickSize[:2]), brickSize[2]], circleVerts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v21, npi=v22, ppi=v23, pni=v24, nnt=v25, npt=v28, ppt=v27, pnt=v26, inverted_slope=True, sideMarks=False)
+            bottomVertsD = addTickMarks(dimensions, [1, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], circleVerts, detail, d, thick, bme, nno=v1, npo=v2, ppo=v3, pno=v4, nni=v21, npi=v22, ppi=v23, pni=v24, nnt=v25, npt=v28, ppt=v27, pnt=v26, inverted_slope=True, sideMarks=False)
             bottomVerts = bottomVertsD["X+"][::-1]
         else:
             bme.faces.new((v23, v3, v4, v24))
             bottomVerts = []
 
         # add supports
-        if detail in ("MEDIUM", "HIGH") and min(brickSize[:2]) == 2:
+        if detail in ("MEDIUM", "HIGH") and min(adjustedBrickSize[:2]) == 2:
             addOblongSupport(dimensions, height, loopCut, circleVerts, "SLOPE_INVERTED", detail, d, scalar, thick, bme) # [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme)
 
         # add small inner cylinders inside brick
         if detail in ("MEDIUM", "HIGH"):
-            addInnerCylinders(dimensions, [1, min(brickSize[:2]), brickSize[2]], circleVerts, d, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme, loopCut=loopCut)
+            addInnerCylinders(dimensions, [1, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], circleVerts, d, [v27] + bottomVerts + [v26], [v28, v25], [v27, v28], [v26, v25], bme, loopCut=loopCut)
 
         # add half-cylinder insets on slope underside
-        if detail in ("MEDIUM", "HIGH") and max(brickSize[:2]) == 3:
+        if detail in ("MEDIUM", "HIGH") and max(adjustedBrickSize[:2]) == 3:
             # TODO: Rewrite this as dedicated function
             # TODO: Add loopCut functionality for half-cylinder insets
-            addSlopeStuds(dimensions, height, [2, min(brickSize[:2]), brickSize[2]], brickType, circleVerts, bme, edgeXp=[v3, v4], edgeXn=[v9, v10], edgeYp=[v4, v9], edgeYn=[v10, v3], underside=True, loopCut=loopCut)
+            addSlopeStuds(dimensions, height, [2, min(adjustedBrickSize[:2]), adjustedBrickSize[2]], brickType, circleVerts, bme, edgeXp=[v3, v4], edgeXn=[v9, v10], edgeYp=[v4, v9], edgeYn=[v10, v3], underside=True, loopCut=loopCut)
 
     # translate slope to adjust for flipped brick
     for v in bme.verts:
