@@ -383,8 +383,8 @@ def getBrickCenter(bricksDict, key, zStep, loc=None):
     return coord_ave
 
 
-def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep):
-    d = Vector((dimensions["width"] / 2.05, dimensions["width"] / 2.05, dimensions["height"] / 2.05))
+def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, divisor=2.05):
+    d = Vector((dimensions["width"] / divisor, dimensions["width"] / divisor, dimensions["height"] / divisor))
     nextLoc = Vector(curLoc)
     if locDiff.z > d.z - dimensions["stud_height"]:
         nextLoc.z += math.ceil(1 / zStep)
@@ -612,17 +612,18 @@ def transformToWorld(vec, mat, junk_bme=None):
 
 
 def transformToLocal(vec, mat, junk_bme=None):
+    # decompose matrix
     loc = mat.to_translation()
-    # apply scale
-    vec = vec_div(vec, mat.to_scale())
-    # apply rotation
-    junk_bme = bmesh.new() if junk_bme is None else junk_bme
     rot = mat.to_euler()
-    v1 = junk_bme.verts.new(vec)
-    bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.z, 3, 'Z'))
-    bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.y, 3, 'Y'))
-    bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
-    vec = v1.co
-    # # apply translation
-    # vec += loc
+    scale = mat.to_scale()[0]
+    # apply scale
+    vec = vec / scale
+    # apply rotation
+    if rot != Euler((0, 0, 0), "XYZ"):
+        junk_bme = bmesh.new() if junk_bme is None else junk_bme
+        v1 = junk_bme.verts.new(vec)
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.z, 3, 'Z'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.y, 3, 'Y'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
+        vec = v1.co
     return vec

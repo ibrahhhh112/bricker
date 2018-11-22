@@ -35,22 +35,23 @@ from ...lib.Brick.legal_brick_sizes import *
 from .undo_stack import *
 
 
-def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCreated=True):
+def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCreated=True, tempBrick=False):
     if len(keysToUpdate) == 0: return
     if not isUnique(keysToUpdate): raise ValueError("keysToUpdate cannot contain duplicate values")
-    print("[Bricker] %(action)s..." % locals())
+    if action is not None:
+        print("[Bricker] %(action)s..." % locals())
     # get arguments for createNewBricks
     n = cm.source_name
     source = bpy.data.objects.get(n)
     source_details, dimensions = getDetailsAndBounds(source, cm)
     Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
     parent = bpy.data.objects.get(Bricker_parent_on)
-    logo_details, refLogo = BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
+    logo_details, refLogo = [None, None] if tempBrick else BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, redraw=True)
+    BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
     # add bevel if it was previously added
-    if cm.bevelAdded:
+    if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)
         BrickerBevel.runBevelAction(bricks, cm)
 

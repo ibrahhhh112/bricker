@@ -87,10 +87,10 @@ def get_quadview_index(context, x, y):
     return (None, None)
 
 
-class brickPaintbrush(Operator):
+class paintbrush(Operator):
     """Paint additional bricks onto the Bricker model"""
-    bl_idname = "bricker.brick_paintbrush"
-    bl_label = "Brick Paintbrush"
+    bl_idname = "bricker.paintbrush"
+    bl_label = "Bricker Paintbrush"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -105,6 +105,13 @@ class brickPaintbrush(Operator):
 
     def modal(self, context, event):
         try:
+            # commit changes on return key press
+            if event.type == "ESC" and event.value == "PRESS":
+                bpy.context.window.cursor_set("DEFAULT")
+                self.cancel(context)
+                self.undo_stack.undo_pop_clean()
+                return{"CANCELLED"}
+
             # commit changes on return key press
             if event.type == "RET" and event.value == "PRESS":
                 bpy.context.window.cursor_set("DEFAULT")
@@ -155,9 +162,12 @@ class brickPaintbrush(Operator):
             # draw/remove bricks on left_click & drag
             if self.left_click and (event.type == 'LEFTMOUSE' or (event.type == "MOUSEMOVE" and (not self.shift or self.mouseTravel > 5))):
                 self.lastMousePos = [x, y]
-                addBrick = not (self.shift or self.obj.name in self.recentlyAddedBricks)
-                removeBrick = self.shift and self.obj.name in self.addedBricks
-                if addBrick or removeBrick:
+                addBrick = not (self.shift or self.obj.name in self.recentlyAddedBricks) and self.mode == "BRICK"
+                removeBrick = self.shift and self.obj.name in self.addedBricks and self.mode == "BRICK"
+                changeMaterial = self.obj.name not in self.addedBricks and self.mode == "MATERIAL"
+                splitBrick = self.obj.name not in self.addedBricks and self.mode == "SPLIT"
+                mergeBrick = self.obj.name not in self.addedBricks and self.mode == "MERGE"
+                if addBrick or removeBrick or changeMaterial or splitBrick or mergeBrick:
                     # get key of current brick in bricksDict
                     curKey = getDictKey(self.obj.name)
                     curLoc = getDictLoc(self.bricksDict, curKey)
@@ -182,8 +192,7 @@ class brickPaintbrush(Operator):
                         self.recentlyAddedBricks.append(self.bricksDict[nextKey]["name"])
                         self.targettedBrickKeys.append(curKey)
                     # draw created bricks
-                    drawUpdatedBricks(cm, self.bricksDict, [nextKey], action="adding new brick", selectCreated=False)
-
+                    drawUpdatedBricks(cm, self.bricksDict, [nextKey], action="adding new brick", selectCreated=False, tempBrick=True)
                 # remove existing brick
                 elif removeBrick and self.bricksDict[curKey]["name"] in self.addedBricks:
                     self.addedBricks.remove(self.bricksDict[curKey]["name"])
@@ -200,7 +209,64 @@ class brickPaintbrush(Operator):
                     delete(brick)
                     tag_redraw_areas()
                     # draw created bricks
+                # change material
+                elif changeMaterial and self.bricksDict[curKey]["mat_name"] != self.matName:
+                    if max(objSize[:2]) > 1:
+                        brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=self.vertical, h=self.horizontal)
+                        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+                        delete(brick)
+                        # get difference between intersection loc and object loc
+                        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
+                        parent = bpy.data.objects.get(Bricker_parent_on)
+                        minDiff = None
+                        for k in brickKeys:
+                            brickLoc = transformToWorld(Vector(self.bricksDict[k]["co"]), parent.matrix_world, self.junk_bme)
+                            locDiff = abs(self.loc[0] - brickLoc[0]) + abs(self.loc[1] - brickLoc[1]) + abs(self.loc[2] - brickLoc[2])
+                            if minDiff is None or locDiff < minDiff:
+                                minDiff = locDiff
+                                curKey = k
+                    else:
+                        brickKeys = [curKey]
+                    self.bricksDict[curKey]["mat_name"] = self.matName
+                    self.bricksDict[curKey]["custom_mat_name"] = True
+                    self.addedBricks.append(self.bricksDict[curKey]["name"])
+                    self.keysToMerge += brickKeys
+                    # draw created bricks
+                    drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="updating material", selectCreated=False, tempBrick=True)
+                # split current brick
+                elif splitBrick and max(self.bricksDict[curKey]["size"][:2]) > 1:
+                    brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=self.vertical, h=self.horizontal)
+                    for k in brickKeys:
+                        self.addedBricks.append(self.bricksDict[k]["name"])
+                    self.allUpdatedKeys += brickKeys
+                    # remove large brick
+                    brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+                    delete(brick)
+                    # draw split bricks
+                    drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=False, tempBrick=True)
+                # merge current brick
+                elif mergeBrick:
+                    brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
+                    self.keysToMerge += brickKeys
+                    self.addedBricks.append(self.bricksDict[curKey]["name"])
                 return {"RUNNING_MODAL"}
+
+            if event.type == "LEFTMOUSE" and event.value == "RELEASE" and self.mode == "MERGE":
+                scn, cm, _ = getActiveContextInfo()
+                # delete outdated brick
+                for obj_name in self.addedBricks:
+                    delete(bpy.data.objects.get(obj_name))
+                # split up bricks
+                Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMerge)
+                # merge bricks after they've been split
+                height3Only = "PLATES" in cm.brickType and self.brickType in getBrickTypes(height=3)
+                mergedKeys = mergeBricks.mergeBricks(self.bricksDict, self.keysToMerge, cm, mergeVertical=self.brickType in getBrickTypes(height=3), targetType=self.brickType, height3Only=height3Only)
+                self.allUpdatedKeys += mergedKeys
+                # reset lists
+                self.keysToMerge = []
+                self.addedBricks = []
+                # draw merged bricks
+                drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
 
             return {"PASS_THROUGH"}
         except:
@@ -238,15 +304,11 @@ class brickPaintbrush(Operator):
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('brick_paintbrush', affected_ids=[cm.id])
         self.undo_stack.iterateStates(cm)
-        # disable logo and bevel detailing for temporary bricks
-        self.lastBricksAreDirty = cm.bricksAreDirty
-        self.lastLogoType = cm.logoType
-        self.lastBevel = cm.bevelAdded
-        cm.logoType = "NONE"
-        cm.bevelAdded = False
         # initialize vars
         self.addedBricks = []
         self.recentlyAddedBricks = []
+        self.keysToMerge = []
+        self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
         cm.customized = True
         self.left_click = False
@@ -255,6 +317,9 @@ class brickPaintbrush(Operator):
         self.keysToMerge = []
         self.targettedBrickKeys = []
         self.brickType = "BRICK"
+        self.matName = bpy.data.materials[0].name if len(bpy.data.materials) > 0 else ""
+        self.vertical = False
+        self.horizontal = True
         self.lastMousePos = [0, 0]
         self.mouseTravel = 0
         self.junk_bme = bmesh.new()
@@ -279,6 +344,15 @@ class brickPaintbrush(Operator):
     #     description="Type of brick to draw adjacent to current brick",
     #     items=get_items,
     #     default=None)
+
+    # define props for popup
+    mode = bpy.props.EnumProperty(
+        items=[("BRICK", "BRICK", ""),
+               ("MATERIAL", "MATERIAL", ""),
+               ("SPLIT", "SPLIT", ""),
+               ("MERGE", "MERGE", ""),
+               ],
+    )
 
     #############################################
     # class methods
@@ -310,26 +384,33 @@ class brickPaintbrush(Operator):
     def commitChanges(self):
         scn, cm, _ = getActiveContextInfo()
         keysToUpdate = []
-        # reset logo and bevel detailing
-        cm.logoType = self.lastLogoType
-        cm.bevelAdded = self.lastBevel
-        cm.bricksAreDirty = self.lastBricksAreDirty
-        # attempt to merge created bricks
-        if mergableBrickType(self.brickType):
-            height3Only = "PLATES" in cm.brickType and self.brickType in getBrickTypes(height=3)
-            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, self.keysToMerge, cm, mergeVertical=self.brickType in getBrickTypes(height=3), targetType=self.brickType, height3Only=height3Only)
-
-        # set exposure of created bricks and targetted bricks
-        allKeysToUpdate = uniquify(keysToUpdate + self.targettedBrickKeys)
-        for k in allKeysToUpdate:
-            setAllBrickExposures(self.bricksDict, cm.zStep, k)
-        # remove merged 1x1 bricks
-        for k in self.keysToMerge:
-            if k not in keysToUpdate:
+        # execute final operations for current mode
+        if self.mode == "SPLIT":
+            # set exposure of split bricks
+            keysToUpdate = uniquify(self.allUpdatedKeys)
+            for k in keysToUpdate:
+                setAllBrickExposures(self.bricksDict, cm.zStep, k)
+        if self.mode == "MERGE":
+            keysToUpdate = uniquify(self.allUpdatedKeys)
+            # remove bricks to be redrawn
+            for k in keysToUpdate:
                 delete(bpy.data.objects.get(self.bricksDict[k]["name"]))
-
+        elif self.mode in ["MATERIAL", "BRICK"]:
+            self.keysToMerge = uniquify(self.keysToMerge)
+            # attempt to merge created bricks
+            if mergableBrickType(self.brickType):
+                height3Only = "PLATES" in cm.brickType and self.brickType in getBrickTypes(height=3)
+                mergedKeys = mergeBricks.mergeBricks(self.bricksDict, self.keysToMerge, cm, mergeVertical=self.brickType in getBrickTypes(height=3), targetType=self.brickType, height3Only=height3Only)
+            # set exposure of created bricks and targetted bricks
+            keysToUpdate = uniquify(mergedKeys + (self.targettedBrickKeys if self.mode == "BRICK" else []))
+            for k in keysToUpdate:
+                setAllBrickExposures(self.bricksDict, cm.zStep, k)
+            # remove merged 1x1 bricks
+            for k in self.keysToMerge:
+                if k not in mergedKeys:
+                    delete(bpy.data.objects.get(self.bricksDict[k]["name"]))
         # draw updated bricks
-        drawUpdatedBricks(cm, self.bricksDict, allKeysToUpdate, action="committing changes", selectCreated=False)
+        drawUpdatedBricks(cm, self.bricksDict, keysToUpdate, action="committing changes", selectCreated=False)
 
     def cancel(self, context):
         wm = context.window_manager

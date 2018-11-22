@@ -441,7 +441,7 @@ class BrickerBrickify(bpy.types.Operator):
             BrickerBevel.runBevelAction(bricks, cm)
 
     @classmethod
-    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False, origSource=None):
+    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False, origSource=None):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
@@ -478,7 +478,7 @@ class BrickerBrickify(bpy.types.Operator):
         if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, origSource, curFrame)
         # make bricks
         group_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, tempBrick=tempBrick, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated, active=True, only=True)
         # store current bricksDict to cache

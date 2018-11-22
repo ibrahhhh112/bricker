@@ -654,9 +654,15 @@ class CustomizeModel(Panel):
 
         col = layout.column(align=True)
         col.label("Tools:")
-        # run brick paintbrush
+        # run BrickSculpt tools
         row = col.row(align=True)
-        row.operator("bricker.brick_paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT")
+        row.operator("bricker.paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT").mode = "BRICK"
+        row = col.row(align=True)
+        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
+        row = col.row(align=True)
+        row.operator("bricker.paintbrush", text="Split Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT"
+        row = col.row(align=True)
+        row.operator("bricker.paintbrush", text="Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MERGE"
 
         col1 = layout.column(align=True)
         col1.label("Selection:")

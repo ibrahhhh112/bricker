@@ -60,8 +60,8 @@ class Bricks:
             raise ValueError("'new_mesh' function received unrecognized value for parameter 'type': '" + str(type) + "'")
 
         # create list of brick bmesh variations
-        if logo and stud and (type in ("BRICK", "PLATE", "STUD") or type == "SLOPE" and max(size[:2]) != 1):
-            bms = makeLogoVariations(dimensions, size, brickType, directions[maxIdx] if type == "SLOPE" else "", all_vars, logo, logo_details, logoInset, logoType, logoScale)
+        if logo and stud and (type in ("BRICK", "PLATE", "STUD", "SLOPE_INVERTED") or type == "SLOPE" and max(size[:2]) != 1):
+            bms = makeLogoVariations(dimensions, size, brickType, directions[maxIdx] if type.startswith("SLOPE") else "", all_vars, logo, logo_details, logoInset, logoType, logoScale)
         else:
             bms = [bmesh.new()]
 
@@ -138,7 +138,7 @@ def getNumRots(direction, size):
 def getRotAdd(direction, size):
     if direction != "":
         directions = ["X+", "Y+", "X-", "Y-"]
-        rot_add += 90 * (directions.index(direction) + 1)
+        rot_add = 90 * (directions.index(direction) + 1)
     else:
         rot_add = 180 if (size[0] == 2 and size[1] > 2) or (size[0] == 1 and size[1] > 1) else 90
     return rot_add
