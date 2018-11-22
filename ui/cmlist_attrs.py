@@ -211,7 +211,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
                ("CONES", "Cones", description),
                ("BRICKS AND PLATES", "Bricks and Plates", description),
                ("BRICKS", "Bricks (fast)", description)],
-        update=dirtyMatrix,
+        update=updateBrickType,
         default="BRICKS")
     alignBricks = BoolProperty(
         name="Align Bricks Horizontally",
@@ -621,6 +621,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     animated = BoolProperty(default=False)
     materialApplied = BoolProperty(default=False)
     armature = BoolProperty(default=False)
+    zStep = IntProperty(default=3)
     # rigid_body = BoolProperty(default=False)
     bevelAdded = BoolProperty(default=False)
     customized = BoolProperty(default=True)

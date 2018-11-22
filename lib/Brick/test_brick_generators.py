@@ -88,7 +88,7 @@ def test_brick_generators():
     scn, cm, _ = getActiveContextInfo()
     lastBrickType = cm.brickType
     cm.brickType = "BRICKS AND PLATES"
-    dimensions = get_brick_dimensions(height=0.5, zScale=getZStep(cm))
+    dimensions = get_brick_dimensions(height=0.5, zScale=cm.zStep)
     offset = -1.875
     for detail in ("FLAT", "LOW", "MEDIUM", "HIGH"):
         offset += 0.75

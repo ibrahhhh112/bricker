@@ -234,9 +234,8 @@ def updateInternal(bricksDict, cm, keys="ALL", clearExisting=False):
     if keys == "ALL": keys = bricksDict.keys()
     # clear extisting internal structure
     if clearExisting:
-        zStep = getZStep(cm)
         # set all bricks as unmerged
-        Bricks.splitAll(bricksDict, zStep, keys=keys)
+        Bricks.splitAll(bricksDict, cm.zStep, keys=keys)
         # clear internal
         for key in keys:
             if isInternal(bricksDict, key):
@@ -415,13 +414,13 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 xn[1] += 1 if xn[1] == xn[0] else 0
                 yn[1] += 1 if yn[1] == yn[0] else 0
                 zn[1] += 1 if zn[1] == zn[0] else 0
-                xStep = math.ceil((xn[1] - xn[0]) / quality)
-                yStep = math.ceil((yn[1] - yn[0]) / quality)
-                zStep = math.ceil((zn[1] - zn[0]) / quality)
+                stepX = math.ceil((xn[1] - xn[0]) / quality)
+                stepY = math.ceil((yn[1] - yn[0]) / quality)
+                stepZ = math.ceil((zn[1] - zn[0]) / quality)
                 ave_denom = 0
-                for x1 in range(xn[0], xn[1], xStep):
-                    for y1 in range(yn[0], yn[1], yStep):
-                        for z1 in range(zn[0], zn[1], zStep):
+                for x1 in range(xn[0], xn[1], stepX):
+                    for y1 in range(yn[0], yn[1], stepY):
+                        for z1 in range(zn[0], zn[1], stepZ):
                             cur_idx = (z1 * domain_res[1] + y1) * domain_res[0] + x1
                             _d = density_grid[cur_idx]
                             f = flame_grid[cur_idx]

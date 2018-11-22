@@ -149,6 +149,12 @@ def dirtyBricks(self, context):
     cm.bricksAreDirty = True
 
 
+def updateBrickType(self, context):
+    scn, cm, _ = getActiveContextInfo()
+    cm.zStep = 1 if flatBrickType(cm.brickType) else 3
+    dirtyMatrix(self, context)
+
+
 def getCMProps():
     """ returns list of important cmlist properties """
     return ["shellThickness",

@@ -51,9 +51,6 @@ class Caches(bpy.types.Operator):
     def execute(self, context):
         try:
             self.clearCaches()
-            scn, cm, _ = getActiveContextInfo()
-            self.undo_stack.iterateStates(cm)
-            cm.matrixIsDirty = True
         except:
             handle_exception()
 
@@ -63,8 +60,11 @@ class Caches(bpy.types.Operator):
     # initialization method
 
     def __init__(self):
+        scn, cm, _ = getActiveContextInfo()
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('clear_cache')
+        self.undo_stack.iterateStates(cm)
+        cm.matrixIsDirty = True
 
     #############################################
     # class methods

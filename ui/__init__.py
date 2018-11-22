@@ -391,7 +391,7 @@ class ModelSettingsPanel(Panel):
         # draw Brick Model dimensions to UI if set
         if -1 not in s:
             if cm.brickType != "CUSTOM":
-                dimensions = Bricks.get_dimensions(cm.brickHeight, getZStep(cm), cm.gap)
+                dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
                 full_d = Vector((dimensions["width"],
                                  dimensions["width"],
                                  dimensions["height"]))
@@ -652,6 +652,12 @@ class CustomizeModel(Panel):
         #     layout.operator("bricker.initialize", icon="MODIFIER")
         #     return
 
+        col = layout.column(align=True)
+        col.label("Tools:")
+        # run brick paintbrush
+        row = col.row(align=True)
+        row.operator("bricker.brick_paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT")
+
         col1 = layout.column(align=True)
         col1.label("Selection:")
         split = col1.split(align=True, percentage=0.5)
@@ -696,12 +702,6 @@ class CustomizeModel(Panel):
         row.prop(cm, "autoUpdateOnDelete")
         # row = col.row(align=True)
         # row.operator("bricker.redraw_bricks")
-
-        col = layout.column(align=True)
-        col.label("Tools:")
-        # run brick paintbrush
-        row = col.row(align=True)
-        row.operator("bricker.brick_paintbrush", text="Brick Paintbrush")
 
 
 class MaterialsPanel(Panel):

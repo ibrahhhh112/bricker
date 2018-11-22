@@ -91,7 +91,6 @@ class drawAdjacent(Operator):
             # get size of current brick (e.g. [2, 4, 1])
             objSize = self.bricksDict[dictKey]["size"]
 
-            zStep = getZStep(cm)
             decriment = 0
             # check all 6 directions for action to be executed
             for i in range(6):
@@ -113,10 +112,10 @@ class drawAdjacent(Operator):
                             self.setDirBool(status["dirBool"][0], status["dirBool"][1])
                     # after ALL bricks toggled, check exposure of bricks above and below new ones
                     for j,adjDictLoc in enumerate(self.adjDKLs[i]):
-                        self.bricksDict = verifyBrickExposureAboveAndBelow(scn, zStep, adjDictLoc.copy(), self.bricksDict, decriment=decriment + 1, zNeg=self.zNeg, zPos=self.zPos)
+                        self.bricksDict = verifyBrickExposureAboveAndBelow(scn, cm.zStep, adjDictLoc.copy(), self.bricksDict, decriment=decriment + 1, zNeg=self.zNeg, zPos=self.zPos)
 
             # recalculate val for each bricksDict key in original brick
-            brickLocs = [[x, y, z] for z in range(z0, z0 + objSize[2], zStep) for y in range(y0, y0 + objSize[1]) for x in range(x0, x0 + objSize[0])]
+            brickLocs = [[x, y, z] for z in range(z0, z0 + objSize[2], cm.zStep) for y in range(y0, y0 + objSize[1]) for x in range(x0, x0 + objSize[0])]
             for curLoc in brickLocs:
                 setCurBrickVal(self.bricksDict, curLoc)
 
@@ -126,7 +125,7 @@ class drawAdjacent(Operator):
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.zPos or self.zNeg:
-                setAllBrickExposures(self.bricksDict, zStep, dictKey)
+                setAllBrickExposures(self.bricksDict, cm.zStep, dictKey)
                 keysToUpdate.append(dictKey)
 
             # draw created bricks
@@ -152,7 +151,6 @@ class drawAdjacent(Operator):
             scn, cm, _ = getActiveContextInfo()
             obj = scn.objects.active
             dictKey = getDictKey(obj.name)
-            zStep = getZStep(cm)
             cm.customized = True
 
             # initialize self.bricksDict
@@ -160,7 +158,7 @@ class drawAdjacent(Operator):
             # initialize direction bools
             self.zPos, self.zNeg, self.yPos, self.yNeg, self.xPos, self.xNeg = [False] * 6
             # initialize self.dimensions
-            self.dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
+            self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
             # initialize self.adjDKLs
             self.adjDKLs = getAdjDKLs(cm, self.bricksDict, dictKey, obj)
             # initialize self.adjBricksCreated
@@ -249,7 +247,6 @@ class drawAdjacent(Operator):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = drawAdjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
-        zStep = getZStep(cm)
         n = cm.source_name
         dirBool = None
 
@@ -282,7 +279,7 @@ class drawAdjacent(Operator):
             elif adjBrickD["created_from"] == dictKey:
                 # update bricksDict values for brick being removed
                 x0, y0, z0 = adjacent_loc
-                brickKeys = [listToStr((x0, y0, z0 + z)) for z in range((zStep + 2) % 4 if side in (4, 5) else 1)]
+                brickKeys = [listToStr((x0, y0, z0 + z)) for z in range((cm.zStep + 2) % 4 if side in (4, 5) else 1)]
                 for k in brickKeys:
                     bricksDict[k]["draw"] = False
                     setCurBrickVal(bricksDict, getDictLoc(bricksDict, k), k, action="REMOVE")
@@ -326,7 +323,7 @@ class drawAdjacent(Operator):
             adjBrickD["rotated"] = bricksDict[dictKey]["rotated"]
             setCurBrickVal(bricksDict, adjacent_loc, adjacent_key)
             adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"]
-            adjBrickD["size"] = [1, 1, newBrickHeight if side in (4, 5) else zStep]
+            adjBrickD["size"] = [1, 1, newBrickHeight if side in (4, 5) else cm.zStep]
             adjBrickD["parent"] = "self"
             adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or bricksDict[dictKey]["near_face"]
@@ -335,7 +332,7 @@ class drawAdjacent(Operator):
                 adjBrickD["top_exposed"] = True
                 adjBrickD["bot_exposed"] = False
             else:
-                setAllBrickExposures(bricksDict, zStep, adjacent_key)
+                setAllBrickExposures(bricksDict, cm.zStep, adjacent_key)
             adjBrickD["created_from"] = dictKey
             keysToMerge.append(adjacent_key)
             # set adjBricksCreated to target brick type for current side

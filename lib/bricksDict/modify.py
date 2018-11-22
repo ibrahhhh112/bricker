@@ -171,7 +171,7 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
     return brickSize
 
 
-def getNumAlignedEdges(bricksDict, size, key, loc, zStep=None, bricksAndPlates=False):
+def getNumAlignedEdges(bricksDict, size, key, loc, bricksAndPlates=False):
     numAlignedEdges = 0
     locs = getLocsInBrick(bricksDict, size, 1, key, loc)
     gotOne = False

@@ -117,6 +117,7 @@ class BrickerBrickify(bpy.types.Operator):
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
+        self.undo_stack.iterateStates(cm)
         # initialize vars
         self.createdObjects = []
         self.createdGroups = []
@@ -130,7 +131,6 @@ class BrickerBrickify(bpy.types.Operator):
     def runBrickify(self, context):
         # set up variables
         scn, cm, n = getActiveContextInfo()
-        self.undo_stack.iterateStates(cm)
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
 
         # ensure that Bricker can run successfully

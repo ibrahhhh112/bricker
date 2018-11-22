@@ -35,10 +35,10 @@ from ...lib.Brick.legal_brick_sizes import *
 from .undo_stack import *
 
 
-def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
+def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCreated=True):
     if len(keysToUpdate) == 0: return
     if not isUnique(keysToUpdate): raise ValueError("keysToUpdate cannot contain duplicate values")
-    print("[Bricker] redrawing...")
+    print("[Bricker] %(action)s..." % locals())
     # get arguments for createNewBricks
     n = cm.source_name
     source = bpy.data.objects.get(n)
@@ -262,7 +262,6 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             continue
         bricksDict = bricksDicts[cm_id]
         selectedSomething = False
-        zStep = getZStep(cm)
 
         for obj_name in objNamesD[cm_id]:
             # get dict key details of current obj
@@ -270,7 +269,7 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             dictLoc = getDictLoc(bricksDict, dictKey)
             siz = bricksDict[dictKey]["size"]
             typ = bricksDict[dictKey]["type"]
-            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=zStep)
+            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=cm.zStep)
 
             # get current brick object
             curObj = bpy.data.objects.get(obj_name)
@@ -311,7 +310,7 @@ def getAdjDKLs(cm, bricksDict, dictKey, obj):
     # initialize vars for self.adjDKLs setup
     x,y,z = getDictLoc(bricksDict, dictKey)
     objSize = bricksDict[dictKey]["size"]
-    sX, sY, sZ = objSize[0], objSize[1], objSize[2] // getZStep(cm)
+    sX, sY, sZ = objSize[0], objSize[1], objSize[2] // cm.zStep
     adjDKLs = [[],[],[],[],[],[]]
     # initialize ranges
     rgs = [range(x, x + sX),

@@ -49,7 +49,6 @@ from .mat_utils import *
 def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
-    zStep = getZStep(cm)
 
     # reset brickSizes/TypesUsed
     if keys == "ALL":
@@ -123,7 +122,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     lowestZ = -1
     availableKeys = []
     bricksCreated = []
-    maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
+    maxBrickHeight = 1 if cm.zStep == 3 else max(legalBricks.keys())
     connectThresh = cm.connectThresh if mergableBrickType(brickType) and mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
@@ -133,14 +132,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     numIters = 2 if brickType == "BRICKS AND PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksDict values
-    if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
-        size = [1, 1, zStep]
+    if not cm.customized and not (mergableBrickType(brickType, up=cm.zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
+        size = [1, 1, cm.zStep]
         updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
         availableKeys = keys
         for key in keys:
             bricksDict[key]["parent"] = "self"
             bricksDict[key]["size"] = size.copy()
-            setAllBrickExposures(bricksDict, zStep, key)
+            setAllBrickExposures(bricksDict, cm.zStep, key)
             setFlippedAndRotated(bricksDict, key, [key])
             if bricksDict[key]["type"] == "SLOPE" and brickType == "SLOPES":
                 setBrickTypeForSlope(bricksDict, key, [key])
@@ -193,11 +192,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         loc = getDictLoc(bricksDict, key)
 
                         # merge current brick with available adjacent bricks
-                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, mergeVertical=mergeVertical)
+                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, cm.zStep], cm.zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, mergeVertical=mergeVertical)
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:
-                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, zStep, bricksAndPlates)
+                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, bricksAndPlates)
                             numBricks += 1
 
                         # print status to terminal and cursor
@@ -205,7 +204,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         old_percent = updateProgressBars(printStatus, cursorStatus, cur_percent, old_percent, "Merging")
 
                         # remove keys in new brick from availableKeys (for attemptMerge)
-                        updateKeysLists(bricksDict, brickSize, zStep, key, loc, availableKeys)
+                        updateKeysLists(bricksDict, brickSize, cm.zStep, key, loc, availableKeys)
 
                     if connectThresh > 1:
                         # if no aligned edges / bricks found, skip to next z level
@@ -245,7 +244,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 continue
             loc = getDictLoc(bricksDict, k2)
             # create brick based on the current brick info
-            drawBrick(cm, cm_id, bricksDict, k2, loc, i, parent, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
+            drawBrick(cm, cm_id, bricksDict, k2, loc, i, parent, dimensions, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
             i += 1

@@ -303,10 +303,6 @@ def isUnique(lst):
     return np.unique(lst).size == len(lst)
 
 
-def getZStep(cm):
-    return 1 if flatBrickType(cm.brickType) else 3
-
-
 def gammaCorrect(rgba, val):
     r, g, b, a = rgba
     r = math.pow(r, val)

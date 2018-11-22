@@ -89,7 +89,6 @@ class BrickerApplyMaterial(bpy.types.Operator):
         # set up variables
         scn, cm, _ = getActiveContextInfo()
         bricks = getBricks()
-        zStep = getZStep(cm)
         cm.lastMaterialType = cm.materialType
         lastSplitModel = cm.lastSplitModel
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
@@ -114,7 +113,7 @@ class BrickerApplyMaterial(bpy.types.Operator):
                 if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
 
                 for brick in bricks:
-                    if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
+                    if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=cm.zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
                         if len(brick.material_slots) == 0:
                             # Assign material to object data
                             brick.data.materials.append(mat)

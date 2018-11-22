@@ -63,10 +63,9 @@ class BrickerDelete(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        scn, cm, _ = getActiveContextInfo()
+        scn = bpy.context.scene
         scn.Bricker_runningBlockingOperation = True
         try:
-            self.undo_stack.iterateStates(cm)
             self.runFullDelete()
         except:
             handle_exception()
@@ -82,6 +81,7 @@ class BrickerDelete(bpy.types.Operator):
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('delete', affected_ids=[cm.id])
+        self.undo_stack.iterateStates(cm)
 
     #############################################
     # class methods

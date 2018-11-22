@@ -77,7 +77,6 @@ class mergeBricks(Operator):
                 allSplitKeys = []
                 cm.customized = True
                 brickType = cm.brickType
-                zStep = getZStep(cm)
 
                 # iterate through cm_ids of selected objects
                 for obj_name in self.objNamesD[cm_id]:
@@ -86,7 +85,7 @@ class mergeBricks(Operator):
                     x0, y0, z0 = getDictLoc(bricksDict, dictKey)
 
                     # split brick in matrix
-                    splitKeys = Bricks.split(bricksDict, dictKey, zStep, brickType)
+                    splitKeys = Bricks.split(bricksDict, dictKey, cm.zStep, brickType)
                     allSplitKeys += splitKeys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))
@@ -138,7 +137,6 @@ class mergeBricks(Operator):
         mergeInconsistentMats = cm.mergeInconsistentMats
         mergeInternals = cm.mergeInternals
         materialType = cm.materialType
-        zStep = getZStep(cm)
         randState = np.random.RandomState(cm.mergeSeed)
 
         # sort keys
@@ -149,7 +147,7 @@ class mergeBricks(Operator):
             if bricksDict[key]["parent"] not in (None, "self"):
                 continue
             # attempt to merge current brick with other bricks in keys, according to available brick types
-            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
+            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], cm.zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
             updatedKeys.append(key)
         return updatedKeys
 

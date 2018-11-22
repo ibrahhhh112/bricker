@@ -43,16 +43,16 @@ from .general import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, zStep, brickSize, brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
+def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize, brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
-        topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
+        topExposed, botExposed = setAllBrickExposures(bricksDict, cm.zStep, key)
     else:
-        topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
+        topExposed, botExposed = isBrickExposed(bricksDict, cm.zStep, key)
 
     # get brick material
-    mat = getMaterial(cm, bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
+    mat = getMaterial(cm, bricksDict, key, brickSize, cm.zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
 
     # set up arguments for brick mesh
     useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
@@ -71,7 +71,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, zStep, bri
     randomRotMatrix = getRandomRotMatrix(randomRot, randS2, brickSize) if randomRot > 0 else None
     # get brick location
     locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
-    brickLoc = getBrickCenter(bricksDict, key, zStep, loc) + locOffset
+    brickLoc = getBrickCenter(bricksDict, key, cm.zStep, loc) + locOffset
 
     if split:
         brick = bpy.data.objects.get(brickD["name"])

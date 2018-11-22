@@ -139,7 +139,6 @@ class OBJECT_OT_delete_override(Operator):
                 self.report({"WARNING"}, "Adjacent bricks in model '" + cm.name + "' could not be updated (matrix not cached)")
                 continue
             keysToUpdate = []
-            zStep = getZStep(cm)
             deletedKeys = []
             cm.customized = True
 
@@ -153,7 +152,7 @@ class OBJECT_OT_delete_override(Operator):
                 # for all locations in bricksDict covered by current obj
                 for x in range(x0, x0 + objSize[0]):
                     for y in range(y0, y0 + objSize[1]):
-                        for z in range(z0, z0 + (objSize[2]//zStep)):
+                        for z in range(z0, z0 + (objSize[2] // cm.zStep)):
                             curKey = listToStr((x, y, z))
                             deletedKeys.append(curKey)
                             # reset bricksDict values
@@ -166,7 +165,7 @@ class OBJECT_OT_delete_override(Operator):
                             bricksDict[curKey]["top_exposed"] = False
                             bricksDict[curKey]["bot_exposed"] = False
                             # make adjustments to adjacent bricks
-                            self.updateAdjBricksDicts(scn, cm, bricksDict, zStep, curKey, keysToUpdate, deletedKeys, x, y, z)
+                            self.updateAdjBricksDicts(scn, cm, bricksDict, cm.zStep, curKey, keysToUpdate, deletedKeys, x, y, z)
             # dirtyBuild if it wasn't already
             lastBuildIsDirty = cm.buildIsDirty
             if not lastBuildIsDirty:
@@ -176,7 +175,7 @@ class OBJECT_OT_delete_override(Operator):
                 # split up bricks before drawUpdatedBricks calls attemptMerge
                 keysToUpdate = uniquify1(keysToUpdate)
                 for k0 in keysToUpdate.copy():
-                    keysToUpdate += Bricks.split(bricksDict, k0, zStep, cm.brickType)
+                    keysToUpdate += Bricks.split(bricksDict, k0, cm.zStep, cm.brickType)
                 keysToUpdate = uniquify1(keysToUpdate)
                 # remove duplicate keys from the list and delete those objects
                 for k2 in keysToUpdate:
