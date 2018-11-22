@@ -151,7 +151,7 @@ def dirtyBricks(self, context):
 
 def updateBrickType(self, context):
     scn, cm, _ = getActiveContextInfo()
-    cm.zStep = 1 if flatBrickType(cm.brickType) else 3
+    cm.zStep = getZStep(cm)
     dirtyMatrix(self, context)
 
 

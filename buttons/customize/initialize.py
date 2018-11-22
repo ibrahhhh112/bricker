@@ -84,6 +84,7 @@ class InitializeUndoStack(Operator):
     # initialization method
 
     def __init__(self):
+        scn = bpy.context.scene
         self.undo_stack = UndoStack.get_instance()
         bpy.props.bricker_initialized = True
         if self.action == "NONE":

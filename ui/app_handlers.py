@@ -368,9 +368,14 @@ def handle_upconversion(scene):
                 # transfer dist offset values to new prop locations
                 if cm.distOffsetX != -1:
                     cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
+            # convert from v1_4 to v1_5
             if int(cm.version[2]) < 5:
                 cm.logoType = cm.logoDetail
                 cm.matrixIsDirty = True
                 cm.matrixLost = True
+            # convert from v1_5 to v1_6
+            if int(cm.version[2]) < 6:
+                for cm in scn.cmlist:
+                    cm.zStep = getZStep(cm)
 
 bpy.app.handlers.load_post.append(handle_upconversion)

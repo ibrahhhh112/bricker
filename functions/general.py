@@ -297,6 +297,10 @@ def strToTuple(string, item_type=int, split_on=","):
     return tuple(strToList(string, item_type, split_on))
 
 
+def getZStep(cm):
+    return 1 if flatBrickType(cm.brickType) else 3
+    
+
 def isUnique(lst):
     return np.unique(lst).size == len(lst)
 
