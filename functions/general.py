@@ -162,19 +162,17 @@ def getAnimAdjustedFrame(frame, startFrame, stopFrame):
         curFrame = frame
     return curFrame
 
-
 def setObjOrigin(obj, loc):
-    # TODO: Speed up this function by not using the ops call
-    # for v in obj.data.vertices:
-    #     v.co += obj.location - loc
-    # obj.location = loc
-    scn = bpy.context.scene
-    ct = time.time()
-    old_loc = tuple(scn.cursor_location)
-    scn.cursor_location = loc
-    select(obj, active=True, only=True)
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-    scn.cursor_location = old_loc
+    l, r, s = obj.matrix_world.decompose()
+    l_mat = Matrix.Translation(l)
+    r_mat = r.to_matrix().to_4x4()
+    s_mat_x = Matrix.Scale(s.x, 4, Vector((1, 0, 0)))
+    s_mat_y = Matrix.Scale(s.y, 4, Vector((0, 1, 0)))
+    s_mat_z = Matrix.Scale(s.z, 4, Vector((0, 0, 1)))
+    s_mat = s_mat_x * s_mat_y * s_mat_z
+    m = obj.data
+    m.transform(Matrix.Translation((obj.location-loc) * l_mat * r_mat * s_mat.inverted()))
+    obj.location = loc
 
 
 # def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):

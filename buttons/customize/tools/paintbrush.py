@@ -246,6 +246,7 @@ class paintbrush(Operator):
                     drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=False, tempBrick=True)
                 # merge current brick
                 elif mergeBrick:
+                    # TODO: Light up bricks as they are selected to be merged
                     brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
                     self.keysToMerge += brickKeys
                     self.addedBricks.append(self.bricksDict[curKey]["name"])

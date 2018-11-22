@@ -596,10 +596,8 @@ class MergeSettingsPanel(Panel):
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(cm, "mergeInconsistentMats")
-        # TODO: Introduce to everyone if deemed helpful
-        if bpy.props.Bricker_developer_mode > 0:
-            row = col.row(align=True)
-            row.prop(cm, "mergeInternals")
+        row = col.row(align=True)
+        row.prop(cm, "mergeInternals")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)
             row.prop(cm, "alignBricks")
