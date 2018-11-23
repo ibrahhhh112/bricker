@@ -27,7 +27,7 @@ import math
 import bpy
 import bgl
 from bpy.types import Operator
-from bpy_extras.view3d_utils import region_2d_to_location_3d, region_2d_to_origin_3d, region_2d_to_vector_3d
+from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d, region_2d_to_origin_3d, region_2d_to_vector_3d
 from bpy.types import Operator, SpaceView3D, bpy_struct
 
 # Addon imports
@@ -39,6 +39,7 @@ from ...brickify import *
 from ....lib.Brick import *
 from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
+from ....operators.delete import OBJECT_OT_delete_override
 
 
 def get_view_orientation(space, view):
@@ -120,11 +121,7 @@ class paintbrush(Operator):
                 return{"FINISHED"}
 
             # block undo action
-            if event.type in ["LEFT_CTRL", "RIGHT_CTRL", "OSKEY"] and event.value == "PRESS":
-                self.ctrl = True
-            if event.type in ["LEFT_CTRL", "RIGHT_CTRL", "OSKEY"] and event.value == "RELEASE":
-                self.ctrl = False
-            if event.type == "Z" and self.ctrl:
+            if event.type == "Z" and (event.ctrl or event.oskey):
                 return {"RUNNING_MODAL"}
 
             # check if left_click is pressed
@@ -141,18 +138,13 @@ class paintbrush(Operator):
             if event.type == "MOUSEMOVE" and len(self.recentlyAddedBricks) > 0 and not self.left_click:
                 self.recentlyAddedBricks = []
 
-            # check if shift is pressed
-            if event.type in ["LEFT_ALT", "RIGHT_ALT"] and event.value == "PRESS":
-                self.shift = True
-            if event.type in ["LEFT_ALT", "RIGHT_ALT"] and event.value == "RELEASE":
-                self.shift = False
-
             # cast ray to calculate mouse position and travel
             if event.type in ['TIMER', 'MOUSEMOVE'] or self.left_click:
                 scn, cm, n = getActiveContextInfo()
-                x, y = event.mouse_region_x, event.mouse_region_y
-                self.mouseTravel = abs(x - self.lastMousePos[0]) + abs(y - self.lastMousePos[1])
-                self.hover_scene(context, x, y, cm.source_name, update_header=self.left_click)
+                self.mouse = Vector((event.mouse_region_x, event.mouse_region_y))
+                self.mouseTravel = abs(self.mouse.x - self.lastMouse.x) + abs(self.mouse.y - self.lastMouse.y)
+                self.hover_scene(context, self.mouse.x, self.mouse.y, cm.source_name, update_header=self.left_click)
+                # self.update_ui_mouse_pos()
                 if self.obj is None:
                     bpy.context.window.cursor_set("DEFAULT")
                     return {"PASS_THROUGH"}
@@ -160,10 +152,10 @@ class paintbrush(Operator):
                     bpy.context.window.cursor_set("PAINT_BRUSH")
 
             # draw/remove bricks on left_click & drag
-            if self.left_click and (event.type == 'LEFTMOUSE' or (event.type == "MOUSEMOVE" and (not self.shift or self.mouseTravel > 5))):
-                self.lastMousePos = [x, y]
-                addBrick = not (self.shift or self.obj.name in self.recentlyAddedBricks) and self.mode == "BRICK"
-                removeBrick = self.shift and self.obj.name in self.addedBricks and self.mode == "BRICK"
+            if self.left_click and (event.type == 'LEFTMOUSE' or (event.type == "MOUSEMOVE" and (not event.alt or self.mouseTravel > 5))):
+                self.lastMouse = self.mouse
+                addBrick = not (event.alt or self.obj.name in self.recentlyAddedBricks) and self.mode == "BRICK"
+                removeBrick = event.alt and self.mode == "BRICK"
                 changeMaterial = self.obj.name not in self.addedBricks and self.mode == "MATERIAL"
                 splitBrick = self.obj.name not in self.addedBricks and self.mode == "SPLIT"
                 mergeBrick = self.obj.name not in self.addedBricks and self.mode == "MERGE"
@@ -194,37 +186,40 @@ class paintbrush(Operator):
                     # draw created bricks
                     drawUpdatedBricks(cm, self.bricksDict, [nextKey], action="adding new brick", selectCreated=False, tempBrick=True)
                 # remove existing brick
-                elif removeBrick and self.bricksDict[curKey]["name"] in self.addedBricks:
-                    self.addedBricks.remove(self.bricksDict[curKey]["name"])
-                    # reset bricksDict values
-                    self.bricksDict[curKey]["draw"] = False
-                    self.bricksDict[curKey]["val"] = 0
-                    self.bricksDict[curKey]["parent"] = None
-                    self.bricksDict[curKey]["created_from"] = None
-                    self.bricksDict[curKey]["flipped"] = False
-                    self.bricksDict[curKey]["rotated"] = False
-                    self.bricksDict[curKey]["top_exposed"] = False
-                    self.bricksDict[curKey]["bot_exposed"] = False
-                    brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
-                    delete(brick)
-                    tag_redraw_areas()
-                    # draw created bricks
+                elif removeBrick:
+                    shallowDelete = self.obj.name in self.addedBricks
+                    deepDelete = event.shift and not (shallowDelete or self.obj.name in self.addedBricksFromDelete)
+                    if deepDelete:
+                        # split bricks and update adjacent brickDs
+                        brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc)
+                        curLoc = getDictLoc(self.bricksDict, curKey)
+                        keysToUpdate, onlyNewKeys = OBJECT_OT_delete_override.updateAdjBricksDicts(self.bricksDict, cm.zStep, curKey, curLoc, [], [])
+                        self.addedBricksFromDelete += [self.bricksDict[k]["name"] for k in onlyNewKeys]
+                    if shallowDelete:
+                        # remove current brick from addedBricks
+                        self.addedBricks.remove(self.bricksDict[curKey]["name"])
+                    if shallowDelete or deepDelete:
+                        # reset bricksDict values
+                        self.bricksDict[curKey]["draw"] = False
+                        self.bricksDict[curKey]["val"] = 0
+                        self.bricksDict[curKey]["parent"] = None
+                        self.bricksDict[curKey]["created_from"] = None
+                        self.bricksDict[curKey]["flipped"] = False
+                        self.bricksDict[curKey]["rotated"] = False
+                        self.bricksDict[curKey]["top_exposed"] = False
+                        self.bricksDict[curKey]["bot_exposed"] = False
+                        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+                        if brick is not None:
+                            delete(brick)
+                            tag_redraw_areas()
+                    if deepDelete:
+                        # draw created bricks
+                        drawUpdatedBricks(cm, self.bricksDict, uniquify(brickKeys + keysToUpdate), action="updating surrounding bricks", selectCreated=False, tempBrick=True)
+                        self.keysToMerge += brickKeys + keysToUpdate
                 # change material
                 elif changeMaterial and self.bricksDict[curKey]["mat_name"] != self.matName:
                     if max(objSize[:2]) > 1:
-                        brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=self.vertical, h=self.horizontal)
-                        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
-                        delete(brick)
-                        # get difference between intersection loc and object loc
-                        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
-                        parent = bpy.data.objects.get(Bricker_parent_on)
-                        minDiff = None
-                        for k in brickKeys:
-                            brickLoc = transformToWorld(Vector(self.bricksDict[k]["co"]), parent.matrix_world, self.junk_bme)
-                            locDiff = abs(self.loc[0] - brickLoc[0]) + abs(self.loc[1] - brickLoc[1]) + abs(self.loc[2] - brickLoc[2])
-                            if minDiff is None or locDiff < minDiff:
-                                minDiff = locDiff
-                                curKey = k
+                        brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc)
                     else:
                         brickKeys = [curKey]
                     self.bricksDict[curKey]["mat_name"] = self.matName
@@ -234,23 +229,31 @@ class paintbrush(Operator):
                     # draw created bricks
                     drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="updating material", selectCreated=False, tempBrick=True)
                 # split current brick
-                elif splitBrick and max(self.bricksDict[curKey]["size"][:2]) > 1:
-                    brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=self.vertical, h=self.horizontal)
-                    for k in brickKeys:
-                        self.addedBricks.append(self.bricksDict[k]["name"])
-                    self.allUpdatedKeys += brickKeys
-                    # remove large brick
+                elif splitBrick:
                     brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
-                    delete(brick)
-                    # draw split bricks
-                    drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=False, tempBrick=True)
+                    if max(self.bricksDict[curKey]["size"][:2]) == 1:
+                        select(brick)
+                    else:
+                        brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=self.vertical, h=self.horizontal)
+                        for k in brickKeys:
+                            self.addedBricks.append(self.bricksDict[k]["name"])
+                        self.allUpdatedKeys += brickKeys
+                        # remove large brick
+                        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+                        delete(brick)
+                        # draw split bricks
+                        drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=True, tempBrick=True)
                 # merge current brick
                 elif mergeBrick:
                     # TODO: Light up bricks as they are selected to be merged
                     brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
                     self.keysToMerge += brickKeys
                     self.addedBricks.append(self.bricksDict[curKey]["name"])
+                    select(self.obj)
                 return {"RUNNING_MODAL"}
+
+            if event.type == "LEFTMOUSE" and event.value == "RELEASE" and self.mode == "BRICK":
+                self.addedBricksFromDelete = []
 
             if event.type == "LEFTMOUSE" and event.value == "RELEASE" and self.mode == "MERGE":
                 scn, cm, _ = getActiveContextInfo()
@@ -307,13 +310,13 @@ class paintbrush(Operator):
         self.undo_stack.iterateStates(cm)
         # initialize vars
         self.addedBricks = []
+        self.addedBricksFromDelete = []
         self.recentlyAddedBricks = []
         self.keysToMerge = []
         self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
         cm.customized = True
         self.left_click = False
-        self.shift = False
         self.obj = None
         self.keysToMerge = []
         self.targettedBrickKeys = []
@@ -321,9 +324,23 @@ class paintbrush(Operator):
         self.matName = bpy.data.materials[0].name if len(bpy.data.materials) > 0 else ""
         self.vertical = False
         self.horizontal = True
-        self.lastMousePos = [0, 0]
+        self.lastMouse = Vector((0, 0))
         self.mouseTravel = 0
         self.junk_bme = bmesh.new()
+        deselectAll()
+        # ui properties
+        self.points = [(math.cos(d*math.pi/180.0),math.sin(d*math.pi/180.0)) for d in range(0,361,10)]
+        self.ox = Vector((1,0,0))
+        self.oy = Vector((0,1,0))
+        self.oz = Vector((0,0,1))
+        # self.radius = 50.0
+        # self.falloff = 1.5
+        # self.strength = 0.5
+        # self.scale = 0.0
+        # self.color = (1,1,1)
+        self.region = bpy.context.region
+        self.r3d = bpy.context.space_data.region_3d
+        # self.clear_ui_mouse_pos()
         self.ui_start()
 
     ###################################################
@@ -362,14 +379,15 @@ class paintbrush(Operator):
     def hover_scene(self, context, x, y, source_name, update_header=True):
         """ casts ray through point x,y and sets self.obj if obj intersected """
         scn = context.scene
-        region = context.region
+        self.region = context.region
+        self.r3d = context.space_data.region_3d
         rv3d = context.region_data
         if rv3d is None:
             return None
         coord = x, y
         ray_max = 1000000  # changed from 10000 to 1000000 to increase accuracy
-        view_vector = region_2d_to_vector_3d(region, rv3d, coord)
-        ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
+        view_vector = region_2d_to_vector_3d(self.region, rv3d, coord)
+        ray_origin = region_2d_to_origin_3d(self.region, rv3d, coord)
         ray_target = ray_origin + (view_vector * ray_max)
 
         result, loc, normal, idx, obj, mx = scn.ray_cast(ray_origin, ray_target)
@@ -377,16 +395,35 @@ class paintbrush(Operator):
         if result and obj.name.startswith('Bricker_' + source_name):
             self.obj = obj
             self.loc = loc
+            self.normal = normal
         else:
             self.obj = None
+            self.loc = None
             self.normal = None
             context.area.header_text_set()
+
+    def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc):
+        brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=True, h=True)
+        brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
+        delete(brick)
+        # get difference between intersection loc and object loc
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
+        parent = bpy.data.objects.get(Bricker_parent_on)
+        minDiff = None
+        for k in brickKeys:
+            brickLoc = transformToWorld(Vector(self.bricksDict[k]["co"]), parent.matrix_world, self.junk_bme)
+            locDiff = abs(self.loc[0] - brickLoc[0]) + abs(self.loc[1] - brickLoc[1]) + abs(self.loc[2] - brickLoc[2])
+            if minDiff is None or locDiff < minDiff:
+                minDiff = locDiff
+                curKey = k
+        return brickKeys, curKey
 
     def commitChanges(self):
         scn, cm, _ = getActiveContextInfo()
         keysToUpdate = []
         # execute final operations for current mode
         if self.mode == "SPLIT":
+            deselectAll()
             # set exposure of split bricks
             keysToUpdate = uniquify(self.allUpdatedKeys)
             for k in keysToUpdate:
@@ -427,6 +464,7 @@ class paintbrush(Operator):
     def ui_start(self):
         # report something useful to user
         bpy.context.area.header_text_set("Click & drag to add bricks (+'ALT' to remove). Press 'RETURN' to commit changes")
+        # paintbrush.update_dpi()
 
         # add callback handlers
         self.cb_pr_handle = SpaceView3D.draw_handler_add(self.draw_callback_preview,   (bpy.context, ), 'WINDOW', 'PRE_VIEW')
@@ -501,6 +539,16 @@ class paintbrush(Operator):
         except: handle_exception()
         bgl.glPopAttrib()                           # restore OpenGL attributes
 
+    # def draw_callback_postview(self, context):
+    #     # self.drawing.update_dpi()
+    #     # self.drawing.set_font_size(12, force=True)
+    #     # self.drawing.point_size(1)
+    #     # self.drawing.line_width(1)
+    #     bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
+    #     try:    self.draw_postview()
+    #     except: handle_exception()
+    #     bgl.glPopAttrib()                           # restore OpenGL attributes
+
     def draw_callback_cover(self, context):
         bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)
         bgl.glMatrixMode(bgl.GL_PROJECTION)
@@ -550,3 +598,197 @@ class paintbrush(Operator):
         bgl.glPopMatrix()
         bgl.glMatrixMode(bgl.GL_MODELVIEW)
         bgl.glPopMatrix()
+
+    # def draw_centerpoint(color, point, width=1):
+    #     bgl.glLineWidth(width)
+    #     bgl.glColor4f(*color)
+    #     bgl.glBegin(bgl.GL_POINTS)
+    #     bgl.glVertex3f(*point)
+    #
+    # def Point_to_depth(self, xyz):
+    #     xy = location_3d_to_region_2d(self.region, self.r3d, xyz)
+    #     if xy is None: return None
+    #     oxyz = region_2d_to_origin_3d(self.region, self.r3d, xy)
+    #     return (xyz - oxyz).length
+    #
+    # # def Point2D_to_Vec(self, xy:Point2D):
+    # #     if xy is None: return None
+    # #     return Vector(region_2d_to_vector_3d(self.actions.region, self.actions.r3d, xy))
+    # #
+    # # def Point2D_to_Origin(self, xy:Point2D):
+    # #     if xy is None: return None
+    # #     return Point(region_2d_to_origin_3d(self.actions.region, self.actions.r3d, xy))
+    # #
+    # # def Point2D_to_Ray(self, xy:Point2D):
+    # #     if xy is None: return None
+    # #     return Ray(self.Point2D_to_Origin(xy), self.Point2D_to_Vec(xy))
+    # #
+    # # def Point2D_to_Point(self, xy:Point2D, depth:float):
+    # #     r = self.Point2D_to_Ray(xy)
+    # #     if r is None or r.o is None or r.d is None or depth is None:
+    # #         return None
+    # #     return Point(r.o + depth * r.d)
+    # #
+    # # def size2D_to_size(self, size2D:float, xy:Point2D, depth:float):
+    # #     # computes size of 3D object at distance (depth) as it projects to 2D size
+    # #     # TODO: there are more efficient methods of computing this!
+    # #     p3d0 = self.Point2D_to_Point(xy, depth)
+    # #     p3d1 = self.Point2D_to_Point(xy + Vector((size2D,0)), depth)
+    # #     return (p3d0 - p3d1).length
+    #
+    # def update_ui_mouse_pos(self):
+    #     if self.loc is None or self.normal is None:
+    #         self.clear_ui_mouse_pos()
+    #         return
+    #     depth = self.Point_to_depth(self.loc)
+    #     if depth is None:
+    #         self.clear_ui_mouse_pos()
+    #         return
+    #     rmat = Matrix.Rotation(self.oz.angle(self.normal), 4, self.oz.cross(self.normal))
+    #     self.hit = True
+    #     self.scale = 1  # self.rfcontext.size2D_to_size(1.0, self.mouse, depth)
+    #     self.hit_p = self.loc
+    #     self.hit_x = Vector(rmat * self.ox)
+    #     self.hit_y = Vector(rmat * self.oy)
+    #     self.hit_z = Vector(rmat * self.oz)
+    #     self.hit_rmat = rmat
+    #
+    # def clear_ui_mouse_pos(self):
+    #     ''' called when mouse is moved outside View3D '''
+    #     self.hit = False
+    #     self.hit_p = None
+    #     self.hit_x = None
+    #     self.hit_y = None
+    #     self.hit_z = None
+    #     self.hit_rmat = None
+    #
+    # @staticmethod
+    # @blender_version('<','2.79')
+    # def update_dpi():
+    #     paintbrush._dpi = bpy.context.user_preferences.system.dpi
+    #     if bpy.context.user_preferences.system.virtual_pixel_mode == 'DOUBLE':
+    #         paintbrush._dpi *= 2
+    #     paintbrush._dpi *= bpy.context.user_preferences.system.pixel_size
+    #     paintbrush._dpi = int(paintbrush._dpi)
+    #     paintbrush._dpi_mult = paintbrush._dpi / 72
+    #
+    # @staticmethod
+    # @blender_version('>=','2.79')
+    # def update_dpi():
+    #     paintbrush._ui_scale = bpy.context.user_preferences.view.ui_scale
+    #     paintbrush._sysdpi = bpy.context.user_preferences.system.dpi
+    #     paintbrush._pixel_size = bpy.context.user_preferences.system.pixel_size
+    #     paintbrush._dpi = 72 # bpy.context.user_preferences.system.dpi
+    #     paintbrush._dpi *= paintbrush._ui_scale
+    #     paintbrush._dpi *= paintbrush._pixel_size
+    #     paintbrush._dpi = int(paintbrush._dpi)
+    #     paintbrush._dpi_mult = paintbrush._ui_scale * paintbrush._pixel_size * paintbrush._sysdpi / 72
+    #     s = 'DPI information: scale:%0.2f, pixel:%0.2f, dpi:%d' % (paintbrush._ui_scale, paintbrush._pixel_size, paintbrush._sysdpi)
+    #     if s != getattr(paintbrush, '_last_dpi_info', None):
+    #         paintbrush._last_dpi_info = s
+    #         print(s)
+    #
+    # def draw_postview(self):
+    #     print("HERE")
+    #     if not self.hit: return
+    #     print("HERE2")
+    #
+    #     cx,cy,cp = self.hit_x,self.hit_y,self.hit_p
+    #     cs_outer = self.scale * self.radius
+    #     cs_inner = self.scale * self.radius * math.pow(0.5, 1.0 / self.falloff)
+    #     cr,cg,cb = self.color
+    #
+    #     bgl.glDepthRange(0, 0.999)      # squeeze depth just a bit
+    #     bgl.glEnable(bgl.GL_BLEND)
+    #     # self.drawing.line_width(2.0)
+    #     # self.drawing.point_size(3.0)
+    #     bgl.glPointSize(max(1, 3.0 * self._dpi_mult))
+    #
+    #     ######################################
+    #     # draw in front of geometry
+    #
+    #     bgl.glDepthFunc(bgl.GL_LEQUAL)
+    #     bgl.glDepthMask(bgl.GL_FALSE)   # do not overwrite depth
+    #
+    #     bgl.glColor4f(cr, cg, cb, 0.75 * self.strength)
+    #     bgl.glBegin(bgl.GL_TRIANGLES)
+    #     for p0,p1 in zip(self.points[:-1], self.points[1:]):
+    #         x0,y0 = p0
+    #         x1,y1 = p1
+    #         outer0 = (cs_outer * ((cx * x0) + (cy * y0))) + cp
+    #         outer1 = (cs_outer * ((cx * x1) + (cy * y1))) + cp
+    #         inner0 = (cs_inner * ((cx * x0) + (cy * y0))) + cp
+    #         inner1 = (cs_inner * ((cx * x1) + (cy * y1))) + cp
+    #         bgl.glVertex3f(*outer0)
+    #         bgl.glVertex3f(*outer1)
+    #         bgl.glVertex3f(*inner0)
+    #         bgl.glVertex3f(*outer1)
+    #         bgl.glVertex3f(*inner1)
+    #         bgl.glVertex3f(*inner0)
+    #     bgl.glEnd()
+    #
+    #     bgl.glColor4f(1, 1, 1, 1)       # outer ring
+    #     bgl.glBegin(bgl.GL_LINE_STRIP)
+    #     for x,y in self.points:
+    #         p = (cs_outer * ((cx * x) + (cy * y))) + cp
+    #         bgl.glVertex3f(*p)
+    #     bgl.glEnd()
+    #
+    #     # bgl.glColor4f(1, 1, 1, 0.5)     # inner ring
+    #     # bgl.glBegin(bgl.GL_LINE_STRIP)
+    #     # for x,y in self.points:
+    #     #     p = (cs_inner * ((cx * x) + (cy * y))) + cp
+    #     #     bgl.glVertex3f(*p)
+    #     # bgl.glEnd()
+    #
+    #     bgl.glColor4f(1, 1, 1, 0.25)    # center point
+    #     bgl.glBegin(bgl.GL_POINTS)
+    #     bgl.glVertex3f(*cp)
+    #     bgl.glEnd()
+    #
+    #     # ######################################
+    #     # # draw behind geometry (hidden below)
+    #     #
+    #     # bgl.glDepthFunc(bgl.GL_GREATER)
+    #     # bgl.glDepthMask(bgl.GL_FALSE)   # do not overwrite depth
+    #     #
+    #     # bgl.glColor4f(cr, cg, cb, 0.10 * self.strength)
+    #     # bgl.glBegin(bgl.GL_TRIANGLES)
+    #     # for p0,p1 in zip(self.points[:-1], self.points[1:]):
+    #     #     x0,y0 = p0
+    #     #     x1,y1 = p1
+    #     #     outer0 = (cs_outer * ((cx * x0) + (cy * y0))) + cp
+    #     #     outer1 = (cs_outer * ((cx * x1) + (cy * y1))) + cp
+    #     #     inner0 = (cs_inner * ((cx * x0) + (cy * y0))) + cp
+    #     #     inner1 = (cs_inner * ((cx * x1) + (cy * y1))) + cp
+    #     #     bgl.glVertex3f(*outer0)
+    #     #     bgl.glVertex3f(*outer1)
+    #     #     bgl.glVertex3f(*inner0)
+    #     #     bgl.glVertex3f(*outer1)
+    #     #     bgl.glVertex3f(*inner1)
+    #     #     bgl.glVertex3f(*inner0)
+    #     # bgl.glEnd()
+    #     #
+    #     # bgl.glColor4f(1, 1, 1, 0.05)    # outer ring
+    #     # bgl.glBegin(bgl.GL_LINE_STRIP)
+    #     # for x,y in self.points:
+    #     #     p = (cs_outer * ((cx * x) + (cy * y))) + cp
+    #     #     bgl.glVertex3f(*p)
+    #     # bgl.glEnd()
+    #     #
+    #     # bgl.glColor4f(1, 1, 1, 0.025)   # inner ring
+    #     # bgl.glBegin(bgl.GL_LINE_STRIP)
+    #     # for x,y in self.points:
+    #     #     p = (cs_inner * ((cx * x) + (cy * y))) + cp
+    #     #     bgl.glVertex3f(*p)
+    #     # bgl.glEnd()
+    #
+    #     ######################################
+    #     # reset to defaults
+    #
+    #     bgl.glDepthFunc(bgl.GL_LEQUAL)
+    #     bgl.glDepthMask(bgl.GL_TRUE)
+    #
+    #     bgl.glDepthRange(0, 1)
+    #
+    #     return

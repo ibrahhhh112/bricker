@@ -155,6 +155,9 @@ class OBJECT_OT_delete_override(Operator):
                         for z in range(z0, z0 + (objSize[2] // cm.zStep)):
                             curKey = listToStr((x, y, z))
                             deletedKeys.append(curKey)
+                            # make adjustments to adjacent bricks
+                            if cm.autoUpdateOnDelete and cm.lastSplitModel:
+                                self.updateAdjBricksDicts(bricksDict, cm.zStep, curKey, Vector((x, y, z)), keysToUpdate, deletedKeys)
                             # reset bricksDict values
                             bricksDict[curKey]["draw"] = False
                             bricksDict[curKey]["val"] = 0
@@ -164,8 +167,6 @@ class OBJECT_OT_delete_override(Operator):
                             bricksDict[curKey]["rotated"] = False
                             bricksDict[curKey]["top_exposed"] = False
                             bricksDict[curKey]["bot_exposed"] = False
-                            # make adjustments to adjacent bricks
-                            self.updateAdjBricksDicts(scn, cm, bricksDict, cm.zStep, curKey, keysToUpdate, deletedKeys, x, y, z)
             # dirtyBuild if it wasn't already
             lastBuildIsDirty = cm.buildIsDirty
             if not lastBuildIsDirty:
@@ -215,39 +216,49 @@ class OBJECT_OT_delete_override(Operator):
 
         return protected
 
-    def updateAdjBricksDicts(self, scn, cm, bricksDict, zStep, curKey, keysToUpdate, deletedKeys, x, y, z):
+    @staticmethod
+    def updateAdjBricksDicts(bricksDict, zStep, curKey, curLoc, keysToUpdate, deletedKeys):
+        x, y, z = curLoc
+        newBricks = []
         adjKeys = getAdjKeysAndBrickVals(bricksDict, key=curKey)[0]
-        if cm.autoUpdateOnDelete and cm.lastSplitModel:
-            # set adjacent bricks to shell if deleted brick was on shell
-            for k0 in adjKeys:
-                # TODO: maybe find a way to make this check faster (ensures deleted key doesn't get redrawn)
-                if k0 in deletedKeys:
-                    continue
-                if bricksDict[k0]["val"] != 0:  # if adjacent brick not outside
-                    bricksDict[k0]["val"] = 1
-                    if not bricksDict[k0]["draw"]:
-                        bricksDict[k0]["draw"] = True
-                        bricksDict[k0]["size"] = [1, 1, zStep]
-                        bricksDict[k0]["parent"] = "self"
-                        bricksDict[k0]["mat_name"] = bricksDict[curKey]["mat_name"]
-                        # add key to simple bricksDict for drawing
-                        keysToUpdate.append(k0)
-            # top of bricks below are now exposed
-            k0 = listToStr((x, y, z - 1))
-            if k0 in bricksDict and bricksDict[k0]["draw"]:
-                k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
-                if not bricksDict[k1]["top_exposed"]:
-                    bricksDict[k1]["top_exposed"] = True
-                    # add key to simple bricksDict for drawing
-                    keysToUpdate.append(k1)
-            # bottom of bricks above are now exposed
-            k0 = listToStr((x, y, z + 1))
-            if k0 in bricksDict and bricksDict[k0]["draw"]:
-                k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
-                if not bricksDict[k1]["bot_exposed"]:
-                    bricksDict[k1]["bot_exposed"] = True
-                    # add key to simple bricksDict for drawing
-                    keysToUpdate.append(k1)
+        # set adjacent bricks to shell if deleted brick was on shell
+        for k0 in adjKeys:
+            # TODO: maybe find a way to make this check faster (ensures deleted key doesn't get redrawn)
+            if k0 in deletedKeys:
+                continue
+            if bricksDict[k0]["val"] != 0:  # if adjacent brick not outside
+                bricksDict[k0]["val"] = 1
+                if not bricksDict[k0]["draw"]:
+                    bricksDict[k0]["draw"] = True
+                    bricksDict[k0]["size"] = [1, 1, zStep]
+                    bricksDict[k0]["parent"] = "self"
+                    bricksDict[k0]["mat_name"] = bricksDict[curKey]["mat_name"]
+                    bricksDict[k0]["type"] = bricksDict[curKey]["type"]
+                    bricksDict[k0]["flipped"] = bricksDict[curKey]["flipped"]
+                    bricksDict[k0]["rotated"] = bricksDict[curKey]["rotated"]
+                    bricksDict[k0]["mat_name"] = bricksDict[curKey]["mat_name"]
+                    bricksDict[k0]["near_face"] = bricksDict[curKey]["near_face"]
+                    bricksDict[k0]["near_intersection"] = tuple(bricksDict[curKey]["near_intersection"])
+                    # add key to list for drawing
+                    keysToUpdate.append(k0)
+                    newBricks.append(k0)
+        # top of bricks below are now exposed
+        k0 = listToStr((x, y, z - 1))
+        if k0 in bricksDict and bricksDict[k0]["draw"]:
+            k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
+            if not bricksDict[k1]["top_exposed"]:
+                bricksDict[k1]["top_exposed"] = True
+                # add key to list for drawing
+                keysToUpdate.append(k1)
+        # bottom of bricks above are now exposed
+        k0 = listToStr((x, y, z + 1))
+        if k0 in bricksDict and bricksDict[k0]["draw"]:
+            k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
+            if not bricksDict[k1]["bot_exposed"]:
+                bricksDict[k1]["bot_exposed"] = True
+                # add key to list for drawing
+                keysToUpdate.append(k1)
+        return keysToUpdate, newBricks
 
     def deleteBrickObject(self, obj, update_model=True, use_global=False):
         scn = bpy.context.scene
