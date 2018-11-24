@@ -178,11 +178,10 @@ def setObjOrigin(obj, loc):
 # def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
 #     assert fromObj or fromLoc
 #     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
-#     if fromObj:
-#         if deleteFromObj:
-#             m = fromObj.data
-#             bpy.data.objects.remove(fromObj, True)
-#             bpy.data.meshes.remove(m)
+#     if fromObj and deleteFromObj:
+#         m = fromObj.data
+#         bpy.data.objects.remove(fromObj, True)
+#         bpy.data.meshes.remove(m)
 
 
 def getBricks(cm=None, typ=None):
@@ -299,7 +298,7 @@ def strToTuple(string, item_type=int, split_on=","):
 
 def getZStep(cm):
     return 1 if flatBrickType(cm.brickType) else 3
-    
+
 
 def isUnique(lst):
     return np.unique(lst).size == len(lst)
@@ -629,3 +628,20 @@ def transformToLocal(vec, mat, junk_bme=None):
         bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
         vec = v1.co
     return vec
+
+
+def createNewMatObjs(cm_id):
+    # create new matObj for current cmlist id
+    matObjs = []
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(cm_id), "Bricker_{}_ABS_mats".format(cm_id)]
+    for n in matObjNames:
+        matObj = bpy.data.objects.get(n)
+        if matObj is None:
+            matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
+            getSafeScn().objects.link(matObj)
+        matObjs.append(matObj)
+    return matObjs  # returns list of two matObjs: [RANDOM, ABS]
+
+
+def getBrickType(modelBrickType):
+    return "PLATE" if modelBrickType == "BRICKS AND PLATES" else (modelBrickType[:-1] if modelBrickType.endswith("S") else ("CUSTOM 1" if modelBrickType == "CUSTOM" else modelBrickType))

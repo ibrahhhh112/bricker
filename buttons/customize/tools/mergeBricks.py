@@ -90,7 +90,7 @@ class mergeBricks(Operator):
                     delete(bpy.data.objects.get(obj_name))
 
                 # run self.mergeBricks
-                keysToUpdate = mergeBricks.mergeBricks(bricksDict, allSplitKeys, cm)
+                keysToUpdate = mergeBricks.mergeBricks(bricksDict, allSplitKeys, cm, anyHeight=True)
 
                 # draw modified bricks
                 drawUpdatedBricks(cm, bricksDict, keysToUpdate)
@@ -126,7 +126,7 @@ class mergeBricks(Operator):
     # class methods
 
     @staticmethod
-    def mergeBricks(bricksDict, keys, cm, mergeVertical=True, targetType="BRICK", height3Only=False):
+    def mergeBricks(bricksDict, keys, cm, targetType="BRICK", anyHeight=False):
         # initialize vars
         updatedKeys = []
         brickType = cm.brickType
@@ -137,6 +137,8 @@ class mergeBricks(Operator):
         mergeInternals = cm.mergeInternals
         materialType = cm.materialType
         randState = np.random.RandomState(cm.mergeSeed)
+        mergeVertical = targetType in getBrickTypes(height=3)
+        height3Only = "PLATES" in cm.brickType and mergeVertical and not anyHeight
 
         # sort keys
         keys.sort(key=lambda k: (strToList(k)[0] * strToList(k)[1] * strToList(k)[2]))

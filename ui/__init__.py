@@ -815,7 +815,9 @@ class MaterialsPanel(Panel):
 
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-            if matObj is not None:
+            if matObj is None:
+                createNewMatObjs(cm.id)
+            else:
                 if not brick_materials_installed():
                     col.label("'ABS Plastic Materials' not installed")
                 elif scn.render.engine != 'CYCLES':
@@ -862,7 +864,7 @@ class MaterialsPanel(Panel):
                     nodeNamesStr = "'Matte Material' node"
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
-                col.label(nodeNames)
+                col.label(nodeNamesStr)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
                 if scn.render.engine in ["CYCLES", "octane"]:
                     col = layout.column(align=True)

@@ -139,7 +139,6 @@ class OBJECT_OT_delete_override(Operator):
                 self.report({"WARNING"}, "Adjacent bricks in model '" + cm.name + "' could not be updated (matrix not cached)")
                 continue
             keysToUpdate = []
-            deletedKeys = []
             cm.customized = True
 
             for obj_name in objNamesD[cm_id]:
@@ -154,10 +153,9 @@ class OBJECT_OT_delete_override(Operator):
                     for y in range(y0, y0 + objSize[1]):
                         for z in range(z0, z0 + (objSize[2] // cm.zStep)):
                             curKey = listToStr((x, y, z))
-                            deletedKeys.append(curKey)
                             # make adjustments to adjacent bricks
                             if cm.autoUpdateOnDelete and cm.lastSplitModel:
-                                self.updateAdjBricksDicts(bricksDict, cm.zStep, curKey, Vector((x, y, z)), keysToUpdate, deletedKeys)
+                                self.updateAdjBricksDicts(bricksDict, cm.zStep, curKey, Vector((x, y, z)), keysToUpdate)
                             # reset bricksDict values
                             bricksDict[curKey]["draw"] = False
                             bricksDict[curKey]["val"] = 0
@@ -217,15 +215,12 @@ class OBJECT_OT_delete_override(Operator):
         return protected
 
     @staticmethod
-    def updateAdjBricksDicts(bricksDict, zStep, curKey, curLoc, keysToUpdate, deletedKeys):
+    def updateAdjBricksDicts(bricksDict, zStep, curKey, curLoc, keysToUpdate):
         x, y, z = curLoc
         newBricks = []
         adjKeys = getAdjKeysAndBrickVals(bricksDict, key=curKey)[0]
         # set adjacent bricks to shell if deleted brick was on shell
         for k0 in adjKeys:
-            # TODO: maybe find a way to make this check faster (ensures deleted key doesn't get redrawn)
-            if k0 in deletedKeys:
-                continue
             if bricksDict[k0]["val"] != 0:  # if adjacent brick not outside
                 bricksDict[k0]["val"] = 1
                 if not bricksDict[k0]["draw"]:
@@ -243,7 +238,6 @@ class OBJECT_OT_delete_override(Operator):
                     keysToUpdate.append(k0)
                     newBricks.append(k0)
         # top of bricks below are now exposed
-        k0 = listToStr((x, y, z - 1))
         if k0 in bricksDict and bricksDict[k0]["draw"]:
             k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
             if not bricksDict[k1]["top_exposed"]:

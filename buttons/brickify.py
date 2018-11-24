@@ -512,6 +512,8 @@ class BrickerBrickify(bpy.types.Operator):
                 return False
             # ensure ABS Plastic materials UI list is populated
             matObj = getMatObject(cm.id, typ="ABS")
+            if matObj is None:
+                matObj = createNewMatObjs(cm.id)[1]
             if len(matObj.data.materials) == 0:
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False

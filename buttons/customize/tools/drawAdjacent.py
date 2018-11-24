@@ -120,8 +120,7 @@ class drawAdjacent(Operator):
                 setCurBrickVal(self.bricksDict, curLoc)
 
             # attempt to merge created bricks
-            height3Only = "PLATES" in cm.brickType and targetType in getBrickTypes(height=3)
-            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, keysToMerge, cm, mergeVertical=targetType in getBrickTypes(height=3), targetType=targetType, height3Only=height3Only)
+            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, keysToMerge, cm, targetType=targetType)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.zPos or self.zNeg:

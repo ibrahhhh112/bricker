@@ -95,6 +95,14 @@ def verifyBrickExposureAboveAndBelow(scn, zStep, origLoc, bricksDict, decriment=
     # double check exposure of bricks above/below new adjacent brick
     for dictLoc in dictLocs:
         k = listToStr(dictLoc)
+        ct = time.time()
+        junk1 = k not in bricksDict
+        ct = stopWatch(1, ct, 6)
+        try:
+            junk2 = bricksDict[k]
+        except:
+            pass
+        ct = stopWatch(2, ct, 6)
         if k not in bricksDict:
             continue
         parent_key = k if bricksDict[k]["parent"] == "self" else bricksDict[k]["parent"]
