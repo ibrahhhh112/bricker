@@ -384,11 +384,11 @@ def getBrickCenter(bricksDict, key, zStep, loc=None):
     return coord_ave
 
 
-def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, divisor=2.05):
-    d = Vector((dimensions["width"] / divisor, dimensions["width"] / divisor, dimensions["height"] / divisor))
+def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, width_divisor=2.05, height_divisor=2.05):
+    d = Vector((dimensions["width"] / width_divisor, dimensions["width"] / width_divisor, dimensions["height"] / height_divisor))
     nextLoc = Vector(curLoc)
     if locDiff.z > d.z - dimensions["stud_height"]:
-        nextLoc.z += math.ceil(1 / zStep)
+        nextLoc.z += math.ceil((locDiff.z - d.z) / (d.z * 2))
     elif locDiff.z < -d.z:
         nextLoc.z -= 1
     if locDiff.x > d.x:
@@ -645,3 +645,7 @@ def createNewMatObjs(cm_id):
 
 def getBrickType(modelBrickType):
     return "PLATE" if modelBrickType == "BRICKS AND PLATES" else (modelBrickType[:-1] if modelBrickType.endswith("S") else ("CUSTOM 1" if modelBrickType == "CUSTOM" else modelBrickType))
+
+
+def getRoundBrickTypes():
+    return ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW")

@@ -41,7 +41,7 @@ class Bricks:
         # create brick mesh
         if type in ("BRICK", "PLATE") or "CUSTOM" in type:
             brickBM = makeStandardBrick(dimensions, size, type, brickType, loopCut, circleVerts=circleVerts, detail=undersideDetail, stud=stud)
-        elif type in ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW"):
+        elif type in getRoundBrickTypes():
             brickBM = makeRound1x1(dimensions, brickType, loopCut, circleVerts=circleVerts, type=type, detail=undersideDetail)
         elif type in ("TILE", "TILE_GRILL"):
             brickBM = makeTile(dimensions, brickType, loopCut, brickSize=size, circleVerts=circleVerts, type=type, detail=undersideDetail)
@@ -110,6 +110,8 @@ class Bricks:
             newSize[1] = size[1]
             size[0] = 1
             size[1] = 1
+        # print(size)
+        # print(newSize)
         splitKeys = []
         x,y,z = loc
         # split brick into individual bricks

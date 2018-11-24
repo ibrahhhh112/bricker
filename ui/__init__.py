@@ -658,9 +658,7 @@ class CustomizeModel(Panel):
         row = col.row(align=True)
         row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
         row = col.row(align=True)
-        row.operator("bricker.paintbrush", text="Split Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT"
-        row = col.row(align=True)
-        row.operator("bricker.paintbrush", text="Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MERGE"
+        row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
 
         col1 = layout.column(align=True)
         col1.label("Selection:")
