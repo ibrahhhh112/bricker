@@ -54,6 +54,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     if keys == "ALL":
         cm.brickSizesUsed = ""
         cm.brickTypesUsed = ""
+    # initialize cm.zStep
+    cm.zStep = getZStep(cm)
 
     mergeVertical = keys != "ALL" or cm.brickType == "BRICKS AND PLATES"
 

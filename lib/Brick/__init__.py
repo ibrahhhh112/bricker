@@ -110,8 +110,6 @@ class Bricks:
             newSize[1] = size[1]
             size[0] = 1
             size[1] = 1
-        # print(size)
-        # print(newSize)
         splitKeys = []
         x,y,z = loc
         # split brick into individual bricks
