@@ -26,7 +26,6 @@ import math
 # Blender imports
 import bpy
 import bgl
-from bpy.types import Operator
 from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d, region_2d_to_origin_3d, region_2d_to_vector_3d
 from bpy.types import Operator, SpaceView3D, bpy_struct
 
@@ -40,6 +39,10 @@ from ....lib.Brick import *
 from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 from ....operators.delete import OBJECT_OT_delete_override
+
+
+def isBrickSculptInstalled():
+    return True
 
 
 def get_view_orientation(space, view):

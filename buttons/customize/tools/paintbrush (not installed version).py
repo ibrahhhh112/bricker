@@ -21,8 +21,12 @@
 
 # Blender imports
 import bpy
-from bpy.types import Operator
 from bpy.types import Operator, SpaceView3D, bpy_struct
+from bpy.props import *
+
+
+def isBrickSculptInstalled():
+    return False
 
 
 class paintbrush(Operator):
@@ -37,5 +41,10 @@ class paintbrush(Operator):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns False) """
-        self.report({"INFO"}, "BrickSculpt not yet installed ")
-        return False
+        return True
+
+    def execute(self, context):
+        self.report({"WARNING"}, "Please install BrickSculpt from the 'User Preferences > Addons > Bricker' preferences menu")
+        return {"CANCELLED"}
+
+    mode = StringProperty(default="")

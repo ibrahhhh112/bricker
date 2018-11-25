@@ -671,10 +671,3 @@ def updateCanRun(type):
         elif type == "MODEL":
             Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
             return commonNeedsUpdate or (groupExists(Bricker_bricks_gn) and len(bpy.data.groups[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
-
-
-def brickSculptInstalled():
-    addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
-    Bricker = bpy.props.bricker_module_name
-    paintbrushPath = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/paintbrush.py" % locals()
-    return os.path.exists(paintbrushPath)

@@ -40,6 +40,7 @@ from ..lib.Brick.test_brick_generators import *
 from ..buttons.delete import BrickerDelete
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
+from ..buttons.customize.tools.paintbrush import *
 from ..functions import *
 
 # updater import
@@ -671,15 +672,14 @@ class CustomizeModel(Panel):
         #     return
 
         # display BrickSculpt tools
-        if brickSculptInstalled():
-            col = layout.column(align=True)
-            col.label("Tools:")
-            row = col.row(align=True)
-            row.operator("bricker.paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT").mode = "BRICK"
-            row = col.row(align=True)
-            row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
-            row = col.row(align=True)
-            row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
+        col = layout.column(align=True)
+        col.label("BrickSculpt Tools:")
+        row = col.row(align=True)
+        row.operator("bricker.paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT").mode = "BRICK"
+        row = col.row(align=True)
+        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
+        row = col.row(align=True)
+        row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
 
         col1 = layout.column(align=True)
         col1.label("Selection:")

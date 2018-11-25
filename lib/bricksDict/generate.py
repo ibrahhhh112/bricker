@@ -38,7 +38,6 @@ from ...functions.generate_lattice import generateLattice
 from ...functions.wrappers import *
 from ...functions.smoke_sim import *
 from ..Brick import Bricks
-from bpy.types import Object
 
 def VectorRound(vec, dec, roundType="ROUND"):
     """ round all vals in Vector 'vec' to 'dec' precision """
