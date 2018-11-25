@@ -84,6 +84,9 @@ class paintbrush(Operator, paintbrushTools):
                 if status:
                     self.BrickSculptInstalled = True
             if self.BrickSculptLoaded:
+                if not hasattr(bpy.props, "bricksculpt_module_name"):
+                    self.report({"WARNING"}, "Please enable the 'BrickSculpt' addon in User Preferences")
+                    return {"CANCELLED"}
                 if self.brickType == "" or bpy.props.running_paintbrush:
                     return {"CANCELLED"}
                 self.ui_start()
@@ -100,7 +103,7 @@ class paintbrush(Operator, paintbrushTools):
                 self.report({"WARNING"}, "Please reload Blender to complete the BrickSculpt installation")
                 return {"CANCELLED"}
             else:
-                self.report({"WARNING"}, "Please install BrickSculpt from the 'User Preferences > Addons > Bricker' preferences menu")
+                self.report({"WARNING"}, "Please install & enable BrickSculpt from the 'User Preferences > Addons' menu")
                 return {"CANCELLED"}
         except:
             handle_exception()
