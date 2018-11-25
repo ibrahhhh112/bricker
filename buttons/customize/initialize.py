@@ -52,6 +52,9 @@ class InitializeUndoStack(Operator):
 
     def modal(self, context, event):
         scn = bpy.context.scene
+        if self.stop:
+            self.cancel(context)
+            return {"CANCELLED"}
         if not self.undo_stack.isUpdating() and not brickerRunningBlockingOp() and scn.cmlist_index != -1:
             global python_undo_state
             cm = scn.cmlist[scn.cmlist_index]
@@ -68,7 +71,6 @@ class InitializeUndoStack(Operator):
         return {"PASS_THROUGH"}
 
     def execute(self, context):
-        # self.ui.start()
         # add new scn.cmlist item
         if self.action == "ADD":
             cmlist_actions.addItem()
@@ -77,7 +79,6 @@ class InitializeUndoStack(Operator):
         return {"RUNNING_MODAL"}
 
     def cancel(self, context):
-        # self.ui.end()
         pass
 
     ################################################
@@ -86,10 +87,10 @@ class InitializeUndoStack(Operator):
     def __init__(self):
         scn = bpy.context.scene
         self.undo_stack = UndoStack.get_instance()
+        self.stop = False
         bpy.props.bricker_initialized = True
         if self.action == "NONE":
             self.report({"INFO"}, "Bricker initialized")
-        # self.ui = Bricker_UI.get_instance()
 
     ###################################################
     # class variables
@@ -101,6 +102,13 @@ class InitializeUndoStack(Operator):
         ),
         default="NONE"
     )
+
+    ################################################
+    # class methods
+
+    @staticmethod
+    def killModal():
+        self.stop = True
 
     ################################################
     # event handling functions

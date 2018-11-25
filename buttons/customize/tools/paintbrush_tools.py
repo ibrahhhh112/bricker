@@ -19,32 +19,9 @@
         along with this program.  If not, see <http://www.gnu.org/licenses/>.
     """
 
-# Blender imports
-import bpy
-from bpy.types import Operator, SpaceView3D, bpy_struct
-from bpy.props import *
 
-
-def isBrickSculptInstalled():
-    return False
-
-
-class paintbrush(Operator):
-    """Paint additional bricks onto the Bricker model"""
-    bl_idname = "bricker.paintbrush"
-    bl_label = "Bricker Paintbrush"
-    bl_options = {"REGISTER", "UNDO"}
-
-    ################################################
-    # Blender Operator methods
-
-    @classmethod
-    def poll(self, context):
-        """ ensures operator can execute (if not, returns False) """
-        return True
-
-    def execute(self, context):
-        self.report({"WARNING"}, "Please install BrickSculpt from the 'User Preferences > Addons > Bricker' preferences menu")
-        return {"CANCELLED"}
-
-    mode = StringProperty(default="")
+class paintbrushTools:
+    """ functionality from the paintbrush tool """
+    BrickSculptInstalled = False
+    BrickSculptLoaded = False
+    brickType = ""

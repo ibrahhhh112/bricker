@@ -13,7 +13,6 @@ bl_info = {
 developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
-# NOTE: Delete 'paintbrush' file and replace with 'paintbrush2' before uploading to Blender Market
 
 """
 Copyright (C) 2018 Bricks Brought to Life
