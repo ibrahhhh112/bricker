@@ -6,4 +6,3 @@ bricker_options.db
 textures/
 bricksDict_dump.py
 *.ldr
-buttons/customize/tools/paintbrush.py
