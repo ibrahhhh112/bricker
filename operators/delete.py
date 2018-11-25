@@ -238,6 +238,7 @@ class OBJECT_OT_delete_override(Operator):
                     keysToUpdate.append(k0)
                     newBricks.append(k0)
         # top of bricks below are now exposed
+        k0 = listToStr((x, y, z - 1))
         if k0 in bricksDict and bricksDict[k0]["draw"]:
             k1 = k0 if bricksDict[k0]["parent"] == "self" else bricksDict[k0]["parent"]
             if not bricksDict[k1]["top_exposed"]:

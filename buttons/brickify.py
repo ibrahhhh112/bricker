@@ -31,7 +31,7 @@ import json
 # Blender imports
 import bpy
 from mathutils import Matrix, Vector, Euler
-props = bpy.props
+from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
@@ -42,21 +42,6 @@ from .cache import *
 from ..lib.bricksDict import *
 # from ..lib.rigid_body_props import *
 from ..functions import *
-
-
-def updateCanRun(type):
-    scn, cm, n = getActiveContextInfo()
-    if createdWithUnsupportedVersion(cm):
-        return True
-    elif scn.cmlist_index == -1:
-        return False
-    else:
-        commonNeedsUpdate = (cm.logoType != "NONE" and cm.logoType != "LEGO") or cm.brickType == "CUSTOM" or cm.modelIsDirty or cm.matrixIsDirty or cm.internalIsDirty or cm.buildIsDirty or cm.bricksAreDirty
-        if type == "ANIMATION":
-            return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
-        elif type == "MODEL":
-            Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-            return commonNeedsUpdate or (groupExists(Bricker_bricks_gn) and len(bpy.data.groups[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
 
 
 class BrickerBrickify(bpy.types.Operator):
@@ -75,9 +60,7 @@ class BrickerBrickify(bpy.types.Operator):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        if ((cm.animated and (not updateCanRun("ANIMATION") and not cm.animIsDirty))
-           or (cm.modelCreated and not updateCanRun("MODEL"))):
-            return False
+        # return brickifyShouldRun(cm)
         return True
 
     def execute(self, context):
@@ -123,6 +106,13 @@ class BrickerBrickify(bpy.types.Operator):
         self.createdGroups = []
         self.setAction(cm)
         self.source = self.getObjectToBrickify(cm)
+        if self.splitBeforeUpdate:
+            cm.splitModel = True
+
+    ###################################################
+    # class variables
+
+    splitBeforeUpdate = BoolProperty(default=False)
 
     #############################################
     # class methods

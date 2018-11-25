@@ -379,3 +379,14 @@ def handle_upconversion(scene):
                     cm.zStep = getZStep(cm)
 
 bpy.app.handlers.load_post.append(handle_upconversion)
+
+
+def check_for_BrickSculpt(scene):
+    scn = bpy.context.scene
+    if not brickerIsActive():
+        return
+    if brickSculptInstalled():
+        scn.BrickScupltInstalled = True
+
+
+bpy.app.handlers.load_post.append(check_for_BrickSculpt)

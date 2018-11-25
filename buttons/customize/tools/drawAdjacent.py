@@ -251,6 +251,9 @@ class drawAdjacent(Operator):
 
         adjacent_key, adjBrickD = drawAdjacent.getBrickD(bricksDict, adjacent_loc)
 
+        # get duplicate of nearest_intersection tuple
+        ni = bricksDict[dictKey]["near_intersection"]
+        ni = tuple(ni) if type(ni) in [tuple, list] else ni
         # if key doesn't exist in bricksDict, create it
         if not adjBrickD:
             co = drawAdjacent.getNewCoord(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
@@ -259,7 +262,7 @@ class drawAdjacent(Operator):
                 loc=               adjacent_loc,
                 co=                co,
                 near_face=         bricksDict[dictKey]["near_face"],
-                near_intersection= tuple(bricksDict[dictKey]["near_intersection"]),
+                near_intersection= ni,
                 mat_name=          bricksDict[dictKey]["mat_name"],
             )
             adjBrickD = bricksDict[adjacent_key]
@@ -326,7 +329,7 @@ class drawAdjacent(Operator):
             adjBrickD["parent"] = "self"
             adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or bricksDict[dictKey]["near_face"]
-            adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or tuple(bricksDict[dictKey]["near_intersection"])
+            adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or ni
             if temporaryBrick:
                 adjBrickD["top_exposed"] = True
                 adjBrickD["bot_exposed"] = False

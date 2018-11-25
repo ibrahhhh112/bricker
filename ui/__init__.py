@@ -102,10 +102,7 @@ class BrickModelsPanel(Panel):
             return
 
         # draw UI list and list actions
-        if len(scn.cmlist) < 2:
-            rows = 2
-        else:
-            rows = 4
+        rows = 2 if len(scn.cmlist) < 2 else 4
         row = layout.row()
         row.template_list("Bricker_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
@@ -164,7 +161,8 @@ class BrickModelsPanel(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                    row.active = brickifyShouldRun(cm)
+                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").splitBeforeUpdate = False
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -177,7 +175,7 @@ class BrickModelsPanel(Panel):
                 else:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH").splitBeforeUpdate = False
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -193,7 +191,7 @@ class BrickModelsPanel(Panel):
                 if not cm.animated and not cm.modelCreated:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH").splitBeforeUpdate = False
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -208,7 +206,9 @@ class BrickModelsPanel(Panel):
                     row = col1.row(align=True)
                     row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
                     col = layout.column(align=True)
-                    col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
+                    row = col.row(align=True)
+                    row.active = brickifyShouldRun(cm)
+                    row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
                     if createdWithUnsupportedVersion(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -611,7 +611,7 @@ class CustomizeModel(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label       = "Customize Model"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_customize_mode"
+    bl_idname      = "VIEW3D_PT_tools_Bricker_customize_model"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
     bl_options     = {"DEFAULT_CLOSED"}
@@ -633,32 +633,53 @@ class CustomizeModel(Panel):
 
         if matrixReallyIsDirty(cm):
             layout.label("Matrix is dirty!")
+            col = layout.column(align=True)
+            col.label("Model must be updated to customize:")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
+            if cm.customized:
+                row = col.row(align=True)
+                row.label("Customizations will be lost")
+                row = col.row(align=True)
+                row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
             return
         if cm.animated:
             layout.label("Not available for animations")
             return
         if not cm.lastSplitModel:
-            layout.label("Split model to customize")
+            col = layout.column(align=True)
+            col.label("Model must be split to customize:")
+            col.operator("bricker.brickify", text="Split & Update Model", icon="FILE_REFRESH").splitBeforeUpdate = True
             return
         if cm.buildIsDirty:
-            layout.label("Run 'Update Model' to customize")
+            col = layout.column(align=True)
+            col.label("Model must be updated to customize:")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
             return
         if not Caches.cacheExists(cm):
             layout.label("Matrix not cached!")
+            col = layout.column(align=True)
+            col.label("Model must be updated to customize:")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
+            if cm.customized:
+                row = col.row(align=True)
+                row.label("Customizations will be lost")
+                row = col.row(align=True)
+                row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
             return
         # if not bpy.props.bricker_initialized:
         #     layout.operator("bricker.initialize", icon="MODIFIER")
         #     return
 
-        col = layout.column(align=True)
-        col.label("Tools:")
-        # run BrickSculpt tools
-        row = col.row(align=True)
-        row.operator("bricker.paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT").mode = "BRICK"
-        row = col.row(align=True)
-        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
-        row = col.row(align=True)
-        row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
+        # display BrickSculpt tools
+        if brickSculptInstalled():
+            col = layout.column(align=True)
+            col.label("Tools:")
+            row = col.row(align=True)
+            row.operator("bricker.paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT").mode = "BRICK"
+            row = col.row(align=True)
+            row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
+            row = col.row(align=True)
+            row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
 
         col1 = layout.column(align=True)
         col1.label("Selection:")
