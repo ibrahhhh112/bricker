@@ -233,7 +233,8 @@ class OBJECT_OT_delete_override(Operator):
                     bricksDict[k0]["rotated"] = bricksDict[curKey]["rotated"]
                     bricksDict[k0]["mat_name"] = bricksDict[curKey]["mat_name"]
                     bricksDict[k0]["near_face"] = bricksDict[curKey]["near_face"]
-                    bricksDict[k0]["near_intersection"] = tuple(bricksDict[curKey]["near_intersection"])
+                    ni = bricksDict[curKey]["near_intersection"]
+                    bricksDict[k0]["near_intersection"] = tuple(ni) if type(ni) in [list, tuple] else ni
                     # add key to list for drawing
                     keysToUpdate.append(k0)
                     newBricks.append(k0)
