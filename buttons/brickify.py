@@ -158,7 +158,6 @@ class BrickerBrickify(bpy.types.Operator):
             self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
         else:
             self.brickifyAnimation(scn, cm, n, matrixDirty)
-            cm.animIsDirty = False
 
         # set cmlist_id for all created objects
         for obj_name in self.createdObjects:
@@ -179,6 +178,7 @@ class BrickerBrickify(bpy.types.Operator):
         cm.materialIsDirty = False
         cm.modelIsDirty = False
         cm.buildIsDirty = False
+        cm.animIsDirty = False
         cm.bricksAreDirty = False
         cm.matrixIsDirty = False
         cm.matrixLost = False

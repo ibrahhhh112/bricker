@@ -264,6 +264,7 @@ class drawAdjacent(Operator):
                 near_face=         bricksDict[dictKey]["near_face"],
                 near_intersection= ni,
                 mat_name=          bricksDict[dictKey]["mat_name"],
+                custom_mat_name=   bricksDict[dictKey]["custom_mat_name"]
             )
             adjBrickD = bricksDict[adjacent_key]
             # dirBool = [side, False]
@@ -324,10 +325,10 @@ class drawAdjacent(Operator):
             adjBrickD["flipped"] = bricksDict[dictKey]["flipped"]
             adjBrickD["rotated"] = bricksDict[dictKey]["rotated"]
             setCurBrickVal(bricksDict, adjacent_loc, adjacent_key)
-            adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"]
             adjBrickD["size"] = [1, 1, newBrickHeight if side in (4, 5) else cm.zStep]
             adjBrickD["parent"] = "self"
             adjBrickD["mat_name"] = bricksDict[dictKey]["mat_name"] if adjBrickD["mat_name"] == "" else adjBrickD["mat_name"]
+            adjBrickD["custom_mat_name"] = bricksDict[dictKey]["custom_mat_name"]
             adjBrickD["near_face"] = adjBrickD["near_face"] or bricksDict[dictKey]["near_face"]
             adjBrickD["near_intersection"] = adjBrickD["near_intersection"] or ni
             if temporaryBrick:

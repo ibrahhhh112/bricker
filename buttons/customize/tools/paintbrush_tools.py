@@ -96,7 +96,7 @@ class paintbrushTools:
             self.keysToMergeOnCommit += brickKeys + keysToUpdate
 
     def changeMaterial(self, cm, n, curKey, curLoc, objSize):
-        if max(objSize[:2]) > 1:
+        if max(objSize[:2]) > 1 or (objSize[2] > 1 and cm.brickType == "BRICKS AND PLATES"):
             brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc)
         else:
             brickKeys = [curKey]
@@ -143,24 +143,48 @@ class paintbrushTools:
             self.keysToMergeOnRelease = []
             self.addedBricks = []
 
+    def soloLayer(self, cm, curKey, curLoc, objSize):
+        brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
+        curKey = self.getNearestLocToCursor(brickKeys)
+        curZ = getDictLoc(self.bricksDict, curKey)[2]
+        for key in self.bricksDict.keys():
+            if self.bricksDict[key]["parent"] != "self":
+                continue
+            loc = getDictLoc(self.bricksDict, key)
+            if loc[2] > curZ or loc[2] + self.bricksDict[key]["size"][2] <= curZ:
+                brick = bpy.data.objects.get(self.bricksDict[key]["name"])
+                if brick is None:
+                    continue
+                brick.hide = True
+                self.hiddenBricks.append(brick)
+
+    def unSoloLayer(self):
+        unhide(self.hiddenBricks)
+        self.hiddenBricks = []
+
     def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc):
         brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=True, h=True)
         brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
         delete(brick)
+        curKey = self.getNearestLocToCursor(brickKeys)
+        return brickKeys, curKey
+
+    def getNearestLocToCursor(self, keys):
         # get difference between intersection loc and object loc
         minDiff = None
-        for k in brickKeys:
+        for k in keys:
             brickLoc = transformToWorld(Vector(self.bricksDict[k]["co"]), self.parent.matrix_world, self.junk_bme)
             locDiff = abs(self.loc[0] - brickLoc[0]) + abs(self.loc[1] - brickLoc[1]) + abs(self.loc[2] - brickLoc[2])
             if minDiff is None or locDiff < minDiff:
                 minDiff = locDiff
                 curKey = k
-        return brickKeys, curKey
+        return curKey
 
     def commitChanges(self):
         scn, cm, _ = getActiveContextInfo()
-        # deselect any objects left selected
+        # deselect any objects left selected, and show all objects
         deselectAll()
+        self.unSoloLayer()
         # attempt to merge bricks queued for merge on commit
         self.keysToMergeOnCommit = uniquify(self.keysToMergeOnCommit)
         if mergableBrickType(self.brickType) and len(self.keysToMergeOnCommit) > 1:

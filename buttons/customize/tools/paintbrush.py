@@ -109,13 +109,14 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         self.recentlyAddedBricks = []
         self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
-        self.left_click = False
         self.obj = None
         self.keysToMergeOnCommit = []
         self.keysToMergeOnRelease = []
         self.targettedBrickKeys = []
         self.brickType = getBrickType(cm.brickType)
         self.matName = bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
+        self.hiddenBricks = []
+        self.releaseTime = 0
         self.vertical = False
         self.horizontal = True
         self.lastMouse = Vector((0, 0))
@@ -123,7 +124,13 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         self.junk_bme = bmesh.new()
         self.parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
         deselectAll()
-        # # ui properties
+        # ui properties
+        self.left_click = False
+        self.double_ctrl = False
+        self.ctrlClickTime = -1
+        self.runUnSoloLayer = False
+        self.layerSolod = False
+        self.possibleCtrlDisable = False
         # self.points = [(math.cos(d*math.pi/180.0),math.sin(d*math.pi/180.0)) for d in range(0,361,10)]
         # self.ox = Vector((1,0,0))
         # self.oy = Vector((0,1,0))
