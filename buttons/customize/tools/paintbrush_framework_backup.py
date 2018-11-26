@@ -20,8 +20,8 @@
     """
 
 
-class paintbrushTools:
-    """ functionality from the paintbrush tool """
+class paintbrushFramework:
+    """ modal framework for the paintbrush tool """
     BrickSculptInstalled = False
     BrickSculptLoaded = False
     brickType = ""

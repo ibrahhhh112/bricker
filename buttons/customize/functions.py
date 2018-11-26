@@ -333,3 +333,23 @@ def getAdjDKLs(cm, bricksDict, dictKey, obj):
     adjDKLs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
     adjDKLs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
     return adjDKLs
+
+
+def installBrickSculpt():
+    if not hasattr(bpy.props, "bricksculpt_module_name"):
+        return False
+    addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
+    Bricker = bpy.props.bricker_module_name
+    BrickSculpt = bpy.props.bricksculpt_module_name
+    paintbrushPathOld = "%(addonsPath)s/%(BrickSculpt)s/paintbrush_framework.py" % locals()
+    paintbrushPathNew = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/paintbrush_framework.py" % locals()
+    fOld = open(paintbrushPathOld, "r")
+    fNew = open(paintbrushPathNew, "w")
+    # write META commands
+    lines = fOld.readlines()
+    fNew.truncate(0)
+    print(lines)
+    fNew.writelines(lines)
+    fOld.close()
+    fNew.close()
+    return True

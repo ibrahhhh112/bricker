@@ -534,7 +534,7 @@ class CustomizeModel(Panel):
         row = col.row(align=True)
         row.active = brickSculptInstalled
         row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
-        if not paintbrushTools.BrickSculptInstalled:
+        if not paintbrush.BrickSculptInstalled:
             row = col.row(align=True)
             row.scale_y = 0.7
             row.label("BrickSculpt available for purchase")
