@@ -106,12 +106,11 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         # initialize vars
         self.addedBricks = []
         self.addedBricksFromDelete = []
-        self.recentlyAddedBricks = []
+        self.keysToMergeOnRelease = []
         self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
         self.obj = None
         self.keysToMergeOnCommit = []
-        self.keysToMergeOnRelease = []
         self.targettedBrickKeys = []
         self.brickType = getBrickType(cm.brickType)
         self.matName = bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
@@ -166,8 +165,8 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
 
     # define props for popup
     mode = bpy.props.EnumProperty(
-        items=[("BRICK", "BRICK", ""),
-               ("MATERIAL", "MATERIAL", ""),
-               ("SPLIT/MERGE", "SPLIT/MERGE", ""),
+        items=[("DRAW", "DRAW", ""),
+               ("PAINT", "PAINT", ""),
+               ("MERGE/SPLIT", "MERGE/SPLIT", ""),
                ],
     )

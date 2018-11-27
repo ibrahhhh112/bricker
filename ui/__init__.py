@@ -527,13 +527,13 @@ class CustomizeModel(Panel):
         row.label("BrickSculpt Tools:")
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Brick Paintbrush", icon="MOD_DYNAMICPAINT").mode = "BRICK"
+        row.operator("bricker.paintbrush", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "MATERIAL"
+        row.operator("bricker.paintbrush", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Split/Merge Paintbrush", icon="MOD_DYNAMICPAINT").mode = "SPLIT/MERGE"
+        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "PAINT"
         if not paintbrush.BrickSculptInstalled:
             row = col.row(align=True)
             row.scale_y = 0.7

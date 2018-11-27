@@ -52,21 +52,21 @@ class paintbrushTools:
         nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, cm.zStep, width_divisor=3.2 if self.brickType in getRoundBrickTypes() else 2.05)
         # draw brick at nextLoc location
         nextKey, adjBrickD = drawAdjacent.getBrickD(self.bricksDict, nextLoc)
-        if not adjBrickD or self.bricksDict[nextKey]["val"] == 0 and self.bricksDict[curKey]["name"] not in self.recentlyAddedBricks:
+        if not adjBrickD or self.bricksDict[nextKey]["val"] == 0:
             self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
             # add brick at nextKey location
             status = drawAdjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMergeOnCommit, temporaryBrick=True)
             if not status["val"]:
                 self.report({status["report_type"]}, status["msg"])
             self.addedBricks.append(self.bricksDict[nextKey]["name"])
-            self.recentlyAddedBricks.append(self.bricksDict[nextKey]["name"])
+            self.keysToMergeOnRelease.append(nextKey)
             self.allUpdatedKeys.append(curKey)
             # draw created bricks
             drawUpdatedBricks(cm, self.bricksDict, [nextKey], action="adding new brick", selectCreated=False, tempBrick=True)
 
     def removeBrick(self, cm, n, event, curKey, curLoc, objSize):
-        shallowDelete = self.obj.name in self.addedBricks
-        deepDelete = event.shift and not (shallowDelete or self.obj.name in self.addedBricksFromDelete)
+        shallowDelete = self.obj.name in self.addedBricks and self.mode == "DRAW"
+        deepDelete = event.shift and self.mode == "DRAW" and self.obj.name not in self.addedBricksFromDelete
         if deepDelete:
             # split bricks and update adjacent brickDs
             brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc)
