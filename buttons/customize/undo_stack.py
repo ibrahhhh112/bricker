@@ -49,17 +49,17 @@ class UndoStack():
     bl_region_type = 'TOOLS'
 
     @staticmethod
-    def get_instance():
-        if UndoStack.instance is None:
-            UndoStack.creating = True
-            UndoStack.instance = UndoStack()
-            del UndoStack.creating
-        UndoStack.instance.reset()
+    def get_instance(reset=False):
+        if UndoStack.instance is None or reset:
+            UndoStack.new()
         return UndoStack.instance
 
-    def reset(self):
-        """ runs every time the instance is gotten """
-        pass
+    @staticmethod
+    def new():
+        UndoStack.creating = True
+        UndoStack.instance = UndoStack()
+        del UndoStack.creating
+        return UndoStack.instance
 
     ################################################
     # initialization method
@@ -71,6 +71,7 @@ class UndoStack():
         scn = bpy.context.scene
         for cm in scn.cmlist:
             cm.blender_undo_state = 0
+            python_undo_state[cm.id] = 0
 
     ###################################################
     # class variables

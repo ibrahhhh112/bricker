@@ -32,6 +32,7 @@ from ..functions import *
 from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
 from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.tools import *
+from ..buttons.customize.undo_stack import *
 
 
 def brickerIsActive():
@@ -222,6 +223,18 @@ def clear_bfm_cache(dummy):
 
 
 bpy.app.handlers.load_pre.append(clear_bfm_cache)
+
+
+# pull dicts from deep cache to light cache on load
+@persistent
+def reset_undo_stack(scene):
+    if not brickerIsActive():
+        return
+    # reset undo stack
+    undo_stack = UndoStack.get_instance(reset=True)
+
+
+bpy.app.handlers.load_post.append(reset_undo_stack)
 
 
 # pull dicts from deep cache to light cache on load
