@@ -534,6 +534,7 @@ class CustomizeModel(Panel):
         row = col.row(align=True)
         row.active = brickSculptInstalled
         row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "PAINT"
+        row.prop_search(cm, "paintbrushMat", bpy.data, "materials", text="")
         if not paintbrush.BrickSculptInstalled:
             row = col.row(align=True)
             row.scale_y = 0.7

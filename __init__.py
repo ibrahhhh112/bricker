@@ -70,7 +70,7 @@ def register():
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
-    bpy.props.running_paintbrush = False
+    bpy.props.running_bricksculpt_tool = False
 
     bpy.types.Object.protected = BoolProperty(name='protected', default=False)
     bpy.types.Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
@@ -146,7 +146,7 @@ def unregister():
     del bpy.types.Object.isBrick
     del bpy.types.Object.isBrickifiedObject
     del bpy.types.Object.protected
-    del bpy.props.running_paintbrush
+    del bpy.props.running_bricksculpt_tool
     del bpy.props.Bricker_developer_mode
     del bpy.props.bricker_undoUpdating
     del bpy.props.bricker_initialized

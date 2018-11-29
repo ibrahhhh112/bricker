@@ -70,10 +70,16 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
                 if not hasattr(bpy.props, "bricksculpt_module_name"):
                     self.report({"WARNING"}, "Please enable the 'BrickSculpt' addon in User Preferences")
                     return {"CANCELLED"}
-                if self.brickType == "" or bpy.props.running_paintbrush:
+                if bpy.props.running_bricksculpt_tool:
+                    return {"CANCELLED"}
+                if self.mode == "DRAW" and self.brickType == "":
+                    self.report({"WARNING"}, "Please choose a target brick type")
+                    return {"CANCELLED"}
+                if self.mode == "PAINT" and self.matName == "":
+                    self.report({"WARNING"}, "Please choose a material for the paintbrush")
                     return {"CANCELLED"}
                 self.ui_start()
-                bpy.props.running_paintbrush = True
+                bpy.props.running_bricksculpt_tool = True
                 scn, cm, _ = getActiveContextInfo()
                 # get fresh copy of self.bricksDict
                 self.bricksDict, _ = getBricksDict(cm=cm)
@@ -113,7 +119,7 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         self.keysToMergeOnCommit = []
         self.targettedBrickKeys = []
         self.brickType = getBrickType(cm.brickType)
-        self.matName = bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
+        self.matName = cm.paintbrushMat  # bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
         self.hiddenBricks = []
         self.releaseTime = 0
         self.vertical = False

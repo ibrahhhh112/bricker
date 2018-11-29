@@ -127,6 +127,7 @@ class paintbrushTools:
             self.addedBricks.append(self.bricksDict[curKey]["name"])
             select(self.obj)
         elif state == "RELEASE":
+            self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
             if len(self.keysToMergeOnRelease) > 1:
                 # delete outdated brick
                 for obj_name in self.addedBricks:
@@ -138,6 +139,8 @@ class paintbrushTools:
                 self.allUpdatedKeys += mergedKeys
                 # draw merged bricks
                 drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
+            else:
+                deselectAll()
             # reset lists
             if mode == "MERGE/SPLIT":
                 self.keysToMergeOnRelease = []
