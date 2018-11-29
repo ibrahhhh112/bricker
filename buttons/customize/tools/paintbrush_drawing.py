@@ -33,7 +33,6 @@ from bpy.props import *
 # Addon imports
 from .paintbrush_tools import *
 from .drawAdjacent import *
-from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ....lib.Brick import *

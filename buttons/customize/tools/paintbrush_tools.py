@@ -33,7 +33,6 @@ from bpy.props import *
 # Addon imports
 from .paintbrush_tools import *
 from .drawAdjacent import *
-from ..undo_stack import *
 from ..functions import *
 from ...brickify import *
 from ....lib.Brick import *
@@ -120,7 +119,7 @@ class paintbrushTools:
         else:
             select(brick)
 
-    def mergeBrick(self, cm, curKey=None, curLoc=None, objSize=None, state="DRAG"):
+    def mergeBrick(self, cm, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
             brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
@@ -140,7 +139,8 @@ class paintbrushTools:
                 # draw merged bricks
                 drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
             # reset lists
-            self.keysToMergeOnRelease = []
+            if mode == "MERGE/SPLIT":
+                self.keysToMergeOnRelease = []
             self.addedBricks = []
 
     def soloLayer(self, cm, curKey, curLoc, objSize):

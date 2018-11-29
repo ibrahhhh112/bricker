@@ -58,6 +58,11 @@ class InitializeUndoStack(Operator):
         if not self.undo_stack.isUpdating() and not brickerRunningBlockingOp() and scn.cmlist_index != -1:
             global python_undo_state
             cm = scn.cmlist[scn.cmlist_index]
+            print()
+            if cm.id in python_undo_state:
+                print(python_undo_state[cm.id])
+            print(cm.blender_undo_state)
+            print()
             if cm.id not in python_undo_state:
                 python_undo_state[cm.id] = 0
             # handle undo
