@@ -398,7 +398,16 @@ def select(objList, active:bool=False, deselect:bool=False, only:bool=False, sce
     # set active object
     if active:
         setActiveObj(objList[0], scene=scene)
-    return True
+
+
+# def deselect(objList, scene:Scene=None):
+#     """ selects objs in list and deselects the rest """
+#     # confirm objList is a list of objects
+#     objList = confirmList(objList)
+#     # select/deselect objects in list
+#     for obj in objList:
+#         if obj is not None:
+#             obj.select = False
 
 
 def delete(objs):

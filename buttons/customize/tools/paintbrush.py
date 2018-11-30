@@ -83,9 +83,8 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
                 scn, cm, _ = getActiveContextInfo()
                 # get fresh copy of self.bricksDict
                 self.bricksDict, _ = getBricksDict(cm=cm)
-                # create timer for modal
+                # create modal handler
                 wm = context.window_manager
-                self._timer = wm.event_timer_add(0.01, context.window)
                 wm.modal_handler_add(self)
                 return {"RUNNING_MODAL"}
             elif self.BrickSculptInstalled and not self.BrickSculptLoaded:
@@ -112,6 +111,7 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         # initialize vars
         self.addedBricks = []
         self.addedBricksFromDelete = []
+        self.parentKeysToMergeOnRelease = []
         self.keysToMergeOnRelease = []
         self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)

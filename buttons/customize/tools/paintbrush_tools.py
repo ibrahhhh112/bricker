@@ -68,7 +68,7 @@ class paintbrushTools:
         deepDelete = event.shift and self.mode == "DRAW" and self.obj.name not in self.addedBricksFromDelete
         if deepDelete:
             # split bricks and update adjacent brickDs
-            brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc)
+            brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
             curLoc = getDictLoc(self.bricksDict, curKey)
             keysToUpdate, onlyNewKeys = OBJECT_OT_delete_override.updateAdjBricksDicts(self.bricksDict, cm.zStep, curKey, curLoc, [])
             self.addedBricksFromDelete += [self.bricksDict[k]["name"] for k in onlyNewKeys]
@@ -95,8 +95,8 @@ class paintbrushTools:
             self.keysToMergeOnCommit += brickKeys + keysToUpdate
 
     def changeMaterial(self, cm, n, curKey, curLoc, objSize):
-        if max(objSize[:2]) > 1 or (objSize[2] > 1 and cm.brickType == "BRICKS AND PLATES"):
-            brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc)
+        if max(objSize[:2]) > 1 or objSize[2] > cm.zStep:
+            brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
         else:
             brickKeys = [curKey]
         self.bricksDict[curKey]["mat_name"] = self.matName
@@ -117,17 +117,22 @@ class paintbrushTools:
             # draw split bricks
             drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=True, tempBrick=True)
         else:
-            select(brick)
+            brick.select = True
 
     def mergeBrick(self, cm, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
-            brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
-            self.keysToMergeOnRelease += brickKeys
+            self.parentKeysToMergeOnRelease.append(curKey)
             self.addedBricks.append(self.bricksDict[curKey]["name"])
-            select(self.obj)
+            self.obj.select = True
         elif state == "RELEASE":
+            # assemble keysToMergeOnRelease
+            for pk in self.parentKeysToMergeOnRelease:
+                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, pk)
+                self.keysToMergeOnRelease += brickKeys
+            self.parentKeysToMergeOnRelease = []
             self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
+            # merge those keys
             if len(self.keysToMergeOnRelease) > 1:
                 # delete outdated brick
                 for obj_name in self.addedBricks:
@@ -165,7 +170,7 @@ class paintbrushTools:
         unhide(self.hiddenBricks)
         self.hiddenBricks = []
 
-    def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc):
+    def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc, objSize):
         brickKeys = Bricks.split(self.bricksDict, curKey, cm.zStep, cm.brickType, loc=curLoc, v=True, h=True)
         brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
         delete(brick)

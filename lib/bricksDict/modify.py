@@ -88,6 +88,8 @@ def updateMaterials(bricksDict, source, origSource, curFrame=None):
                 matName = createNewMaterial(n, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame)
             if rgba is not None:
                 rgba_vals.append(rgba)
+        elif materialType == "CUSTOM":
+            matName = cm.materialName
         bricksDict[key]["mat_name"] = matName
     return bricksDict
 
