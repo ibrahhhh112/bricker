@@ -138,7 +138,7 @@ def getNumRots(direction, size):
 def getRotAdd(direction, size):
     if direction != "":
         directions = ["X+", "Y+", "X-", "Y-"]
-        rot_add += 90 * (directions.index(direction) + 1)
+        rot_add = 90 * (directions.index(direction) + 1)
     else:
         rot_add = 180 if (size[0] == 2 and size[1] > 2) or (size[0] == 1 and size[1] > 1) else 90
     return rot_add
