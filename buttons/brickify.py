@@ -280,7 +280,6 @@ class BrickerBrickify(bpy.types.Operator):
         # create new bricks
         group_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
 
-        ct = time.time()
         bGroup = bpy.data.groups.get(group_name)
         if bGroup:
             self.createdGroups.append(group_name)

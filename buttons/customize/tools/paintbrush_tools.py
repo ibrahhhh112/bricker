@@ -196,6 +196,9 @@ class paintbrushTools:
         # attempt to merge bricks queued for merge on commit
         self.keysToMergeOnCommit = uniquify(self.keysToMergeOnCommit)
         if mergableBrickType(self.brickType) and len(self.keysToMergeOnCommit) > 1:
+            # split up bricks
+            Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnCommit)
+            # merge split bricks
             mergedKeys = mergeBricks.mergeBricks(self.bricksDict, self.keysToMergeOnCommit, cm, targetType="BRICK" if cm.brickType == "BRICKS AND PLATES" else self.brickType, anyHeight=cm.brickType == "BRICKS AND PLATES")
         else:
             mergedKeys = self.keysToMergeOnCommit
