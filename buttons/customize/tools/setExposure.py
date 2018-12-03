@@ -63,7 +63,7 @@ class BRICKER_OT_set_exposure(Operator):
         try:
             scn = bpy.context.scene
             selected_objects = bpy.context.selected_objects
-            active_obj = scn.objects.active
+            active_obj = bpy.context.object
             initial_active_obj_name = active_obj.name if active_obj else ""
             objsToSelect = []
 

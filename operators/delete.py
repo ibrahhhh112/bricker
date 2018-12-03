@@ -267,7 +267,7 @@ class OBJECT_OT_delete_override(Operator):
                     break
         if cm and update_model:
             BRICKER_OT_delete_model.runFullDelete(cm=cm)
-            deselect(scn.objects.active)
+            deselect(bpy.context.object)
         else:
             obj_users_scene = len(obj.users_scene)
             scn.objects.unlink(obj)

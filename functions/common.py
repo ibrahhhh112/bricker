@@ -171,8 +171,7 @@ def drawBMesh(bm, name="drawnBMesh"):
 
     scn = bpy.context.scene   # grab a reference to the scene
     scn.collection.objects.link(obj)     # link new object to scene
-    scn.objects.active = obj  # make new object active
-    obj.select_set(True)      # make new object selected (does not deselect other objects)
+    select(obj, active=True)  # select new object and make active (does not deselect other objects)
     bm.to_mesh(m)             # push bmesh data into m
     return obj
 
@@ -334,25 +333,6 @@ def getLayersList(layers):
     return newLayersList
 
 
-def setLayers(layers, scn=None):
-    """ set active layers of scn w/o 'dag ZERO' error """
-    assert len(layers) == 20
-    scn = scn or bpy.context.scene
-    # update scene (prevents dag ZERO errors)
-    if bpy.props.Bricker_developer_mode > 0:
-        scn.update()
-    # set active layers of scn
-    scn.layers = layers
-
-
-def openLayer(layerNum, scn=None):
-    assert type(layerNum) == int
-    scn = scn or bpy.context.scene
-    layerList = [i == layerNum - 1 for i in range(20)]
-    scn.layers = layerList
-    return layerList
-
-
 def deselectAll():
     deselect(bpy.context.selected_objects)
 
@@ -377,9 +357,24 @@ def unhide(objs):
 
 
 def setActiveObj(obj, scene=None):
+    # TODO: Fix this function
     assert type(obj) == Object
     scene = scene or bpy.context.scene
-    scene.objects.active = obj
+    bpy.context.object = obj
+
+
+def isObjVisibleInViewport(obj):
+    if obj is None:
+        return False
+    objVisible = True
+    if obj.hide_viewport:
+        objVisible = False
+    else:
+        for cn in obj.users_collection:
+            if cn.hide_viewport:
+                objVisible = False
+                break
+    return objVisible
 
 
 def select(objList, active:bool=False, only:bool=False, scene:Scene=None):

@@ -21,6 +21,6 @@ Created by Christopher Gearhart
 
 __all__ = [
            "delete",
-           "move_to_layer",
+           # "move_to_layer",
            "duplicate",
            ]

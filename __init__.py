@@ -103,10 +103,10 @@ classes = (
     BRICKER_PT_preferences,
     # bricker/operators
     operators.delete.OBJECT_OT_delete_override,
-    operators.duplicate.BRICKER_OT_duplicate_override,
-    operators.duplicate.BRICKER_OT_duplicate_move,
-    operators.move_to_layer.BRICKER_OT_move_to_layer_override,
-    operators.move_to_layer.BRICKER_OT_move_to_layer,
+    operators.duplicate.OBJECT_OT_duplicate_override,
+    operators.duplicate.OBJECT_OT_duplicate_move,
+    operators.move_to_layer.OBJECT_OT_move_to_layer_override,
+    operators.move_to_layer.OBJECT_OT_move_to_layer,
     # bricker/ui
     BRICKER_MT_specials,
     BRICKER_PT_brick_models,
@@ -148,26 +148,26 @@ def register():
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
 
-    Object.protected: BoolProperty(name='protected', default=False)
-    Object.isBrickifiedObject: BoolProperty(name='Is Brickified Object', default=False)
-    Object.isBrick: BoolProperty(name='Is Brick', default=False)
-    Object.cmlist_id: IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
-    Material.num_averaged: IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
+    Object.protected = BoolProperty(name='protected', default=False)
+    Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
+    Object.isBrick = BoolProperty(name='Is Brick', default=False)
+    Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
+    Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
 
-    Scene.Bricker_runningBlockingOperation: BoolProperty(default=False)
+    Scene.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
-    Scene.Bricker_last_layers: StringProperty(default="")
-    Scene.Bricker_last_cmlist_index: IntProperty(default=-2)
-    Scene.Bricker_active_object_name: StringProperty(default="")
-    Scene.Bricker_last_active_object_name: StringProperty(default="")
+    Scene.Bricker_last_layers = StringProperty(default="")
+    Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
+    Scene.Bricker_active_object_name = StringProperty(default="")
+    Scene.Bricker_last_active_object_name = StringProperty(default="")
 
-    Scene.Bricker_copy_from_id: IntProperty(default=-1)
+    Scene.Bricker_copy_from_id = IntProperty(default=-1)
 
     # define legal brick sizes (key:height, val:[width,depth])
     bpy.props.Bricker_legal_brick_sizes = getLegalBrickSizes()
 
     # Add attribute for Bricker Instructions addon
-    Scene.isBrickerInstalled: BoolProperty(default=True)
+    Scene.isBrickerInstalled = BoolProperty(default=True)
 
     if not hasattr(Scene, "include_transparent"):
         Scene.include_transparent = False
@@ -190,8 +190,8 @@ def register():
         addon_keymaps.append(km)
 
     # other things (UI List)
-    Scene.cmlist: CollectionProperty(type=BRICKER_UL_created_models)
-    Scene.cmlist_index: IntProperty(default=-1)
+    Scene.cmlist = CollectionProperty(type=BRICKER_UL_created_models)
+    Scene.cmlist_index = IntProperty(default=-1)
 
     # addon updater code and configurations
     addon_updater_ops.register(bl_info)

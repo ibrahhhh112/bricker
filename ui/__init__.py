@@ -70,10 +70,9 @@ class BRICKER_MT_specials(bpy.types.Menu):
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
 
-
 class BRICKER_PT_brick_models(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Brick Models"
     bl_idname      = "BRICKER_PT_brick_models"
     bl_context     = "objectmode"
@@ -242,11 +241,12 @@ def is_baked(mod):
 
 class BRICKER_PT_animation(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Animation"
     bl_idname      = "BRICKER_PT_animation"
     bl_context     = "objectmode"
     bl_category    = "Bricker"
+    # bl_parent_id = "VIEW3D_PT_view3d_properties"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -307,7 +307,7 @@ class BRICKER_PT_animation(Panel):
 
 class BRICKER_PT_model_transform(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Model Transform"
     bl_idname      = "BRICKER_PT_model_transform"
     bl_context     = "objectmode"
@@ -359,7 +359,7 @@ class BRICKER_PT_model_transform(Panel):
 
 class BRICKER_PT_model_settings(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Model Settings"
     bl_idname      = "BRICKER_PT_model_settings"
     bl_context     = "objectmode"
@@ -458,7 +458,7 @@ class BRICKER_PT_model_settings(Panel):
 
 class BRICKER_PT_smoke_settings(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Smoke Settings"
     bl_idname      = "BRICKER_PT_smoke_settings"
     bl_context     = "objectmode"
@@ -509,7 +509,7 @@ class BRICKER_PT_smoke_settings(Panel):
 
 class BRICKER_PT_brick_types(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Brick Types"
     bl_idname      = "BRICKER_PT_brick_types"
     bl_context     = "objectmode"
@@ -564,7 +564,7 @@ class BRICKER_PT_brick_types(Panel):
 
 class BRICKER_PT_merge_settings(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Merge Settings"
     bl_idname      = "BRICKER_PT_merge_settings"
     bl_context     = "objectmode"
@@ -611,7 +611,7 @@ class BRICKER_PT_merge_settings(Panel):
 
 class BRICKER_PT_customize_model(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Customize Model"
     bl_idname      = "BRICKER_PT_customize_model"
     bl_context     = "objectmode"
@@ -700,7 +700,7 @@ class BRICKER_PT_customize_model(Panel):
 
 class BRICKER_PT_materials(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Materials"
     bl_idname      = "BRICKER_PT_materials"
     bl_context     = "objectmode"
@@ -883,7 +883,7 @@ class BRICKER_PT_materials(Panel):
 
 class BRICKER_PT_detailing(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Detailing"
     bl_idname      = "BRICKER_PT_detailing"
     bl_context     = "objectmode"
@@ -969,7 +969,7 @@ class BRICKER_PT_detailing(Panel):
 
 class BRICKER_PT_supports(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Supports"
     bl_idname      = "BRICKER_PT_supports"
     bl_context     = "objectmode"
@@ -1011,7 +1011,7 @@ class BRICKER_PT_supports(Panel):
 
 class BRICKER_PT_advanced(Panel):
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Advanced"
     bl_idname      = "BRICKER_PT_advanced"
     bl_context     = "objectmode"
@@ -1063,7 +1063,7 @@ class BRICKER_PT_advanced(Panel):
 class BRICKER_PT_matrix_details(Panel):
     """ Display Matrix details for specified brick location """
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Brick Details"
     bl_idname      = "BRICKER_PT_matrix_details"
     bl_context     = "objectmode"
@@ -1145,7 +1145,7 @@ class BRICKER_PT_matrix_details(Panel):
 class BRICKER_PT_export(Panel):
     """ Export Bricker Model """
     bl_space_type  = "VIEW_3D"
-    bl_region_type = "TOOLS"
+    bl_region_type = "UI"
     bl_label       = "Bake/Export"
     bl_idname      = "BRICKER_PT_export"
     bl_context     = "objectmode"

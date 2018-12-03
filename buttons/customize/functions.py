@@ -123,7 +123,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     items = []
     legalBS = bpy.props.Bricker_legal_brick_sizes
     scn = bpy.context.scene
-    objs = bpy.context.selected_objects if by == "SELECTION" else [scn.objects.active]
+    objs = bpy.context.selected_objects if by == "SELECTION" else [bpy.context.object]
     objNamesD, bricksDicts = createObjNamesAndBricksDictsDs(objs)
     invalidItems = []
     for cm_id in objNamesD.keys():

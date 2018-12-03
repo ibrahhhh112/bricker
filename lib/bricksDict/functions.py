@@ -354,7 +354,6 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
             scn = bpy.context.scene
             # get custom object
             customObj = bpy.data.objects[customObjName]
-            oldLayers = list(scn.layers) # store scene layers for later reset
             # duplicate custom object
             customObjName = customObj.name + "_duplicate"
             customObj1 = bpy.data.objects.get(customObjName)

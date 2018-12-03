@@ -158,11 +158,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if not matrixDirty and loadedFromCache:
                 cm.matrixIsDirty = False
 
-        # set layers to source layers
-        oldLayers = list(scn.layers)
-        sourceLayers = list(self.source.layers)
-        if oldLayers != sourceLayers:
-            setLayers(sourceLayers)
+        # TODO: potentially necessary to ensure current View Layer includes collection with self.source
+        # TODO: potentially necessary to ensure self.source (and its parent collections) are viewable?
 
         if "ANIM" not in self.action:
             self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
@@ -201,9 +198,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # unlink source from scene and link to safe scene
         if self.source.name in scn.objects.keys():
             safeUnlink(self.source, hide=False)
-        # reset layers
-        if oldLayers != sourceLayers:
-            setLayers(oldLayers)
 
         disableRelationshipLines()
 

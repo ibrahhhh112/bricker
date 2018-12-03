@@ -148,7 +148,7 @@ class BRICKER_OT_change_type(Operator):
         scn.Bricker_runningBlockingOperation = True
         legalBrickSizes = bpy.props.Bricker_legal_brick_sizes
         # get original active and selected objects
-        active_obj = scn.objects.active
+        active_obj = bpy.context.object
         initial_active_obj_name = active_obj.name if active_obj else ""
         selected_objects = bpy.context.selected_objects
         objNamesToSelect = []

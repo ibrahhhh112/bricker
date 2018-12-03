@@ -73,10 +73,6 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=T
     if edgeSplit:
         addEdgeSplitMod(ob)
 
-    # move to appropriate layer
-    layerList = [i == layer - 1 for i in range(20)]
-    ob.layers = layerList
-
     return ob
 
 
@@ -137,6 +133,6 @@ def test_brick_generators():
         # newObjFromBmesh(7, makeTile(dimensions, brickSize=[2,4,1], circleVerts=16, type="TILE", detail=detail), "2x4 Tile "  + detail, loc=(offset*1.5, -0.2, 0))
         # newObjFromBmesh(7, makeTile(dimensions, brickSize=[1,8,1], circleVerts=16, type="TILE", detail=detail), "1x8 Tile "  + detail, loc=(offset, -4.4, 0))
 
-    openLayer(17)
+    # openLayer(17)
 
     cm.brickType = lastBrickType

@@ -81,7 +81,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
     ###################################################
     # class variables
 
-    layers = BoolVectorProperty(
+    layers: BoolVectorProperty(
         name="Layers",
         subtype="LAYER",
         description="Object Layers",
@@ -110,7 +110,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
                 if bricksCurF is not None and bricksCurF.name != obj.name:
                     bricksCurF.layers = self.layers
 
-class BRICKER_OT_move_to_layer(bpy.types.Operator):
+class OBJECT_OT_move_to_layer(bpy.types.Operator):
     """Move to Layer"""
     bl_idname = "bricker.move_to_layer"
     bl_label = "Move to Layer"

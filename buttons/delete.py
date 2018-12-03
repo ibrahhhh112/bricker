@@ -93,15 +93,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo(cm=cm)
         source = bpy.data.objects.get(source_name or n)
 
-        # set all layers active temporarily
-        curLayers = list(scn.layers)
-        setLayers([True]*20)
-        # match source layers to brick layers
-        gn = "Bricker_%(n)s_bricks" % locals()
-        if groupExists(gn) and len(bpy.data.groups[gn].objects) > 0:
-            brick = bpy.data.groups[gn].objects[0]
-            source.layers = brick.layers
-
         # clean up 'Bricker_[source name]' group
         if not skipSource:
             cls.cleanSource(cm, source, modelType)
@@ -124,9 +115,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             trans_and_anim_data = cls.cleanBricks(scn, cm, n, preservedFrames, modelType, skipTransAndAnimData)
         else:
             trans_and_anim_data = []
-
-        # set scene layers back to original layers
-        setLayers(curLayers)
 
         return source, brickLoc, brickRot, brickScl, trans_and_anim_data
 
@@ -217,13 +205,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         # link source to scene
         if source not in list(scn.objects):
             safeLink(source)
-        # set source layers to brick layers
-        if modelType == "MODEL":
-            bGroup = bpy.data.groups.get(Bricker_bricks_gn)
-        elif modelType == "ANIMATION":
-            bGroup = bpy.data.groups.get(Bricker_bricks_gn + "_f_" + str(cm.lastStartFrame))
-        if bGroup and len(bGroup.objects) > 0:
-            source.layers = list(bGroup.objects[0].layers)
         # reset source properties
         source.name = n
         source.cmlist_id = -1

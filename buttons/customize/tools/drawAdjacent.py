@@ -50,7 +50,7 @@ class BRICKER_OT_draw_adjacent(Operator):
     def poll(self, context):
         """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
-        active_obj = scn.objects.active
+        active_obj = bpy.context.object
         # check active object is not None
         if active_obj is None:
             return False
@@ -79,7 +79,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             # get fresh copy of self.bricksDict
             self.bricksDict, _ = getBricksDict(cm=cm)
             # initialize vars
-            obj = scn.objects.active
+            obj = bpy.context.object
             initial_active_obj_name = obj.name
             keysToMerge = []
             updateHasCustomObjs(cm, targetType)
@@ -147,7 +147,7 @@ class BRICKER_OT_draw_adjacent(Operator):
             self.undo_stack = UndoStack.get_instance()
             self.orig_undo_stack_length = self.undo_stack.getLength()
             scn, cm, _ = getActiveContextInfo()
-            obj = scn.objects.active
+            obj = bpy.context.object
             cm.customized = True
 
             # initialize self.bricksDict

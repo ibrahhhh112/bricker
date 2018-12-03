@@ -92,18 +92,12 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
     @staticmethod
     def addItem():
         scn = bpy.context.scene
-        active_object = scn.objects.active
+        active_object = bpy.context.object
         # if active object isn't on visible layer, don't set it as default source for new model
-        if active_object:
-            objVisible = False
-            for i in range(20):
-                if active_object.layers[i] and scn.layers[i]:
-                    objVisible = True
-            if not objVisible:
-                active_object = None
+        if active_object and not isObjVisibleInViewport(active_object):
+            active_object = None
         # if active object already has a model or isn't on visible layer, don't set it as default source for new model
-        # NOTE: active object may have been removed, so we need to re-check if none
-        if active_object:
+        elif active_object:
             for cm in scn.cmlist:
                 if cm.source_name == active_object.name:
                     active_object = None
