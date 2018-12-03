@@ -284,10 +284,17 @@ class BRICKER_OT_select_bricks(bpy.types.Operator):
 
     def execute(self, context):
         try:
-            select(getBricks(), deselect=self.deselect)
+            if self.deselect:
+                deselect(self.bricks)
+            else:
+                select(self.bricks)
         except:
             handle_exception()
         return{'FINISHED'}
+
+    def __init__(self):
+        self.bricks = getBricks()
+
 
 
 # -------------------------------------------------------------------

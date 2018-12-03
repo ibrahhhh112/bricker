@@ -246,7 +246,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 sourceDup.rotation_mode = "XYZ"
                 sourceDup.rotation_euler = Euler((0, 0, 0))
             self.createdObjects.append(sourceDup.name)
-            self.source.select = False
+            deselect(self.source)
             # remove modifiers and constraints
             for mod in sourceDup.modifiers:
                 sourceDup.modifiers.remove(mod)
@@ -419,7 +419,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # hide obj unless on scene current frame
             showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
             if not showCurObj:
-                obj.hide = True
+                obj.hide_viewport = True
                 obj.hide_render = True
             # lock location, rotation, and scale of created bricks
             obj.lock_location = (True, True, True)

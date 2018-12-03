@@ -71,7 +71,7 @@ def safeUnlink(obj, hide=True, protect=True):
     safeScn.objects.link(obj)
     obj.protected = protect
     if hide:
-        obj.hide = True
+        obj.hide_viewport = True
 
 
 def safeLink(obj, unhide=True, protect=False):
@@ -80,7 +80,7 @@ def safeLink(obj, unhide=True, protect=False):
     scn.objects.link(obj)
     obj.protected = protect
     if unhide:
-        obj.hide = False
+        obj.hide_viewport = False
     try:
         safeScn.objects.unlink(obj)
     except RuntimeError:

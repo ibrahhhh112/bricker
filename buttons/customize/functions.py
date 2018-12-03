@@ -280,9 +280,9 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             sizeStr = listToStr(sorted(siz[:2]) + [siz[2]])
             if (sizeStr == brickSize or typ == brickType) and (include == "BOTH" or (include == "INT" and not onShell) or (include == "EXT" and onShell)):
                 selectedSomething = True
-                curObj.select = True
+                select(curObj)
             elif only:
-                curObj.select = False
+                deselect(curObj)
 
         # if no brickSize bricks exist, remove from cm.brickSizesUsed or cm.brickTypesUsed
         removeUnusedFromList(cm, brickType=brickType, brickSize=brickSize, selectedSomething=selectedSomething)

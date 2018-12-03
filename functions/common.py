@@ -172,8 +172,8 @@ def drawBMesh(bm, name="drawnBMesh"):
     scn = bpy.context.scene   # grab a reference to the scene
     scn.objects.link(obj)     # link new object to scene
     scn.objects.active = obj  # make new object active
-    obj.select = True         # make new object selected (does not deselect other objects)
-    bm.to_mesh(m)          # push bmesh data into m
+    obj.select_set(True)      # make new object selected (does not deselect other objects)
+    bm.to_mesh(m)             # push bmesh data into m
     return obj
 
 
@@ -354,28 +354,26 @@ def openLayer(layerNum, scn=None):
 
 
 def deselectAll():
-    for obj in bpy.context.selected_objects:
-        if obj.select:
-            obj.select = False
+    deselect(bpy.context.selected_objects)
 
 
 def selectAll(hidden=False):
     for obj in bpy.context.scene.objects:
-        if not obj.select and (not obj.hide or hidden):
-            obj.select = True
+        if not obj.select_get() and (not obj.hide_viewport or hidden):
+            obj.select_set(True)
 
 
 def hide(objs):
     objs = confirmIter(objs)
     for obj in objs:
-        obj.hide = True
+        obj.hide_viewport = True
 
 
 def unhide(objs):
     objs = confirmIter(objs)
     for obj in objs:
-        if obj.hide:
-            obj.hide = False
+        if obj.hide_viewport:
+            obj.hide_viewport = False
 
 
 def setActiveObj(obj, scene=None):
@@ -384,21 +382,28 @@ def setActiveObj(obj, scene=None):
     scene.objects.active = obj
 
 
-def select(objList, active:bool=False, deselect:bool=False, only:bool=False, scene:Scene=None):
+def select(objList, active:bool=False, only:bool=False, scene:Scene=None):
     """ selects objs in list and deselects the rest """
     # confirm objList is a list of objects
     objList = confirmList(objList)
     # deselect all if selection is exclusive
-    if only and not deselect:
-        deselectAll()
+    if only: deselectAll()
     # select/deselect objects in list
     for obj in objList:
-        if obj is not None:
-            obj.select = not deselect
+        if obj is not None and obj.select_get() == False:
+            obj.select_set(True)
     # set active object
-    if active:
-        setActiveObj(objList[0], scene=scene)
-    return True
+    if active: setActiveObj(objList[0], scene=scene)
+
+
+def deselect(objList):
+    """ deselects objs in list """
+    # confirm objList is a list of objects
+    objList = confirmList(objList)
+    # select/deselect objects in list
+    for obj in objList:
+        if obj is not None and obj.select_get() == True:
+            obj.select_set(False)
 
 
 def delete(objs):
@@ -413,7 +418,7 @@ def duplicate(obj, linked=False, link_to_scene=False):
     copy = obj.copy()
     if not linked and copy.data:
         copy.data = copy.data.copy()
-    copy.hide = False
+    copy.hide_viewport = False
     if link_to_scene:
         bpy.context.scene.objects.link(copy)
     return copy

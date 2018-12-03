@@ -60,14 +60,14 @@ def handle_animation(scene):
             onCurF = adjusted_frame_current == cf
             for brick in curBricks.objects:
                 # hide bricks from view and render unless on current frame
-                if brick.hide == onCurF:
-                    brick.hide = not onCurF
+                if brick.hide_viewport == onCurF:
+                    brick.hide_viewport = not onCurF
                     brick.hide_render = not onCurF
                 if scn.objects.active and scn.objects.active.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
                     select(brick, active=True)
                 # prevent bricks from being selected on frame change
-                elif brick.select:
-                    brick.select = False
+                elif brick.select_get():
+                    brick.select_set(False)
 
 
 bpy.app.handlers.frame_change_pre.append(handle_animation)
