@@ -251,7 +251,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 except KeyError:
                     loc_diff = None
                 storeTransformData(cm, p, offsetBy=loc_diff)
-            if not cm.lastSplitModel and groupExists(Bricker_bricks_gn):
+            if not cm.lastSplitModel and collExists(Bricker_bricks_gn):
                 bricks = getBricks()
                 if len(bricks) > 0:
                     b = bricks[0]
@@ -293,8 +293,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             # clean up Bricker_bricks group
             sys.stdout.write("\rDeleting...")
             sys.stdout.flush()
-            if groupExists(Bricker_bricks_gn):
-                brickGroup = bpy.data.groups[Bricker_bricks_gn]
+            if collExists(Bricker_bricks_gn):
+                brickColl = bpy.data.collections[Bricker_bricks_gn]
                 bricks = getBricks()
                 if not cm.lastSplitModel:
                     if len(bricks) > 0:
@@ -306,7 +306,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 unhide(bricks)
                 select(bricks, only=True)
                 bpy.ops.object.delete()
-                bpy.data.groups.remove(brickGroup, do_unlink=True)
+                bpy.data.collections.remove(brickColl, do_unlink=True)
             cm.modelCreated = False
         elif modelType == "ANIMATION":
             # clean up Bricker_bricks group
@@ -318,14 +318,14 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     update_progress("Deleting", percent)
                     wm.progress_update(percent*100)
                 Bricker_bricks_curF_gn = Bricker_bricks_gn + "_f_" + str(i)
-                brickGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
-                if brickGroup:
-                    bricks = list(brickGroup.objects)
+                brickColl = bpy.data.collections.get(Bricker_bricks_curF_gn)
+                if brickColl:
+                    bricks = list(brickColl.objects)
                     if not skipTransAndAnimData:
                         cls.updateAnimationData(bricks, trans_and_anim_data)
                     if len(bricks) > 0:
                         delete(bricks)
-                    bpy.data.groups.remove(brickGroup, do_unlink=True)
+                    bpy.data.collections.remove(brickColl, do_unlink=True)
             cm.animated = False
         # finish status update
         update_progress("Deleting", 1)

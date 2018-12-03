@@ -60,7 +60,8 @@ def getLegoLogo(self, scn, typ, res, decimate, dimensions):
             if decimate != 0:
                 dMod = refLogo.modifiers.new('Decimate', type='DECIMATE')
                 dMod.ratio = 1 - (decimate / 10)
-                m = refLogo.to_mesh(scn, True, 'PREVIEW')
+                # TODO: use view layer with smoke, not just the first view layer
+                m = refLogo.to_mesh(scn.view_layers[0].depsgraph, True)
                 refLogo.modifiers.remove(dMod)
                 refLogo.data = m
             safeUnlink(refLogo)

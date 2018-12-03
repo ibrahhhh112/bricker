@@ -71,14 +71,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
     # get brick group
     group_name = group_name or 'Bricker_%(n)s_bricks' % locals()
-    bGroup = bpy.data.groups.get(group_name)
+    bColl = bpy.data.collections.get(group_name)
     # create new group if no existing group found
-    if bGroup is None:
-        bGroup = bpy.data.groups.new(group_name)
+    if bColl is None:
+        bColl = bpy.data.collections.new(group_name)
     # else, replace existing group
     elif clearExistingGroup:
-        for obj0 in bGroup.objects:
-            bGroup.objects.unlink(obj0)
+        for obj0 in bColl.objects:
+            bColl.objects.unlink(obj0)
 
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
@@ -277,8 +277,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
             # set up remaining brick info if brick object just created
-            if clearExistingGroup or brick.name not in bGroup.objects.keys():
-                bGroup.objects.link(brick)
+            if clearExistingGroup or brick.name not in bColl.objects.keys():
+                bColl.objects.link(brick)
             brick.parent = parent
             if not brick.isBrick:
                 scn.collection.objects.link(brick)
@@ -318,7 +318,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated
-        bGroup.collection.objects.link(allBricksObj)
+        bColl.collection.objects.link(allBricksObj)
         if not allBricksObj.isBrickifiedObject:
             scn.collection.objects.link(allBricksObj)
             # protect allBricksObj from being deleted

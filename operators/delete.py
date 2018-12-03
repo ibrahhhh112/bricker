@@ -261,8 +261,8 @@ class OBJECT_OT_delete_override(Operator):
                 cm = cmCur
                 break
             elif obj.isBrick:
-                bGroup = bpy.data.groups.get("Bricker_%(n)s_bricks" % locals())
-                if bGroup and len(bGroup.objects) < 2:
+                bColl = bpy.data.collections.get("Bricker_%(n)s_bricks" % locals())
+                if bColl and len(bColl.objects) < 2:
                     cm = cmCur
                     break
         if cm and update_model:

@@ -53,7 +53,7 @@ def handle_animation(scene):
             continue
         n = cm.source_name
         for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-            curBricks = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+            curBricks = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if curBricks is None:
                 continue
             adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
@@ -77,8 +77,8 @@ bpy.app.handlers.frame_change_pre.append(handle_animation)
 def isBrickerObjVisible(scn, cm, n):
     if cm.modelCreated or cm.animated:
         gn = "Bricker_%(n)s_bricks" % locals()
-        if groupExists(gn) and len(bpy.data.groups[gn].objects) > 0:
-            obj = bpy.data.groups[gn].objects[0]
+        if collExists(gn) and len(bpy.data.collections[gn].objects) > 0:
+            obj = bpy.data.collections[gn].objects[0]
         else:
             obj = None
     else:
@@ -133,8 +133,8 @@ def handle_selections(scene):
                 elif cf < cm.startFrame:
                     cf = cm.startFrame
                 gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-                if len(bpy.data.groups[gn].objects) > 0:
-                    select(list(bpy.data.groups[gn].objects), active=True, only=True)
+                if len(bpy.data.collections[gn].objects) > 0:
+                    select(list(bpy.data.collections[gn].objects), active=True, only=True)
                     scn.Bricker_last_active_object_name = bpy.context.object.name
             else:
                 select(source, active=True, only=True)
@@ -316,9 +316,9 @@ def handle_upconversion(scene):
                 for scn in bpy.data.scenes:
                     if scn.name.startswith("Rebrickr"):
                         scn.name = scn.name.replace("Rebrickr", "Bricker")
-                for group in bpy.data.groups:
-                    if group.name.startswith("Rebrickr"):
-                        group.name = group.name.replace("Rebrickr", "Bricker")
+                for coll in bpy.data.collections:
+                    if coll.name.startswith("Rebrickr"):
+                        coll.name = coll.name.replace("Rebrickr", "Bricker")
             # convert from v1_3 to v1_4
             if int(cm.version[2]) < 4:
                 # update "_frame_" to "_f_" in brick and group names
@@ -327,18 +327,18 @@ def handle_upconversion(scene):
                 if cm.animated:
                     for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                         Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
-                        bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
-                        if bGroup is None:
+                        bColl = bpy.data.collections.get(Bricker_bricks_curF_gn)
+                        if bColl is None:
                             continue
-                        bGroup.name = rreplace(bGroup.name, "frame", "f")
-                        for obj in bGroup.objects:
+                        bColl.name = rreplace(bColl.name, "frame", "f")
+                        for obj in bColl.objects:
                             obj.name = rreplace(obj.name, "frame", "f")
                 elif cm.modelCreated:
-                    bGroup = bpy.data.groups.get(Bricker_bricks_gn)
-                    if bGroup is None:
+                    bColl = bpy.data.collections.get(Bricker_bricks_gn)
+                    if bColl is None:
                         continue
-                    bGroup.name = rreplace(bGroup.name, "frame", "f")
-                    for obj in bGroup.objects:
+                    bColl.name = rreplace(bColl.name, "frame", "f")
+                    for obj in bColl.objects:
                         obj.name = rreplace(obj.name, "frame", "f")
                 # rename storage scene
                 sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")

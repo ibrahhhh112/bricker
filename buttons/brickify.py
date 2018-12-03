@@ -56,7 +56,7 @@ def updateCanRun(type):
             return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
         elif type == "MODEL":
             Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-            return commonNeedsUpdate or (groupExists(Bricker_bricks_gn) and len(bpy.data.groups[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
+            return commonNeedsUpdate or (collExists(Bricker_bricks_gn) and len(bpy.data.collections[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
 
 
 class BRICKER_OT_brickify(bpy.types.Operator):
@@ -94,9 +94,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     if obj:
                         bpy.data.objects.remove(obj, do_unlink=True)
                 for n in self.createdGroups:
-                    group = bpy.data.groups.get(n)
-                    if group:
-                        bpy.data.groups.remove(group)
+                    cn = bpy.data.collections.get(n)
+                    if cn:
+                        bpy.data.collections.remove(cn)
                 if self.source:
                     self.source.protected = False
                     select(self.source, active=True)
@@ -250,7 +250,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 parent_clear(sourceDup)
             # send to new mesh
             if not cm.isSmoke:
-                sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+                # TODO: use view layer with smoke, not just the first view layer
+                sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
             # apply transformation data
             apply_transform(sourceDup)
             scn.update()
@@ -282,14 +283,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         logo_details, refLogo = self.getLogo(scn, cm, dimensions)
 
         # create new bricks
-        group_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
+        coll_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
 
         ct = time.time()
-        bGroup = bpy.data.groups.get(group_name)
-        if bGroup:
-            self.createdGroups.append(group_name)
+        bColl = bpy.data.collections.get(coll_name)
+        if bColl:
+            self.createdGroups.append(coll_name)
             # transform bricks to appropriate location
-            self.transformBricks(bGroup, cm, parent, self.source, sourceDup_details, self.action)
+            self.transformBricks(bColl, cm, parent, self.source, sourceDup_details, self.action)
             # apply old animation data to objects
             for d0 in trans_and_anim_data:
                 obj = bpy.data.objects.get(d0["name"])
@@ -395,8 +396,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
             # create new bricks
             try:
-                group_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
-                self.createdGroups.append(group_name)
+                coll_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
+                self.createdGroups.append(coll_name)
             except KeyboardInterrupt:
                 self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
                 if curFrame != cm.startFrame:
@@ -408,7 +409,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return
 
             # get object with created bricks
-            obj = bpy.data.groups[group_name].objects[0]
+            obj = bpy.data.collections[coll_name].objects[0]
             # hide obj unless on scene current frame
             showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
             if not showCurObj:
@@ -471,13 +472,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # update materials in bricksDict
         if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, origSource, curFrame)
         # make bricks
-        group_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
+        coll_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated, active=True, only=True)
         # store current bricksDict to cache
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
-        return group_name
+        return coll_name
 
     def isValid(self, scn, cm, source, Bricker_bricks_gn):
         """ returns True if brickify action can run, else report WARNING/ERROR and return False """
@@ -512,7 +513,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
-            if groupExists(Bricker_bricks_gn):
+            if collExists(Bricker_bricks_gn):
                 self.report({"WARNING"}, "Brickified Model already created.")
                 return False
             # verify source exists and is of type mesh
@@ -545,7 +546,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if self.action == "UPDATE_MODEL":
             # make sure 'Bricker_[source name]_bricks' group exists
-            if not groupExists(Bricker_bricks_gn):
+            if not collExists(Bricker_bricks_gn):
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
                 return False
 
@@ -568,10 +569,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         return True
 
-    def transformBricks(self, bGroup, cm, parent, source, sourceDup_details, action):
+    def transformBricks(self, bColl, cm, parent, source, sourceDup_details, action):
         # if using local orientation and creating model for first time
         if cm.useLocalOrient and action == "CREATE":
-            obj = parent if cm.splitModel else bGroup.objects[0]
+            obj = parent if cm.splitModel else bColl.objects[0]
             source_details = bounds(source)
             lastMode = source.rotation_mode
             obj.rotation_mode = "XYZ"
@@ -584,7 +585,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if cm.lastSplitModel and not cm.splitModel:
             # transfer transformation of parent to object
             parent.rotation_mode = "XYZ"
-            for obj in bGroup.objects:
+            for obj in bColl.objects:
                 obj.location = parent.location
                 obj.rotation_mode = parent.rotation_mode
                 obj.rotation_euler.rotate(parent.rotation_euler)
@@ -597,12 +598,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # if model is not split
         elif not cm.splitModel:
             # apply stored transformation to bricks
-            applyTransformData(cm, bGroup.objects)
+            applyTransformData(cm, bColl.objects)
         # if model wasn't split but is now
         elif not cm.lastSplitModel:
             # apply stored transformation to parent of bricks
             applyTransformData(cm, parent)
-        obj = bGroup.objects[0] if len(bGroup.objects) > 0 else None
+        obj = bColl.objects[0] if len(bColl.objects) > 0 else None
         if obj is None:
             return
         # select the bricks object unless it's massive
@@ -688,7 +689,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             sourceDup.animation_data_clear()
             # send to new mesh
             if not cm.isSmoke:
-                sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+                # TODO: use view layer with smoke, not just the first view layer
+                sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
             # apply transform data
             apply_transform(sourceDup)
             duplicates[curFrame] = sourceDup

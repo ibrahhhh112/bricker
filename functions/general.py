@@ -192,15 +192,15 @@ def getBricks(cm=None, typ=None):
     typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
     if typ == "MODEL":
         gn = "Bricker_%(n)s_bricks" % locals()
-        bGroup = bpy.data.groups[gn]
-        bricks = list(bGroup.objects)
+        bColl = bpy.data.collections[gn]
+        bricks = list(bColl.objects)
     elif typ == "ANIM":
         bricks = []
         for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
             gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-            bGroup = bpy.data.groups.get(gn)
-            if bGroup:
-                bricks += list(bGroup.objects)
+            bColl = bpy.data.collections.get(gn)
+            if bColl:
+                bricks += list(bColl.objects)
     return bricks
 
 
