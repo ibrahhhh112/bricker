@@ -38,7 +38,7 @@ from ....functions import *
 
 class BRICKER_OT_merge_bricks(Operator):
     """Merge selected bricks (converts brickType to either 'BRICK' or 'PLATE')"""
-    bl_idname = "BRICKER_OT_merge_bricks"
+    bl_idname = "bricker.merge_bricks"
     bl_label = "Merge Bricks"
     bl_options = {"REGISTER", "UNDO"}
 

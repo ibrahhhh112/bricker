@@ -2,7 +2,7 @@ bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
     "version"     : (1, 6, 0),
-    "blender"     : (2, 8, 0),
+    "blender"     : (2, 80, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "",  # used for warning icon and text in addons panel
@@ -72,7 +72,7 @@ classes = (
     addon_updater_ops.OBJECT_OT_addon_updater_ignore,
     addon_updater_ops.OBJECT_OT_addon_updater_end_background,
     # bricker/buttons
-    buttons.addAbsToMatObj.BRICKER_OT_add_abs_to_mat_obj,
+    buttons.addAbsToMatObj.BRICKER_OT_add_abs_to_mat_bbj,
     buttons.bake.BRICKER_OT_bake_model,
     buttons.bevel.BRICKER_OT_bevel,
     buttons.brickify.BRICKER_OT_brickify,
@@ -102,10 +102,10 @@ classes = (
     BRICKER_PT_preferences,
     # bricker/operators
     operators.delete.OBJECT_OT_delete_override,
-    operators.duplicate.OBJECT_OT_duplicate_override,
-    operators.duplicate.OBJECT_OT_duplicate_override_move,
-    operators.move_to_layer.OBJECT_OT_move_to_layer_override,
-    operators.move_to_layer.OBJECT_OT_move_to_layer_method,
+    operators.duplicate.BRICKER_OT_duplicate_override,
+    operators.duplicate.BRICKER_OT_duplicate_move,
+    operators.move_to_layer.BRICKER_OT_move_to_layer_override,
+    operators.move_to_layer.BRICKER_OT_move_to_layer,
     # bricker/ui
     BRICKER_MT_specials,
     BRICKER_PT_brick_models,

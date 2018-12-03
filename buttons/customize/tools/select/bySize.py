@@ -35,7 +35,7 @@ from .....functions import *
 
 class BRICKER_OT_select_bricks_by_size(Operator):
     """Select bricks of specified size"""
-    bl_idname = "BRICKER_OT_select_bricks_by_size"
+    bl_idname = "bricker.select_bricks_by_size"
     bl_label = "Select Bricks by Size"
     bl_options = {"REGISTER", "UNDO"}
 

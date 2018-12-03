@@ -32,7 +32,7 @@ from ..functions import *
 
 class BRICKER_OT_report_error(bpy.types.Operator):
     """Report a bug via an automatically generated issue ticket"""
-    bl_idname = "BRICKER_OT_report_error"
+    bl_idname = "bricker.report_error"
     bl_label = "Report Error"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -64,7 +64,7 @@ class BRICKER_OT_report_error(bpy.types.Operator):
 
 class BRICKER_OT_close_error(bpy.types.Operator):
     """Deletes error report from blender's memory (still exists in file system)"""
-    bl_idname = "BRICKER_OT_close_error"
+    bl_idname = "bricker.close_report_error"
     bl_label = "Close Report Error"
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 

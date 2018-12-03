@@ -34,7 +34,7 @@ from .matlist_utils import *
 
 # ui list item actions
 class BRICKER_OT_matlist_actions(bpy.types.Operator):
-    bl_idname = "BRICKER_OT_matlist_action"
+    bl_idname = "bricker.mat_list_action"
     bl_label = "Mat Slots List Action"
 
     action = bpy.props.EnumProperty(

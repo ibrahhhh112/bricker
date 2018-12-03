@@ -33,7 +33,7 @@ from ..functions import *
 
 class BRICKER_OT_revert_settings(Operator):
     """Revert Matrix settings to save model customizations"""
-    bl_idname = "BRICKER_OT_revert_settings"
+    bl_idname = "bricker.revert_matrix_settings"
     bl_label = "Revert Matrix Settings"
     bl_options = {"REGISTER", "UNDO"}
 

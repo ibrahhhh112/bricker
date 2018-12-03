@@ -36,7 +36,7 @@ from ...ui.cmlist_actions import *
 class BRICKER_OT_initialize_undo_stack(Operator):
     """ initializes undo stack for changes to the BFM cache """
     bl_category = "Bricker"
-    bl_idname = "BRICKER_OT_initialize_undo_stack"
+    bl_idname = "bricker.initialize"
     bl_label = "Initialize Undo Stack"
     bl_space_type  = 'VIEW_3D'
     bl_region_type = 'TOOLS'

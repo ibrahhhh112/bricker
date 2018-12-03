@@ -36,7 +36,7 @@ from ..functions import *
 
 class BRICKER_OT_bevel(bpy.types.Operator):
     """Execute bevel modifier to all bricks with above settings"""
-    bl_idname = "BRICKER_OT_bevel"
+    bl_idname = "bricker.bevel"
     bl_label = "Bevel Bricks"
     bl_options = {"REGISTER", "UNDO"}
 

@@ -43,7 +43,7 @@ python_undo_state = {}
 
 class UndoStack():
     bl_category = "Bricker"
-    bl_idname = "BRICKER_UL_undo_stack"
+    bl_idname = "bricker.undo_stack"
     bl_label = "Undo Stack"
     bl_space_type  = 'VIEW_3D'
     bl_region_type = 'TOOLS'

@@ -37,7 +37,7 @@ from ..lib.abs_plastic_materials import *
 
 class BRICKER_OT_export_ldraw(Operator):
     """export bricksDict to ldraw file"""
-    bl_idname = "BRICKER_OT_export_ldraw"
+    bl_idname = "bricker.export_ldraw"
     bl_label = "Export to Ldraw File"
     bl_options = {"REGISTER", "UNDO"}
 

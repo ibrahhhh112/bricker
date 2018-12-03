@@ -33,7 +33,7 @@ from ..buttons.customize.functions import *
 
 class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
     """Redraw custom bricks with current custom object"""
-    bl_idname = "BRICKER_OT_redraw_custom_bricks"
+    bl_idname = "bricker.redraw_custom"
     bl_label = "Redraw Custom Bricks"
     bl_options = {"REGISTER", "UNDO"}
 

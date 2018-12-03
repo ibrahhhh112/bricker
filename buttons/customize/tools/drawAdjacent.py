@@ -39,7 +39,7 @@ from ....functions import *
 
 class BRICKER_OT_draw_adjacent(Operator):
     """Draw brick to one side of active brick"""
-    bl_idname = "BRICKER_OT_draw_adjacent"
+    bl_idname = "bricker.draw_adjacent"
     bl_label = "Draw Adjacent Bricks"
     bl_options = {"REGISTER", "UNDO"}
 

@@ -47,7 +47,7 @@ def getModelType(cm):
 
 class BRICKER_OT_delete_model(bpy.types.Operator):
     """ Delete Brickified model """
-    bl_idname = "BRICKER_OT_delete_model"
+    bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -184,7 +184,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     source.rotation_euler.rotate(rotateBy)
                 # set source origin back to original point (tracked by last vert)
                 scn.update()
-                # TODO: MATRIX MULT
                 setObjOrigin(source, source.matrix_world * source.data.vertices[0].co)
                 source.data.vertices[0].co = last_co
                 source.rotation_mode = lastMode

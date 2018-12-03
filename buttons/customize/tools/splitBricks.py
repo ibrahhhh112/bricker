@@ -37,7 +37,7 @@ from ....functions import *
 
 class BRICKER_OT_split_bricks(Operator):
     """Split selected bricks into 1x1 bricks"""
-    bl_idname = "BRICKER_OT_split_bricks"
+    bl_idname = "bricker.split_bricks"
     bl_label = "Split Brick(s)"
     bl_options = {"REGISTER", "UNDO"}
 

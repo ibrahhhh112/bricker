@@ -37,7 +37,7 @@ from ....functions import *
 
 class BRICKER_OT_redraw_bricks(Operator):
     """redraw selected bricks from bricksDict"""
-    bl_idname = "BRICKER_OT_redraw_bricks"
+    bl_idname = "bricker.redraw_bricks"
     bl_label = "Redraw Bricks"
     bl_options = {"REGISTER", "UNDO"}
 

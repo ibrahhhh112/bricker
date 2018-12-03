@@ -177,6 +177,7 @@ def handle_selections(scene):
         scn.cmlist_index = -1
 
 
+# TODO: Use new timer API
 # bpy.app.handlers.scene_update_pre.append(handle_selections)
 
 
@@ -193,6 +194,7 @@ def prevent_user_from_viewing_storage_scene(scene):
         showErrorMessage("This scene is for Bricker internal use only")
 
 
+# TODO: Use new timer API
 # bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
 
 

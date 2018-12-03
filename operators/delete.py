@@ -39,7 +39,7 @@ from ..lib.bricksDict.functions import getDictKey
 
 class OBJECT_OT_delete_override(Operator):
     """OK?"""
-    bl_idname = "OBJECT_OT_delete_override"
+    bl_idname = "bricker.delete"
     bl_label = "Delete"
     bl_options = {'REGISTER', 'INTERNAL'}
 

@@ -38,7 +38,7 @@ from ....functions import *
 
 class BRICKER_OT_change_material(Operator):
     """Change material for selected bricks"""
-    bl_idname = "BRICKER_OT_change_material"
+    bl_idname = "bricker.change_brick_material"
     bl_label = "Change Material"
     bl_options = {"REGISTER", "UNDO"}
 

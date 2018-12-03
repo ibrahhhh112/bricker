@@ -38,7 +38,7 @@ from ....functions import *
 
 class BRICKER_OT_change_type(Operator):
     """change brick type of active brick"""
-    bl_idname = "BRICKER_OT_change_type"
+    bl_idname = "bricker.change_brick_type"
     bl_label = "Change Brick Type"
     bl_options = {"REGISTER", "UNDO"}
 

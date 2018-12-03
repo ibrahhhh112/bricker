@@ -110,7 +110,7 @@ class BRICKER_PT_brick_models(Panel):
         row.template_list("BRICKER_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
         col = row.column(align=True)
-        col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "BRICKER_OT_initialize_undo_stack", text="", icon="ZOOMIN").action = 'ADD'
+        col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ZOOMIN").action = 'ADD'
         col.operator("cmlist.list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
         col.menu("BRICKER_MT_specials", icon='DOWNARROW_HLT', text="")
         if len(scn.cmlist) > 1:
@@ -120,7 +120,7 @@ class BRICKER_PT_brick_models(Panel):
 
         # draw menu options below UI list
         if scn.cmlist_index == -1:
-            layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "BRICKER_OT_initialize_undo_stack", text="New Brick Model", icon="ZOOMIN").action = 'ADD'
+            layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ZOOMIN").action = 'ADD'
         else:
             cm, n = getActiveContextInfo()[1:]
             # first, draw source object text
@@ -132,7 +132,7 @@ class BRICKER_PT_brick_models(Panel):
                 col = split.column(align=True)
                 col.prop_search(cm, "source_name", scn, "objects", text='')
                 col = split.column(align=True)
-                col.operator("OBJECT_OT_eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
+                col.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
                 col1 = layout.column(align=True)
 
             # initialize obj variable
@@ -141,19 +141,19 @@ class BRICKER_PT_brick_models(Panel):
             # if undo stack not initialized, draw initialize button
             if not bpy.props.bricker_initialized:
                 row = col1.row(align=True)
-                row.operator("BRICKER_OT_initialize_undo_stack", text="Initialize Bricker", icon="MODIFIER")
+                row.operator("bricker.initialize", text="Initialize Bricker", icon="MODIFIER")
                 # draw test brick generator button (for testing purposes only)
                 if BRICKER_OT_test_brick_generators.drawUIButton():
                     col = layout.column(align=True)
-                    col.operator("BRICKER_OT_test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
+                    col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
             # if use animation is selected, draw animation options
             elif cm.useAnimation:
                 if cm.animated:
                     row = col1.row(align=True)
-                    row.operator("BRICKER_OT_delete_model", text="Delete Brick Animation", icon="CANCEL")
+                    row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.operator("BRICKER_OT_brickify", text="Update Animation", icon="FILE_REFRESH")
+                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -166,7 +166,7 @@ class BRICKER_PT_brick_models(Panel):
                 else:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("BRICKER_OT_brickify", text="Brickify Animation", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH")
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -182,7 +182,7 @@ class BRICKER_PT_brick_models(Panel):
                 if not cm.animated and not cm.modelCreated:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("BRICKER_OT_brickify", text="Brickify Object", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -195,9 +195,9 @@ class BRICKER_PT_brick_models(Panel):
                             col.label("be lost.")
                 else:
                     row = col1.row(align=True)
-                    row.operator("BRICKER_OT_delete_model", text="Delete Brickified Model", icon="CANCEL")
+                    row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
                     col = layout.column(align=True)
-                    col.operator("BRICKER_OT_brickify", text="Update Model", icon="FILE_REFRESH")
+                    col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -211,7 +211,7 @@ class BRICKER_PT_brick_models(Panel):
                         row = col.row(align=True)
                         row.label("Customizations will be lost")
                         row = col.row(align=True)
-                        row.operator("BRICKER_OT_revert_settings", text="Revert Settings", icon="LOOP_BACK")
+                        row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
 
             col = layout.column(align=True)
             row = col.row(align=True)
@@ -220,10 +220,10 @@ class BRICKER_PT_brick_models(Panel):
             split = layout.split(align=True, percentage=0.9)
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("BRICKER_OT_report_error", text="Report Error", icon="URL")
+            row.operator("bricker.report_error", text="Report Error", icon="URL")
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("BRICKER_OT_close_error", text="", icon="PANEL_CLOSE")
+            row.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
 
 
 def is_baked(mod):
@@ -547,9 +547,9 @@ class BRICKER_PT_brick_types(Panel):
                 col1 = split.column(align=True)
                 col1.prop_search(cm, prop, scn, "objects", text="")
                 col1 = split.column(align=True)
-                col1.operator("OBJECT_OT_eye_dropper", icon="EYEDROPPER", text="").target_prop = prop
+                col1.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = prop
                 col1 = split.column(align=True)
-                col1.operator("BRICKER_OT_redraw_custom_bricks", icon="FILE_REFRESH", text="").target_prop = prop
+                col1.operator("bricker.redraw_custom", icon="FILE_REFRESH", text="").target_prop = prop
 
 
 class BRICKER_PT_merge_settings(Panel):
@@ -639,7 +639,7 @@ class BRICKER_PT_customize_model(Panel):
             layout.label("Matrix not cached!")
             return
         # if not bpy.props.bricker_initialized:
-        #     layout.operator("BRICKER_OT_initialize_undo_stack", icon="MODIFIER")
+        #     layout.operator("bricker.initialize", icon="MODIFIER")
         #     return
 
         col1 = layout.column(align=True)
@@ -647,45 +647,45 @@ class BRICKER_PT_customize_model(Panel):
         split = col1.split(align=True, percentage=0.5)
         # set top exposed
         col = split.column(align=True)
-        col.operator("BRICKER_OT_select_bricks_by_type", text="By Type")
+        col.operator("bricker.select_bricks_by_type", text="By Type")
         # set bottom exposed
         col = split.column(align=True)
-        col.operator("BRICKER_OT_select_bricks_by_size", text="By Size")
+        col.operator("bricker.select_bricks_by_size", text="By Size")
 
         col1 = layout.column(align=True)
         col1.label("Toggle Exposure:")
         split = col1.split(align=True, percentage=0.5)
         # set top exposed
         col = split.column(align=True)
-        col.operator("BRICKER_OT_set_exposure", text="Top").side = "TOP"
+        col.operator("bricker.set_exposure", text="Top").side = "TOP"
         # set bottom exposed
         col = split.column(align=True)
-        col.operator("BRICKER_OT_set_exposure", text="Bottom").side = "BOTTOM"
+        col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
 
         col1 = layout.column(align=True)
         col1.label("Brick Operations:")
         split = col1.split(align=True, percentage=0.5)
         # split brick into 1x1s
         col = split.column(align=True)
-        col.operator("BRICKER_OT_split_bricks", text="Split")
+        col.operator("bricker.split_bricks", text="Split")
         # merge selected bricks
         col = split.column(align=True)
-        col.operator("BRICKER_OT_merge_bricks", text="Merge")
+        col.operator("bricker.merge_bricks", text="Merge")
         # Add identical brick on +/- x/y/z
         row = col1.row(align=True)
-        row.operator("BRICKER_OT_draw_adjacent", text="Draw Adjacent Bricks")
+        row.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
         # change brick type
         row = col1.row(align=True)
-        row.operator("BRICKER_OT_change_type", text="Change Type")
+        row.operator("bricker.change_brick_type", text="Change Type")
         # change material type
         row = col1.row(align=True)
-        row.operator("BRICKER_OT_change_material", text="Change Material")
+        row.operator("bricker.change_brick_material", text="Change Material")
         # additional controls
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(cm, "autoUpdateOnDelete")
         # row = col.row(align=True)
-        # row.operator("BRICKER_OT_redraw_bricks")
+        # row.operator("bricker.redraw_bricks")
 
 
 class BRICKER_PT_materials(Panel):
@@ -735,7 +735,7 @@ class BRICKER_PT_materials(Panel):
             if cm.modelCreated or cm.animated:
                 col = layout.column(align=True)
                 row = col.row(align=True)
-                row.operator("BRICKER_OT_apply_material", icon="FILE_TICK")
+                row.operator("bricker.apply_material", icon="FILE_TICK")
         elif cm.materialType == "RANDOM":
             col = layout.column(align=True)
             row = col.row(align=True)
@@ -748,7 +748,7 @@ class BRICKER_PT_materials(Panel):
                 elif cm.lastMaterialType == cm.materialType or (not cm.useAnimation and cm.lastSplitModel):
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.operator("BRICKER_OT_apply_material", icon="FILE_TICK")
+                    row.operator("bricker.apply_material", icon="FILE_TICK")
             col = layout.column(align=True)
         elif cm.materialType == "SOURCE" and obj:
             col = layout.column(align=True)
@@ -775,7 +775,7 @@ class BRICKER_PT_materials(Panel):
                 if cm.modelCreated:
                     row = col.row(align=True)
                     if cm.matShellDepth <= cm.lastMatShellDepth:
-                        row.operator("BRICKER_OT_apply_material", icon="FILE_TICK")
+                        row.operator("bricker.apply_material", icon="FILE_TICK")
                     else:
                         row.label("Run 'Update Model' to apply changes")
 
@@ -808,12 +808,12 @@ class BRICKER_PT_materials(Panel):
                     col1 = split.column(align=True)
                     col1.template_list("MATERIAL_UL_matslots_example", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
                     col1 = split.column(align=True)
-                    col1.operator("BRICKER_OT_matlist_action", icon='ZOOMOUT', text="").action = 'REMOVE'
+                    col1.operator("bricker.mat_list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
                     if not brick_materials_loaded():
                         col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
-                        col.operator("BRICKER_OT_add_abs_to_mat_obj", text="Add ABS Plastic Materials", icon="ZOOMIN")
+                        col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
                     # import settings
                     if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
@@ -900,7 +900,7 @@ class BRICKER_PT_detailing(Panel):
                 col1 = split.column(align=True)
                 col1.prop_search(cm, "logoObjectName", scn, "objects", text="")
                 col1 = split.column(align=True)
-                col1.operator("OBJECT_OT_eye_dropper", icon="EYEDROPPER", text="").target_prop = 'logoObjectName'
+                col1.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'logoObjectName'
                 row = col.row(align=True)
                 row.prop(cm, "logoScale", text="Scale")
             row.prop(cm, "logoInset", text="Inset")
@@ -939,9 +939,9 @@ class BRICKER_PT_detailing(Panel):
             row = col.row(align=True)
             row.prop(cm, "bevelProfile", text="Profile")
             row = col.row(align=True)
-            row.operator("BRICKER_OT_bevel", text="Remove Bevel", icon="CANCEL")
+            row.operator("bricker.bevel", text="Remove Bevel", icon="CANCEL")
         except (IndexError, KeyError):
-            row.operator("BRICKER_OT_bevel", text="Bevel bricks", icon="MOD_BEVEL")
+            row.operator("bricker.bevel", text="Bevel bricks", icon="MOD_BEVEL")
 
 
 class BRICKER_PT_supports(Panel):
@@ -1015,7 +1015,7 @@ class BRICKER_PT_advanced(Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("BRICKER_OT_caches", text="Clear Cache")
+        row.operator("bricker.clear_cache", text="Clear Cache")
         row = col.row(align=True)
         row.label("Insideness:")
         row = col.row(align=True)
@@ -1034,7 +1034,7 @@ class BRICKER_PT_advanced(Panel):
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)
-            col.operator("BRICKER_OT_test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
+            col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
 
 
 class BRICKER_PT_matrix_details(Panel):
@@ -1145,13 +1145,13 @@ class BRICKER_PT_export(Panel):
         scn, cm, _ = getActiveContextInfo()
 
         col = layout.column(align=True)
-        col.operator("BRICKER_OT_bake_model", icon="OBJECT_DATA")
+        col.operator("bricker.bake_model", icon="OBJECT_DATA")
         col = layout.column(align=True)
         col.prop(cm, "exportPath", text="")
         col = layout.column(align=True)
         if bpy.props.Bricker_developer_mode > 0:
             row = col.row(align=True)
-            row.operator("BRICKER_OT_export_model_data", text="Export Model Data", icon="EXPORT")
+            row.operator("bricker.export_model_data", text="Export Model Data", icon="EXPORT")
         if (cm.modelCreated or cm.animated) and cm.brickType != "CUSTOM":
             row = col.row(align=True)
-            row.operator("BRICKER_OT_export_ldraw", text="Export Ldraw", icon="EXPORT")
+            row.operator("bricker.export_ldraw", text="Export Ldraw", icon="EXPORT")
