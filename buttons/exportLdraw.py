@@ -1,5 +1,5 @@
 """
-    Copyright (C) 2018 Bricks Brought to Life
+    Copyright (C) 2017 Bricks Brought to Life
     http://bblanimation.com/
     chris@bblanimation.com
 
@@ -85,6 +85,7 @@ class BRICKER_OT_export_ldraw(Operator):
             # get dictionary of keys based on z value
             keysDict = getKeysDict(bricksDict)
             # iterate through z locations in bricksDict (bottom to top)
+            i = 0
             for z in sorted(keysDict.keys()):
                 for key in keysDict[z]:
                     # skip bricks that aren't displayed
@@ -110,7 +111,7 @@ class BRICKER_OT_export_ldraw(Operator):
                     # get coordinate for brick in Ldraw units
                     co = self.blendToLdrawUnits(cm, bricksDict, zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed)
+                    mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0
@@ -122,9 +123,9 @@ class BRICKER_OT_export_ldraw(Operator):
                         rgba = getMaterialColor(mat_name)
                     # get part number and ldraw file name for brick
                     parts = legalBricks[size[2]][typ]
-                    for i,part in enumerate(parts):
-                        if parts[i]["s"] in (size[:2], size[1::-1]):
-                            part = parts[i]["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and bricksDict[key]["rotated"] else "pt"]
+                    for j,part in enumerate(parts):
+                        if parts[j]["s"] in (size[:2], size[1::-1]):
+                            part = parts[j]["pt2" if typ == "SLOPE" and size[:2] in ([4, 2], [2, 4], [3, 2], [2, 3]) and bricksDict[key]["rotated"] else "pt"]
                             break
                     brickFile = "%(part)s.dat" % locals()
                     # offset the coordinate and round to ensure appropriate Ldraw location
@@ -132,6 +133,7 @@ class BRICKER_OT_export_ldraw(Operator):
                     co = Vector((round_nearest(co.x, 10), round_nearest(co.y, 8), round_nearest(co.z, 10)))
                     # write line to file for brick
                     f.write("1 {color} {x} {y} {z} {matrix} {brickFile}\n".format(color=color, x=co.x, y=co.y, z=co.z, matrix=matrix, brickFile=brickFile))
+                    i += 1
                 f.write("0 STEP\n")
             f.close()
             if not cm.lastLegalBricksOnly:
@@ -143,7 +145,7 @@ class BRICKER_OT_export_ldraw(Operator):
         """ convert location of brick from blender units to ldraw units """
         brickD = bricksDict[key]
         size = brickD["size"]
-        loc = getBrickCenter(bricksDict, key, zStep=zStep)
+        loc = getBrickCenter(bricksDict, key, zStep)
         dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
         h = 8 * zStep
         loc.x = loc.x * (20 / (dimensions["width"] + dimensions["gap"]))

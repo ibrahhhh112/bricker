@@ -182,7 +182,7 @@ class BRICKER_OT_change_type(Operator):
 
                 # skip bricks that are already of type self.brickType
                 if (typ == targetBrickType and
-                    (typ != "SLOPE" or
+                    (not typ.startswith("SLOPE") or
                      bricksDict[dictKey]["flipped"] == self.flipBrick and
                      bricksDict[dictKey]["rotated"] == self.rotateBrick)):
                     continue

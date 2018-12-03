@@ -123,23 +123,34 @@ class BRICKER_PT_brick_models(Panel):
             layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ZOOMIN").action = 'ADD'
         else:
             cm, n = getActiveContextInfo()[1:]
-            # first, draw source object text
-            source_name = " %(n)s" % locals() if cm.animated or cm.modelCreated else ""
-            col1 = layout.column(align=True)
-            col1.label("Source Object:%(source_name)s" % locals())
-            if not (cm.animated or cm.modelCreated):
-                split = col1.split(align=True, percentage=0.85)
-                col = split.column(align=True)
-                col.prop_search(cm, "source_name", scn, "objects", text='')
-                col = split.column(align=True)
-                col.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
+            if not createdWithNewerVersion(cm):
+                # first, draw source object text
+                source_name = " %(n)s" % locals() if cm.animated or cm.modelCreated else ""
                 col1 = layout.column(align=True)
+                col1.label("Source Object:%(source_name)s" % locals())
+                if not (cm.animated or cm.modelCreated):
+                    split = col1.split(align=True, percentage=0.85)
+                    col = split.column(align=True)
+                    col.prop_search(cm, "source_name", scn, "objects", text='')
+                    col = split.column(align=True)
+                    col.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
+                    col1 = layout.column(align=True)
 
-            # initialize obj variable
+            # initialize variables
             obj = bpy.data.objects.get(cm.source_name)
+            v_str = cm.version[:3]
 
+            # if model created with newer version, disable
+            if createdWithNewerVersion(cm):
+                col = layout.column(align=True)
+                col.scale_y = 0.7
+                col.label("Model was created with")
+                col.label("Bricker v%(v_str)s. Please" % locals())
+                col.label("update Bricker in your")
+                col.label("addon preferences to edit")
+                col.label("this model.")
             # if undo stack not initialized, draw initialize button
-            if not bpy.props.bricker_initialized:
+            elif not bpy.props.bricker_initialized:
                 row = col1.row(align=True)
                 row.operator("bricker.initialize", text="Initialize Bricker", icon="MODIFIER")
                 # draw test brick generator button (for testing purposes only)
@@ -199,7 +210,6 @@ class BRICKER_PT_brick_models(Panel):
                     col = layout.column(align=True)
                     col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
-                        v_str = cm.version[:3]
                         col = layout.column(align=True)
                         col.scale_y = 0.7
                         col.label("Model was created with")
@@ -836,22 +846,33 @@ class BRICKER_PT_materials(Panel):
                 col.scale_y = 0.5
                 col.label("Based on RGB value of first")
                 col.separator()
-                col.label("'Diffuse' or 'Principled' node")
+                if scn.render.engine == "octane":
+                    nodeNamesStr = "'Octane Diffuse' node"
+                elif scn.render.engine == "LUXCORE":
+                    nodeNamesStr = "'Matte Material' node"
+                else:
+                    nodeNamesStr = "'Diffuse' or 'Principled' node"
+                col.label(nodeNames)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
-                col = layout.column(align=True)
-                col.label("Material Properties:")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSpecular")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapRoughness")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSubsurface")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapSubsurfaceSaturation")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapIOR")
-                row = col.row(align=True)
-                row.prop(cm, "colorSnapTransmission")
+                if scn.render.engine in ["CYCLES", "octane"]:
+                    col = layout.column(align=True)
+                    col.label("Material Properties:")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapSpecular")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapRoughness")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapIOR")
+                if scn.render.engine == "CYCLES":
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapSubsurface")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapSubsurfaceSaturation")
+                    row = col.row(align=True)
+                    row.prop(cm, "colorSnapTransmission")
+                if scn.render.engine in ["CYCLES", "octane"]:
+                    row = col.row(align=True)
+                    row.prop(cm, "includeTransparency")
                 col = layout.column(align=False)
                 col.scale_y = 0.5
                 col.separator()
@@ -879,6 +900,14 @@ class BRICKER_PT_detailing(Panel):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
 
+        if cm.brickType == "CUSTOM":
+            col = layout.column(align=True)
+            col.scale_y = 0.7
+            row = col.row(align=True)
+            row.label("(not applied to custom")
+            row = col.row(align=True)
+            row.label("brick types)")
+            layout.separator()
         col = layout.column(align=True)
         row = col.row(align=True)
         row.label("Studs:")
@@ -920,12 +949,6 @@ class BRICKER_PT_detailing(Panel):
 
         row = col.row(align=True)
         row.label("Bevel:")
-        if cm.lastBrickType == "CUSTOM":
-            col = layout.column(align=True)
-            col.scale_y = 0.7
-            col.label("Not available for custom")
-            col.label("brick types")
-            return
         row = col.row(align=True)
         if not (cm.modelCreated or cm.animated):
             row.prop(cm, "bevelAdded", text="Bevel Bricks")
@@ -1149,9 +1172,9 @@ class BRICKER_PT_export(Panel):
         col = layout.column(align=True)
         col.prop(cm, "exportPath", text="")
         col = layout.column(align=True)
-        if bpy.props.Bricker_developer_mode > 0:
-            row = col.row(align=True)
-            row.operator("bricker.export_model_data", text="Export Model Data", icon="EXPORT")
         if (cm.modelCreated or cm.animated) and cm.brickType != "CUSTOM":
             row = col.row(align=True)
             row.operator("bricker.export_ldraw", text="Export Ldraw", icon="EXPORT")
+        if bpy.props.Bricker_developer_mode > 0:
+            row = col.row(align=True)
+            row.operator("bricker.export_model_data", text="Export Model Data", icon="EXPORT")

@@ -80,12 +80,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         for obj0 in bGroup.objects:
             bGroup.objects.unlink(obj0)
 
-    brick_mats = []
-    if cm.materialType == "RANDOM":
-        matObj = getMatObject(cm.id, typ="RANDOM")
-        brick_mats = list(matObj.data.materials.keys())
-
-
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
     buildIsDirty = cm.buildIsDirty
@@ -122,6 +116,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     randS2 = np.random.RandomState(cm.mergeSeed+1)
     randS3 = np.random.RandomState(cm.mergeSeed+2)
     # initialize other variables
+    brick_mats = getBrickMats(cm.materialType, cm.id)
     brickSizeStrings = {}
     mats = []
     allMeshes = bmesh.new()
@@ -243,14 +238,17 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     old_percent = updateProgressBars(printStatus, cursorStatus, 0, -1, "Building")
 
     # draw merged bricks
-    for i, k2 in enumerate(keys):
-        if bricksDict[k2]["parent"] != "self" or not bricksDict[k2]["draw"]:
-            continue
-        loc = getDictLoc(bricksDict, k2)
-        # create brick based on the current brick info
-        drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
-        # print status to terminal and cursor
-        old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
+    i = 0
+    for z in sorted(keysDict.keys()):
+        for k2 in keysDict[z]:
+            if bricksDict[k2]["parent"] != "self" or not bricksDict[k2]["draw"]:
+                continue
+            loc = getDictLoc(bricksDict, k2)
+            # create brick based on the current brick info
+            drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
+            # print status to terminal and cursor
+            old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
+            i += 1
 
     # end progress bars
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)
@@ -266,34 +264,25 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         for i, key in enumerate(keys):
             if bricksDict[key]["parent"] != "self" or not bricksDict[key]["draw"]:
                 continue
-            print("A")
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict), old_percent, "Linking to Scene")
-            print("B")
             # get brick
             name = bricksDict[key]["name"]
             brick = bpy.data.objects.get(name)
-            print("C")
             # create vert group for bevel mod (assuming only logo verts are selected):
             vg = brick.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 brick.vertex_groups.remove(vg)
-            print("D")
             vg = brick.vertex_groups.new("%(name)s_bvl" % locals())
-            print("E")
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
-            print("F")
             # set up remaining brick info if brick object just created
             if clearExistingGroup or brick.name not in bGroup.objects.keys():
-                bGroup.collection.objects.link(brick)
-            print("G")
+                bGroup.objects.link(brick)
             brick.parent = parent
-            print("H")
             if not brick.isBrick:
                 scn.collection.objects.link(brick)
                 brick.isBrick = True
-            print("I")
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:

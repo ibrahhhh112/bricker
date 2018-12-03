@@ -204,7 +204,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         description="Type of brick used to build the model",
         items=[("STUD_HOLLOWS", "Hollow Studs", description),
                ("STUDS", "Studs", description),
-               # ("SLOPES", "Slopes (fast)", description),
+               ("SLOPES", "Slopes (fast)", description),
                ("PLATES", "Plates", description),
                ("CYLINDERS", "Cylinders", description),
                ("CUSTOM", "Custom", "Use custom object to build the model"),
@@ -311,7 +311,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=False,
         update=dirtyBuild)
     mergeInternals: EnumProperty(
-        name="Merge Internals",
+        name="Merge Shell with Internals",
         description="Merge bricks on shell with internal bricks",
         items=[("BOTH", "Horizontal & Vertical", "Merge shell bricks with internals in both directions"),
                ("HORIZONTAL", "Horizontal", "Merge shell bricks with internals horizontally, but not vertically"),

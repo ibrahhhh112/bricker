@@ -340,6 +340,12 @@ def createdWithUnsupportedVersion(cm):
     return cm.version[:3] != bpy.props.bricker_version[:3]
 
 
+def createdWithNewerVersion(cm):
+    modelVersion = cm.version.split(".")
+    brickerVersion = bpy.props.bricker_version.split(".")
+    return (int(modelVersion[0]) > int(brickerVersion[0])) or (int(modelVersion[0]) == int(brickerVersion[0]) and int(modelVersion[1]) > int(brickerVersion[1]))
+
+
 def getLocsInBrick(bricksDict, size, zStep, key, loc=None):
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
@@ -373,7 +379,7 @@ def getDictLoc(bricksDict, key):
     return loc
 
 
-def getBrickCenter(bricksDict, key, loc=None, zStep=None):
+def getBrickCenter(bricksDict, key, zStep, loc=None):
     brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key, loc=loc)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
@@ -411,8 +417,8 @@ def getFlipRot(dir):
     return flip, rot
 
 
-def legalBrickSize(s, t):
-     return s[:2] in bpy.props.Bricker_legal_brick_sizes[s[2]][t]
+def legalBrickSize(size, type):
+     return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
 
 
 def get_override(area_type, region_type):
@@ -552,3 +558,11 @@ def getSaturationMatrix(s:float):
     sg = (1 - s) * 0.6094  # or 0.7154
     sb = (1 - s) * 0.0820  # or 0.0721
     return Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))
+
+
+def getBrickMats(materialType, cm_id):
+    brick_mats = []
+    if materialType == "RANDOM":
+        matObj = getMatObject(cm_id, typ="RANDOM")
+        brick_mats = list(matObj.data.materials.keys())
+    return brick_mats

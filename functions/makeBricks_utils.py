@@ -71,7 +71,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
     randomRotMatrix = getRandomRotMatrix(randomRot, randS2, brickSize) if randomRot > 0 else None
     # get brick location
     locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
-    brickLoc = getBrickCenter(bricksDict, key, loc, zStep) + locOffset
+    brickLoc = getBrickCenter(bricksDict, key, zStep, loc) + locOffset
 
     if split:
         brick = bpy.data.objects.get(brickD["name"])

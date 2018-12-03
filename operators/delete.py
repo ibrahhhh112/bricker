@@ -41,7 +41,7 @@ class OBJECT_OT_delete_override(Operator):
     """OK?"""
     bl_idname = "bricker.delete"
     bl_label = "Delete"
-    bl_options = {'REGISTER', 'INTERNAL'}
+    bl_options = {'REGISTER'}
 
     ################################################
     # Blender Operator methods
@@ -53,7 +53,6 @@ class OBJECT_OT_delete_override(Operator):
 
     def execute(self, context):
         try:
-            print("running custom delete function")
             self.runDelete(context)
         except:
             handle_exception()

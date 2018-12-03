@@ -132,19 +132,18 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo()
         self.undo_stack.iterateStates(cm)
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-        source = self.getObjectToBrickify(cm)
 
         # ensure that Bricker can run successfully
-        if not self.isValid(scn, cm, source, Bricker_bricks_gn):
+        if not self.isValid(scn, cm, self.source, Bricker_bricks_gn):
             return {"CANCELLED"}
 
         # initialize variables
-        source.cmlist_id = cm.id
+        self.source.cmlist_id = cm.id
         matrixDirty = matrixReallyIsDirty(cm)
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
 
         # # check if source object is smoke simulation domain
-        cm.isSmoke = is_smoke(source)
+        cm.isSmoke = is_smoke(self.source)
         if cm.isSmoke != cm.lastIsSmoke:
             cm.matrixIsDirty = True
 
@@ -161,7 +160,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # set layers to source layers
         oldLayers = list(scn.layers)
-        sourceLayers = list(source.layers)
+        sourceLayers = list(self.source.layers)
         if oldLayers != sourceLayers:
             setLayers(sourceLayers)
 
@@ -200,8 +199,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.exposeParent = False
 
         # unlink source from scene and link to safe scene
-        if source.name in scn.objects.keys():
-            safeUnlink(source, hide=False)
+        if self.source.name in scn.objects.keys():
+            safeUnlink(self.source, hide=False)
         # reset layers
         if oldLayers != sourceLayers:
             setLayers(oldLayers)
@@ -494,6 +493,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if warningMsg is not None:
                 self.report({"WARNING"}, warningMsg)
                 return False
+        # ensure source is defined
+        if source is None:
+            self.report({"WARNING"}, "Source object '{n}' could not be found".format(n=cm.source_name))
+            return False
         # ensure source name isn't too long
         if len(cm.source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
@@ -708,7 +711,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         return duplicates
 
     def getObjectToBrickify(self, cm):
-        objToBrickify = bpy.data.objects.get(cm.source_name) or bpy.context.active_object
+        objToBrickify = bpy.data.objects.get(cm.source_name)
         return objToBrickify
 
     def getNewParent(self, Bricker_parent_on, loc):
