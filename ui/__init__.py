@@ -110,8 +110,8 @@ class BRICKER_PT_brick_models(Panel):
         row.template_list("BRICKER_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
         col = row.column(align=True)
-        col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ZOOMIN").action = 'ADD'
-        col.operator("cmlist.list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
+        col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ADD").action = 'ADD'
+        col.operator("cmlist.list_action", icon='REMOVE', text="").action = 'REMOVE'
         col.menu("BRICKER_MT_specials", icon='DOWNARROW_HLT', text="")
         if len(scn.cmlist) > 1:
             col.separator()
@@ -120,7 +120,7 @@ class BRICKER_PT_brick_models(Panel):
 
         # draw menu options below UI list
         if scn.cmlist_index == -1:
-            layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ZOOMIN").action = 'ADD'
+            layout.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="New Brick Model", icon="ADD").action = 'ADD'
         else:
             cm, n = getActiveContextInfo()[1:]
             if not createdWithNewerVersion(cm):
@@ -452,7 +452,7 @@ class BRICKER_PT_model_settings(Panel):
         #     # row.scale_y = 0.7
         #     row.label("(Source is NOT single closed mesh)")
         #     # row = col.row(align=True)
-        #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh", icon="EDIT")
+        #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh")
 
 
 
@@ -818,12 +818,12 @@ class BRICKER_PT_materials(Panel):
                     col1 = split.column(align=True)
                     col1.template_list("MATERIAL_UL_matslots_example", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
                     col1 = split.column(align=True)
-                    col1.operator("bricker.mat_list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
+                    col1.operator("bricker.mat_list_action", icon='REMOVE', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
                     if not brick_materials_loaded():
                         col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
-                        col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
+                        col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD")
                     # import settings
                     if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
