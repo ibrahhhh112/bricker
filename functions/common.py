@@ -170,7 +170,7 @@ def drawBMesh(bm, name="drawnBMesh"):
     obj = bpy.data.objects.new(name, m)
 
     scn = bpy.context.scene   # grab a reference to the scene
-    scn.objects.link(obj)     # link new object to scene
+    scn.collection.objects.link(obj)     # link new object to scene
     scn.objects.active = obj  # make new object active
     obj.select_set(True)      # make new object selected (does not deselect other objects)
     bm.to_mesh(m)             # push bmesh data into m
@@ -420,7 +420,7 @@ def duplicate(obj, linked=False, link_to_scene=False):
         copy.data = copy.data.copy()
     copy.hide_viewport = False
     if link_to_scene:
-        bpy.context.scene.objects.link(copy)
+        bpy.context.scene.collection.objects.link(copy)
     return copy
 
 

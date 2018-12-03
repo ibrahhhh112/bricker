@@ -150,7 +150,7 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
             matObj = bpy.data.objects.get(n)
             if matObj is None:
                 matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                getSafeScn().objects.link(matObj)
+                getSafeScn().collection.objects.link(matObj)
 
     def removeItem(cls, idx):
         scn, cm, sn = getActiveContextInfo()

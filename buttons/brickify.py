@@ -716,7 +716,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         parent = bpy.data.objects.new(Bricker_parent_on, m)
         parent.location = loc
         safeScn = getSafeScn()
-        safeScn.objects.link(parent)
+        safeScn.collection.objects.link(parent)
         return parent
 
     def setAction(self, cm):

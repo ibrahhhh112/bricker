@@ -286,12 +286,12 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             print("F")
             # set up remaining brick info if brick object just created
             if clearExistingGroup or brick.name not in bGroup.objects.keys():
-                bGroup.objects.link(brick)
+                bGroup.collection.objects.link(brick)
             print("G")
             brick.parent = parent
             print("H")
             if not brick.isBrick:
-                scn.objects.link(brick)
+                scn.collection.objects.link(brick)
                 brick.isBrick = True
             print("I")
         # end progress bars
@@ -329,9 +329,9 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated
-        bGroup.objects.link(allBricksObj)
+        bGroup.collection.objects.link(allBricksObj)
         if not allBricksObj.isBrickifiedObject:
-            scn.objects.link(allBricksObj)
+            scn.collection.objects.link(allBricksObj)
             # protect allBricksObj from being deleted
             allBricksObj.isBrickifiedObject = True
         bricksCreated.append(allBricksObj)

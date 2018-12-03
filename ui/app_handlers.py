@@ -352,7 +352,7 @@ def handle_upconversion(scene):
                             bpy.data.objects.remove(obj, True)
                         else:
                             try:
-                                sto_scn_new.objects.link(obj)
+                                sto_scn_new.collection.objects.link(obj)
                             except RuntimeError:
                                 pass
                     bpy.data.scenes.remove(sto_scn_old)
@@ -362,7 +362,7 @@ def handle_upconversion(scene):
                     matObj = bpy.data.objects.get(n)
                     if matObj is None:
                         matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                        sto_scn_new.objects.link(matObj)
+                        sto_scn_new.collection.objects.link(matObj)
                 # update names of Bricker source objects
                 old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
                 if old_source is not None:

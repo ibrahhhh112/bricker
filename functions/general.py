@@ -68,7 +68,7 @@ def safeUnlink(obj, hide=True, protect=True):
         scn.objects.unlink(obj)
     except RuntimeError:
         pass
-    safeScn.objects.link(obj)
+    safeScn.collection.objects.link(obj)
     obj.protected = protect
     if hide:
         obj.hide_viewport = True
@@ -77,7 +77,7 @@ def safeUnlink(obj, hide=True, protect=True):
 def safeLink(obj, unhide=True, protect=False):
     scn = bpy.context.scene
     safeScn = getSafeScn()
-    scn.objects.link(obj)
+    scn.collection.objects.link(obj)
     obj.protected = protect
     if unhide:
         obj.hide_viewport = False
