@@ -134,8 +134,7 @@ def bounds(obj, local=False, use_adaptive_domain=True):
     om = obj.matrix_world
 
     if not local:
-        # TODO: MATRIX MULT
-        worldify = lambda p: om * Vector(p[:])
+        worldify = lambda p: om @ Vector(p[:])
         coords = [worldify(p).to_tuple() for p in local_coords]
     else:
         coords = [p[:] for p in local_coords]

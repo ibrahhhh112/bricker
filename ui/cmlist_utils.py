@@ -102,7 +102,6 @@ def updateModelScale(self, context):
     _, _, s = getTransformData(cm)
     parentOb = bpy.data.objects.get(cm.parent_name)
     if parentOb:
-        # TODO: MATRIX MULT
         parentOb.scale = Vector(s) * cm.transformScale
 
 

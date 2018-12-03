@@ -53,10 +53,9 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
         region = context.region
         rv3d = context.region_data
         coord = x, y
-        ray_max = 10000
+        ray_max = 1000000
         view_vector = region_2d_to_vector_3d(region, rv3d, coord)
         ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
-        # TODO: MATRIX MULT
         ray_target = ray_origin + (view_vector * ray_max)
 
         result, loc, normal, idx, ob, mx = scn.ray_cast(ray_origin, ray_target)

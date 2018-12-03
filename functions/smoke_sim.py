@@ -44,7 +44,6 @@ def getSmokeInfo(smoke_obj):
         domain_res = getAdjustedRes(smoke_data, tuple(smoke_data.domain_resolution))
         adapt = smoke_data.use_adaptive_domain
         max_res_i = smoke_data.resolution_max
-        # TODO: MATRIX MULT
         max_res = Vector(domain_res) * (max_res_i / max(domain_res))
         max_res = getAdjustedRes(smoke_data, max_res)
         return density_grid, flame_grid, color_grid, domain_res, max_res, adapt

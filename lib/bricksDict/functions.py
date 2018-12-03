@@ -199,8 +199,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
             principled.inputs[0].default_value = rgba
             principled.inputs[1].default_value = sss
             sat_mat = getSaturationMatrix(sssSat)
-            # TODO: MATRIX MULT
-            principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) * sat_mat).to_tuple()
+            principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) @ sat_mat).to_tuple()
             principled.inputs[5].default_value = specular
             principled.inputs[7].default_value = roughness
             principled.inputs[14].default_value = ior
@@ -363,8 +362,7 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
             s_mat_z = Matrix.Scale((brickScale.z - dimensions["gap"]) / curCustomObj_details.dist.z, 4, Vector((0, 0, 1)))
             # apply transformation to custom object dup mesh
             customObj0.data.transform(t_mat)
-            # TODO: MATRIX MULT
-            customObj0.data.transform(s_mat_x * s_mat_y * s_mat_z)
+            customObj0.data.transform(s_mat_x @ s_mat_y @ s_mat_z)
             # center mesh origin
             centerMeshOrigin(customObj0.data, dimensions, brickSize)
             # store fresh data to customData variable
