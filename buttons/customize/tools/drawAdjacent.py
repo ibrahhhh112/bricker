@@ -199,17 +199,17 @@ class BRICKER_OT_draw_adjacent(Operator):
         return items
 
     # define props for popup
-    brickType = bpy.props.EnumProperty(
+    brickType: bpy.props.EnumProperty(
         name="Brick Type",
         description="Type of brick to draw adjacent to current brick",
         items=get_items,
         default=None)
-    zPos = bpy.props.BoolProperty(name="+Z (Top)", default=False)
-    zNeg = bpy.props.BoolProperty(name="-Z (Bottom)", default=False)
-    xPos = bpy.props.BoolProperty(name="+X (Front)", default=False)
-    xNeg = bpy.props.BoolProperty(name="-X (Back)", default=False)
-    yPos = bpy.props.BoolProperty(name="+Y (Right)", default=False)
-    yNeg = bpy.props.BoolProperty(name="-Y (Left)", default=False)
+    zPos: bpy.props.BoolProperty(name="+Z (Top)", default=False)
+    zNeg: bpy.props.BoolProperty(name="-Z (Bottom)", default=False)
+    xPos: bpy.props.BoolProperty(name="+X (Front)", default=False)
+    xNeg: bpy.props.BoolProperty(name="-X (Back)", default=False)
+    yPos: bpy.props.BoolProperty(name="+Y (Right)", default=False)
+    yNeg: bpy.props.BoolProperty(name="-Y (Left)", default=False)
 
     #############################################
     # class methods

@@ -84,9 +84,9 @@ class OBJECT_OT_delete_override(Operator):
     ###################################################
     # class variables
 
-    use_global = BoolProperty(default=False)
-    update_model = BoolProperty(default=True)
-    undo = BoolProperty(default=True)
+    use_global: BoolProperty(default=False)
+    update_model: BoolProperty(default=True)
+    undo: BoolProperty(default=True)
 
     ################################################
     # class methods

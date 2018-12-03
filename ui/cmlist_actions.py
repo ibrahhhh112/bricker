@@ -77,7 +77,7 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
     ###################################################
     # class variables
 
-    action = bpy.props.EnumProperty(
+    action: bpy.props.EnumProperty(
         items=(
             ('UP', "Up", ""),
             ('DOWN', "Down", ""),
@@ -280,7 +280,7 @@ class BRICKER_OT_select_bricks(bpy.types.Operator):
         cm = scn.cmlist[scn.cmlist_index]
         return cm.animated or cm.modelCreated
 
-    deselect = BoolProperty(default=False)
+    deselect: BoolProperty(default=False)
 
     def execute(self, context):
         try:

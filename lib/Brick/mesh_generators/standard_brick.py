@@ -25,7 +25,7 @@ import math
 
 # Blender imports
 from mathutils import Vector, Matrix
-from bpy.types import Object, CollectionProperty
+from bpy.types import Object
 
 # Addon imports
 from .geometric_shapes import *

@@ -648,9 +648,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             elif mod.type == "SMOKE":
                 smoke = True
                 point_cache = mod.domain_settings.point_cache
-        # if self.source.rigid_body is not None:
-        #     cm.rigid_body = True
-        #     storeRigidBodySettings(self.source)
 
         # step through uncached frames to run simulation
         if soft_body or smoke:

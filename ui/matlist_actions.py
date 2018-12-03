@@ -37,7 +37,7 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
     bl_idname = "bricker.mat_list_action"
     bl_label = "Mat Slots List Action"
 
-    action = bpy.props.EnumProperty(
+    action: bpy.props.EnumProperty(
         items=(
             ('UP', "Up", ""),
             ('DOWN', "Down", ""),

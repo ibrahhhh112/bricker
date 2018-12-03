@@ -58,7 +58,7 @@ class BRICKER_OT_redraw_custom_bricks(bpy.types.Operator):
             handle_exception()
         return{"FINISHED"}
 
-    target_prop = StringProperty(default="")
+    target_prop: StringProperty(default="")
 
     #############################################
     # class methods

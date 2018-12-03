@@ -227,11 +227,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         # reset source properties
         source.name = n
         source.cmlist_id = -1
-        # # restore rigid body settings
-        # if cm.rigid_body:
-        #     select(source, active=True)
-        #     bpy.ops.rigidbody.object_add()
-        #     retrieveRigidBodySettings(source)
 
     @classmethod
     def cleanDupes(cls, cm, preservedFrames, modelType):

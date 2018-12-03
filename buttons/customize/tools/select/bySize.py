@@ -78,19 +78,19 @@ class BRICKER_OT_select_bricks_by_size(Operator):
         return items
 
     # define props for popup
-    brickSize = bpy.props.EnumProperty(
+    brickSize: bpy.props.EnumProperty(
         name="By Size",
         description="Select all bricks of specified size (X, Y, Z)",
         items=get_items)
-    only = bpy.props.BoolProperty(
+    only: bpy.props.BoolProperty(
         name="Only",
         description="Select only bricks of given type/size",
         default=False)
-    allModels = bpy.props.BoolProperty(
+    allModels: bpy.props.BoolProperty(
         name="All Models",
         description="Select bricks of given type/size from all models in file",
         default=False)
-    include = bpy.props.EnumProperty(
+    include: bpy.props.EnumProperty(
         name="Include",
         description="Include bricks on shell, inside shell, or both",
         items = [("EXT", "Externals", ""),

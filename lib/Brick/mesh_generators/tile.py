@@ -27,7 +27,6 @@ import numpy as np
 
 # Blender imports
 from mathutils import Vector
-from bpy.types import Object, CollectionProperty
 
 # Addon imports
 from .geometric_shapes import *

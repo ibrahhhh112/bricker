@@ -35,7 +35,7 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-    target_prop = StringProperty(default='')
+    target_prop: StringProperty(default='')
 
     def __init__(self):
         FSM = {}

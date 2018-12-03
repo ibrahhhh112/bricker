@@ -27,7 +27,6 @@ import json
 # Blender imports
 import bpy
 from bpy.types import Operator
-from bpy.props import StringProperty, CollectionProperty
 
 # Addon imports
 from ..functions import *

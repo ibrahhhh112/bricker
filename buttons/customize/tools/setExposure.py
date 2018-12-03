@@ -123,7 +123,7 @@ class BRICKER_OT_set_exposure(Operator):
     objNamesD = {}
 
     # properties
-    side = bpy.props.EnumProperty(
+    side: bpy.props.EnumProperty(
         items=(("TOP", "Top", ""),
                ("BOTTOM", "Bottom", ""),
                ("BOTH", "Both", ""),),

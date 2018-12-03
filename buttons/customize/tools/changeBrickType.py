@@ -121,16 +121,16 @@ class BRICKER_OT_change_type(Operator):
 
 
     # properties
-    brickType = bpy.props.EnumProperty(
+    brickType: bpy.props.EnumProperty(
         name="Brick Type",
         description="Choose what type of brick should be drawn at this location",
         items=get_items,
         default=None)
-    flipBrick = bpy.props.BoolProperty(
+    flipBrick: bpy.props.BoolProperty(
         name="Flip Brick Orientation",
         description="Flip the brick about the non-mirrored axis",
         default=False)
-    rotateBrick = bpy.props.BoolProperty(
+    rotateBrick: bpy.props.BoolProperty(
         name="Rotate 90 Degrees",
         description="Rotate the brick about the Z axis (brick width & depth must be equivalent)",
         default=False)
