@@ -50,7 +50,7 @@ def settingsCanBeDrawn():
     scn = bpy.context.scene
     if scn.cmlist_index == -1:
         return False
-    if bversion() < '002.078.00':
+    if bversion() < '002.080.00':
         return False
     if not bpy.props.bricker_initialized:
         return False
@@ -94,10 +94,10 @@ class BRICKER_PT_brick_models(Panel):
         addon_updater_ops.update_notice_box_ui(self, context)
 
         # if blender version is before 2.78, ask user to upgrade Blender
-        if bversion() < '002.078.00':
+        if bversion() < '002.080.00':
             col = layout.column(align=True)
             col.label(text="ERROR: upgrade needed", icon='ERROR')
-            col.label(text="Bricker requires Blender 2.78+")
+            col.label(text="This version of Bricker requires Blender 2.80+")
             return
 
         # draw UI list and list actions
