@@ -226,21 +226,6 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 # if diffuse.inputs[0].is_linked:
                 #     # TODO: read different types of input to the diffuse node
                 first_node.inputs[0].default_value = newRGBA
-    else:
-        if mat_is_new:
-            mat.diffuse_color = rgba[:3]
-            mat.diffuse_intensity = 1.0
-            if a0 < 1.0:
-                mat.use_transparency = True
-                mat.alpha = rgba[3]
-        else:
-            if mat.use_nodes:
-                mat.use_nodes = False
-            r1, g1, b1 = mat.diffuse_color
-            a1 = mat.alpha
-            r2, g2, b2, a2 = getAverage(Vector(rgba), Vector((r1, g1, b1, a1)), mat.num_averaged)
-            mat.diffuse_color = [r2, g2, b2]
-            mat.alpha = a2
     mat.num_averaged += 1
     return mat_name
 
