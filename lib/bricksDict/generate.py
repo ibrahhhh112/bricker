@@ -70,7 +70,7 @@ def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundTy
     intersections = 0
     # cast rays until no more rays to cast
     while True:
-        _,location,normal,index = obj.ray_cast(orig,direction)#distance=edgeLen*1.00000000001)
+        _,location,normal,index = obj.ray_cast(orig, direction)#distance=edgeLen*1.00000000001)
         if index == -1: break
         if intersections == 0:
             firstDirection = direction.dot(normal)

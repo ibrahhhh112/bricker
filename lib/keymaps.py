@@ -34,6 +34,6 @@ def addKeymaps(km):
     # Default operator overrides
     kmi = km.keymap_items.new("bricker.duplicate_move", 'D', 'PRESS', shift=True)
     kmi = km.keymap_items.new("bricker.delete", 'X', 'PRESS')
-    kmi = km.keymap_items.new("bricker.move_to_layer", 'M', 'PRESS')
+    # kmi = km.keymap_items.new("bricker.move_to_layer", 'M', 'PRESS')
 
     kmi = km.keymap_items.new("bricker.initialize", 'I', 'PRESS', shift=True)

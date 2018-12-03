@@ -209,7 +209,7 @@ class OBJECT_OT_delete_override(Operator):
                 obj_users_scene = len(obj.users_scene)
                 scn.objects.unlink(obj)
                 if use_global or obj_users_scene == 1:
-                    bpy.data.objects.remove(obj, True)
+                    bpy.data.objects.remove(obj, do_unlink=True)
             else:
                 print(obj.name + ' is protected')
                 protected.append(obj.name)
@@ -272,6 +272,6 @@ class OBJECT_OT_delete_override(Operator):
             obj_users_scene = len(obj.users_scene)
             scn.objects.unlink(obj)
             if use_global or obj_users_scene == 1:
-                bpy.data.objects.remove(obj, True)
+                bpy.data.objects.remove(obj, do_unlink=True)
 
     ################################################

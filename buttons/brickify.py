@@ -92,7 +92,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 for n in self.createdObjects:
                     obj = bpy.data.objects.get(n)
                     if obj:
-                        bpy.data.objects.remove(obj, True)
+                        bpy.data.objects.remove(obj, do_unlink=True)
                 for n in self.createdGroups:
                     group = bpy.data.groups.get(n)
                     if group:

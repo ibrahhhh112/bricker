@@ -182,7 +182,7 @@ def setObjOrigin(obj, loc):
 #     if fromObj:
 #         if deleteFromObj:
 #             m = fromObj.data
-#             bpy.data.objects.remove(fromObj, True)
+#             bpy.data.objects.remove(fromObj, do_unlink=True)
 #             bpy.data.meshes.remove(m)
 
 

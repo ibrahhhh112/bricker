@@ -80,11 +80,11 @@ class BRICKER_PT_preferences(AddonPreferences):
         # draw addon prefs
         prefs = bpy.props.bricker_preferences
         row = col.row(align=True)
-        split = row.split(align=True, percentage=0.275)
+        split = row.split(align=True, factor=0.275)
         col = split.column(align=True)
-        col.label("Default Brick Height:")
+        col.label(text="Default Brick Height:")
         col = split.column(align=True)
-        split = col.split(align=True, percentage=0.5)
+        split = col.split(align=True, factor=0.5)
         col = split.column(align=True)
         col.prop(prefs, "brickHeightDefault", text="")
         col = split.column(align=True)

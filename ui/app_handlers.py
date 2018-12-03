@@ -114,7 +114,7 @@ def handle_selections(scene):
     #             scn.cmlist_index = -1
     # TODO: Check if active object (with active cmlist index) is no longer visible
     # if scn.cmlist_index changes, select and make source or Brick Model active
-    elif scn.Bricker_last_cmlist_index != scn.cmlist_index and scn.cmlist_index != -1:
+    if scn.Bricker_last_cmlist_index != scn.cmlist_index and scn.cmlist_index != -1:
         scn.Bricker_last_cmlist_index = scn.cmlist_index
         cm = scn.cmlist[scn.cmlist_index]
         source = bpy.data.objects.get(cm.source_name)
@@ -346,7 +346,7 @@ def handle_upconversion(scene):
                 if sto_scn_old is not None:
                     for obj in sto_scn_old.objects:
                         if obj.name.startswith("Bricker_refLogo"):
-                            bpy.data.objects.remove(obj, True)
+                            bpy.data.objects.remove(obj, do_unlink=True)
                         else:
                             try:
                                 sto_scn_new.collection.objects.link(obj)

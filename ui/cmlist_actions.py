@@ -157,7 +157,7 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
             for n in matObjNames:
                 matObj = bpy.data.objects.get(n)
                 if matObj is not None:
-                    bpy.data.objects.remove(matObj, True)
+                    bpy.data.objects.remove(matObj, do_unlink=True)
             scn.cmlist.remove(idx)
             if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
                 scn.cmlist_index = 0
@@ -301,7 +301,7 @@ class BRICKER_UL_cmlist_items(UIList):
         # Make sure your code supports all 3 layout types
         if self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-        split = layout.split(0.9)
+        split = layout.split(factor=0.9)
         split.prop(item, "name", text="", emboss=False, translate=False, icon='MOD_REMESH')
 
     def invoke(self, context, event):

@@ -105,8 +105,8 @@ classes = (
     operators.delete.OBJECT_OT_delete_override,
     operators.duplicate.OBJECT_OT_duplicate_override,
     operators.duplicate.OBJECT_OT_duplicate_move,
-    operators.move_to_layer.OBJECT_OT_move_to_layer_override,
-    operators.move_to_layer.OBJECT_OT_move_to_layer,
+    # operators.move_to_layer.OBJECT_OT_move_to_layer_override,
+    # operators.move_to_layer.OBJECT_OT_move_to_layer,
     # bricker/ui
     BRICKER_MT_specials,
     BRICKER_PT_brick_models,

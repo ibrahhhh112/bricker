@@ -50,6 +50,8 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
     def hover_scene(self, context, x, y, source_name):
         """ casts ray through point x,y and sets self.ob if obj intersected """
         scn = context.scene
+        # TODO: use the active view layer, not just the first one
+        view_layer = scn.view_layers[0]
         region = context.region
         rv3d = context.region_data
         coord = x, y
@@ -58,7 +60,7 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
         ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
         ray_target = ray_origin + (view_vector * ray_max)
 
-        result, loc, normal, idx, ob, mx = scn.ray_cast(ray_origin, ray_target)
+        result, loc, normal, idx, ob, mx = scn.ray_cast(view_layer, ray_origin, ray_target)
 
         if result and not ob.name.startswith('Bricker_' + source_name):
             self.ob = ob
