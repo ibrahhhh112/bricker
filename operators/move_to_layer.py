@@ -97,7 +97,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
     def runMove(self, context):
         scn = bpy.context.scene
         for name in self.object_names:
-            obj = context.scene.objects.get(name)
+            obj = scn.collection.objects.get(name)
             obj.layers = self.layers
             if not obj.isBrickifiedObject or obj.cmlist_id == -1:
                 continue

@@ -262,7 +262,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         sourceDup = sourceDup or self.source
 
         # link sourceDup if it isn't in scene
-        if sourceDup.name not in scn.objects.keys():
+        if sourceDup.name not in scn.collection.all_objects.keys():
             safeLink(sourceDup)
             scn.update()
 

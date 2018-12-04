@@ -371,15 +371,15 @@ class OBJECT_OT_addon_updater_install_manually(bpy.types.Operator):
 		row = layout.row()
 
 		if updater.update_link != None:
-			row.operator("wm.url_open",text="Direct download").url=\
+			row.operator("wm.url_open", text="Direct download").url=\
 					updater.update_link
 		else:
-			row.operator("wm.url_open",text="(failed to retrieve direct download)")
+			row.operator("wm.url_open", text="(failed to retrieve direct download)")
 			row.enabled = False
 
 			if updater.website != None:
 				row = layout.row()
-				row.operator("wm.url_open",text="Open website").url=\
+				row.operator("wm.url_open", text="Open website").url=\
 						updater.website
 			else:
 				row = layout.row()
@@ -787,15 +787,15 @@ def update_notice_box_ui(self, context):
 	split = row.split(align=True)
 	colL = split.column(align=True)
 	colL.scale_y = 1.5
-	colL.operator(OBJECT_OT_addon_updater_ignore.bl_idname,icon="X",text="Ignore")
+	colL.operator(OBJECT_OT_addon_updater_ignore.bl_idname, icon="X", text="Ignore")
 	colR = split.column(align=True)
 	colR.scale_y = 1.5
 	if updater.manual_only==False:
 		colR.operator(OBJECT_OT_addon_updater_update_now.bl_idname,
-						"Update", icon="LOOP_FORWARDS")
+						text="Update", icon="LOOP_FORWARDS")
 		col.operator("wm.url_open", text="Open website").url = updater.website
 		#col.operator("wm.url_open",text="Direct download").url=updater.update_link
-		col.operator(OBJECT_OT_addon_updater_install_manually.bl_idname, "Install manually")
+		col.operator(OBJECT_OT_addon_updater_install_manually.bl_idname, text="Install manually")
 	else:
 		#col.operator("wm.url_open",text="Direct download").url=updater.update_link
 		col.operator("wm.url_open", text="Get it now").url = \
@@ -859,15 +859,15 @@ def update_settings_ui(self, context, element=None):
 		if "ssl" in updater.error_msg.lower():
 			split.enabled = True
 			split.operator(OBJECT_OT_addon_updater_install_manually.bl_idname,
-						updater.error)
+						text=updater.error)
 		else:
 			split.enabled = False
 			split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						updater.error)
+						text=updater.error)
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready == None and updater.async_checking == False:
 		col.scale_y = 2
@@ -879,11 +879,11 @@ def update_settings_ui(self, context, element=None):
 		split.enabled = False
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						"Checking...")
+						text="Checking...")
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_end_background.bl_idname,
-						text = "", icon="X")
+						text="", icon="X")
 
 	elif updater.include_branches==True and \
 			len(updater.tags)==len(updater.include_branch_list) and \
@@ -894,11 +894,11 @@ def update_settings_ui(self, context, element=None):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_update_now.bl_idname,
-					"Update directly to "+str(updater.include_branch_list[0]))
+					text="Update directly to " + str(updater.include_branch_list[0]))
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready==True and updater.manual_only==False:
 		subcol = col.row(align=True)
@@ -906,16 +906,16 @@ def update_settings_ui(self, context, element=None):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_update_now.bl_idname,
-					"Update now to "+str(updater.update_version))
+					text="Update now to "+str(updater.update_version))
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready==True and updater.manual_only==True:
 		col.scale_y = 2
 		col.operator("wm.url_open",
-				"Download "+str(updater.update_version)).url=updater.website
+				text="Download "+str(updater.update_version)).url=updater.website
 	else: # i.e. that updater.update_ready == False
 		subcol = col.row(align=True)
 		subcol.scale_y = 1
@@ -923,11 +923,11 @@ def update_settings_ui(self, context, element=None):
 		split.enabled = False
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						"Addon is up to date")
+						text="Addon is up to date")
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	if updater.manual_only == False:
 		col = row.column(align=True)
@@ -935,10 +935,10 @@ def update_settings_ui(self, context, element=None):
 		if updater.include_branches == True and len(updater.include_branch_list)>0:
 			branch = updater.include_branch_list[0]
 			col.operator(OBJECT_OT_addon_updater_update_target.bl_idname,
-					"Install latest {} / old version".format(branch))
+					text="Install latest {} / old version".format(branch))
 		else:
 			col.operator(OBJECT_OT_addon_updater_update_target.bl_idname,
-					"Reinstall / install old version")
+					text="Reinstall / install old version")
 		lastdate = "none found"
 		backuppath = os.path.join(updater.stage_path,"backup")
 		if "backup_date" in updater.json and os.path.isdir(backuppath):
@@ -947,7 +947,7 @@ def update_settings_ui(self, context, element=None):
 			else:
 				lastdate = updater.json["backup_date"]
 		backuptext = "Restore addon backup ({})".format(lastdate)
-		col.operator(OBJECT_OT_addon_updater_restore_backup.bl_idname, backuptext)
+		col.operator(OBJECT_OT_addon_updater_restore_backup.bl_idname, text=backuptext)
 
 	row = box.row()
 	row.scale_y = 0.7
@@ -992,15 +992,15 @@ def update_settings_ui_condensed(self, context, element=None):
 		if "ssl" in updater.error_msg.lower():
 			split.enabled = True
 			split.operator(OBJECT_OT_addon_updater_install_manually.bl_idname,
-						updater.error)
+						text=updater.error)
 		else:
 			split.enabled = False
 			split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						updater.error)
+						text=updater.error)
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready == None and updater.async_checking == False:
 		col.scale_y = 2
@@ -1012,11 +1012,11 @@ def update_settings_ui_condensed(self, context, element=None):
 		split.enabled = False
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						"Checking...")
+						text="Checking...")
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_end_background.bl_idname,
-						text = "", icon="X")
+						text="", icon="X")
 
 	elif updater.include_branches==True and \
 			len(updater.tags)==len(updater.include_branch_list) and \
@@ -1027,11 +1027,11 @@ def update_settings_ui_condensed(self, context, element=None):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_update_now.bl_idname,
-					"Update directly to "+str(updater.include_branch_list[0]))
+					text="Update directly to "+str(updater.include_branch_list[0]))
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready==True and updater.manual_only==False:
 		subcol = col.row(align=True)
@@ -1039,16 +1039,16 @@ def update_settings_ui_condensed(self, context, element=None):
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_update_now.bl_idname,
-					"Update now to "+str(updater.update_version))
+					text="Update now to " + str(updater.update_version))
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	elif updater.update_ready==True and updater.manual_only==True:
 		col.scale_y = 2
 		col.operator("wm.url_open",
-				"Download "+str(updater.update_version)).url=updater.website
+				text="Download " + str(updater.update_version)).url=updater.website
 	else: # i.e. that updater.update_ready == False
 		subcol = col.row(align=True)
 		subcol.scale_y = 1
@@ -1056,11 +1056,11 @@ def update_settings_ui_condensed(self, context, element=None):
 		split.enabled = False
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						"Addon is up to date")
+						text="Addon is up to date")
 		split = subcol.split(align=True)
 		split.scale_y = 2
 		split.operator(OBJECT_OT_addon_updater_check_now.bl_idname,
-						text = "", icon="FILE_REFRESH")
+						text="", icon="FILE_REFRESH")
 
 	row = element.row()
 	row.prop(settings, "auto_check_update")

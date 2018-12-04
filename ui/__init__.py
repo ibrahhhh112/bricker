@@ -33,6 +33,7 @@ props = bpy.props
 from .cmlist_attrs import *
 from .cmlist_actions import *
 from .app_handlers import *
+from .timers import *
 from .matlist_window import *
 from .matlist_actions import *
 from ..lib.bricksDict import *

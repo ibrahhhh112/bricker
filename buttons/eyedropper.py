@@ -64,10 +64,10 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
 
         if result and not ob.name.startswith('Bricker_' + source_name):
             self.ob = ob
-            context.area.header_text_set('Target object: ' + ob.name)
+            context.area.header_text_set(text='Target object: ' + ob.name)
         else:
             self.ob = None
-            context.area.header_text_set('Target object: None')
+            context.area.header_text_set(text='Target object: None')
 
     def modal(self, context, event):
         """ casts rays through mouse position, sets target_prop on LEFTMOUSE click """
@@ -87,7 +87,7 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
                 else:
                     scn.cmlist[scn.cmlist_index][self.target_prop] = self.ob.name
                     tag_redraw_areas("VIEW_3D")
-                context.area.header_text_set()
+                context.area.header_text_set(text=None)
                 return {"FINISHED"}
 
             return {"PASS_THROUGH"}
