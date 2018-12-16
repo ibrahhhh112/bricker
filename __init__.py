@@ -42,6 +42,7 @@ from bpy.utils import register_class, unregister_class
 
 # Addon imports
 from . import addon_updater_ops
+from .ui.timers import *
 from .ui.cmlist_attrs import BRICKER_UL_created_models
 from .lib import keymaps, preferences, classesToRegister
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes

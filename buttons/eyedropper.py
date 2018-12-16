@@ -55,7 +55,7 @@ class OBJECT_OT_eye_dropper(bpy.types.Operator):
         region = context.region
         rv3d = context.region_data
         coord = x, y
-        ray_max = 1000000
+        ray_max = 1000000  # changed from 10000 to 1000000 to increase accuracy
         view_vector = region_2d_to_vector_3d(region, rv3d, coord)
         ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
         ray_target = ray_origin + (view_vector * ray_max)
