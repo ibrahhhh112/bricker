@@ -39,7 +39,7 @@ from ..buttons.customize.tools import *
 #         else:
 #             obj = None
 #     else:
-#         obj = bpy.data.objects.get(cm.source_name)
+#         obj = cm.source_obj
 #     objVisible = isObjVisibleInViewport(obj)
 #     return objVisible, obj
 
@@ -58,12 +58,12 @@ def handle_selections():
     #     curObjVisible = False
     #     if scn.cmlist_index != -1:
     #         cm0 = scn.cmlist[scn.cmlist_index]
-    #         curObjVisible, _ = isBrickerObjVisible(scn, cm0, cm0.source_name)
+    #         curObjVisible, _ = isBrickerObjVisible(scn, cm0, getSourceName(cm0))
     #     if not curObjVisible or scn.cmlist_index == -1:
     #         setIndex = False
     #         for i, cm in enumerate(scn.cmlist):
     #             if i != scn.cmlist_index:
-    #                 nextObjVisible, obj = isBrickerObjVisible(scn, cm, cm.source_name)
+    #                 nextObjVisible, obj = isBrickerObjVisible(scn, cm, getSourceName(cm))
     #                 if nextObjVisible and bpy.context.object == obj:
     #                     scn.cmlist_index = i
     #                     setIndex = True
@@ -74,36 +74,34 @@ def handle_selections():
     # if scn.cmlist_index changes, select and make source or Brick Model active
     if scn.Bricker_last_cmlist_index != scn.cmlist_index and scn.cmlist_index != -1:
         scn.Bricker_last_cmlist_index = scn.cmlist_index
-        cm = scn.cmlist[scn.cmlist_index]
-        source = bpy.data.objects.get(cm.source_name)
+        cm, n = getActiveContextInfo()[1:]
+        source = cm.source_obj
         if source and cm.version[:3] != "1_0":
             if cm.modelCreated:
-                n = cm.source_name
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
                     scn.Bricker_last_active_object_name = bpy.context.object.name
             elif cm.animated:
-                n = cm.source_name
                 cf = scn.frame_current
                 if cf > cm.stopFrame:
                     cf = cm.stopFrame
                 elif cf < cm.startFrame:
                     cf = cm.startFrame
-                gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-                if len(bpy.data.collections[gn].objects) > 0:
-                    select(list(bpy.data.collections[gn].objects), active=True, only=True)
+                cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
+                if len(bpy.data.collections[cn].objects) > 0:
+                    select(list(bpy.data.collections[cn].objects), active=True, only=True)
                     scn.Bricker_last_active_object_name = bpy.context.object.name
             else:
                 select(source, active=True, only=True)
             scn.Bricker_last_active_object_name = source.name
         else:
             for i,cm in enumerate(scn.cmlist):
-                if cm.source_name == scn.Bricker_active_object_name:
+                if getSourceName(cm) == scn.Bricker_active_object_name:
                     deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
-    elif obj and scn.Bricker_last_active_object_name != obj.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_name != "") and bpy.context.object.type == "MESH":
+    elif obj and scn.Bricker_last_active_object_name != obj.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source is not None) and bpy.context.object.type == "MESH":
         scn.Bricker_last_active_object_name = obj.name
         beginningString = "Bricker_"
         if obj.name.startswith(beginningString):
@@ -119,7 +117,7 @@ def handle_selections():
             usingSource = True
             scn.Bricker_active_object_name = obj.name
         for i,cm in enumerate(scn.cmlist):
-            if createdWithUnsupportedVersion(cm) or cm.source_name != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
+            if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
             scn.Bricker_last_cmlist_index = scn.cmlist_index

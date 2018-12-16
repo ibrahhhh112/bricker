@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # system imports
 import random
@@ -121,7 +117,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.createdObjects = []
         self.createdGroups = []
         self.setAction(cm)
-        self.source = self.getObjectToBrickify(cm)
+        self.source = cm.source_obj
 
     #############################################
     # class methods
@@ -134,7 +130,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
 
         # ensure that Bricker can run successfully
-        if not self.isValid(scn, cm, self.source, Bricker_bricks_gn):
+        if not self.isValid(scn, cm, n, self.source, Bricker_bricks_gn):
             return {"CANCELLED"}
 
         # initialize variables
@@ -327,7 +323,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if self.action == "UPDATE_ANIM":
             safeLink(self.source)
-            self.source.name = cm.source_name  # fixes issue with smoke simulation cache
+            self.source.name = n  # fixes issue with smoke simulation cache
 
         # if there are no changes to apply, simply return "FINISHED"
         self.updatedFramesOnly = False
@@ -363,7 +359,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         wm.progress_begin(0, cm.stopFrame + 1 - cm.startFrame)
 
         # prepare duplicate objects for animation
-        duplicates = self.getDuplicateObjects(scn, cm, cm.source_name, cm.startFrame, cm.stopFrame)
+        duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
@@ -480,7 +476,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
         return coll_name
 
-    def isValid(self, scn, cm, source, Bricker_bricks_gn):
+    def isValid(self, scn, cm, source_name, source, Bricker_bricks_gn):
         """ returns True if brickify action can run, else report WARNING/ERROR and return False """
         # ensure custom object(s) are valid
         if (cm.brickType == "CUSTOM" or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3):
@@ -490,10 +486,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return False
         # ensure source is defined
         if source is None:
-            self.report({"WARNING"}, "Source object '{n}' could not be found".format(n=cm.source_name))
+            self.report({"WARNING"}, "Source object '%(source_name)s' could not be found" % locals())
             return False
         # ensure source name isn't too long
-        if len(cm.source_name) > 30:
+        if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.materialName != "" and bpy.data.materials.find(cm.materialName) == -1:
@@ -517,7 +513,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 self.report({"WARNING"}, "Brickified Model already created.")
                 return False
             # verify source exists and is of type mesh
-            if cm.source_name == "":
+            if source_name == "":
                 self.report({"WARNING"}, "Please select a mesh to Brickify")
                 return False
             # ensure source is not bricker model
@@ -526,8 +522,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return False
             # ensure source exists
             if source is None:
-                n = cm.source_name
-                self.report({"WARNING"}, "'%(n)s' could not be found" % locals())
+                self.report({"WARNING"}, "'%(source_name)s' could not be found" % locals())
                 return False
             # ensure object data is mesh
             if source.type != "MESH":
@@ -552,18 +547,16 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # check that custom logo object exists in current scene and is of type "MESH"
         if cm.logoType == "CUSTOM" and cm.brickType != "CUSTOM":
-            if cm.logoObjectName == "":
+            if cm.logoObject is None:
                 self.report({"WARNING"}, "Custom logo object not specified.")
                 return False
-            logoObject = bpy.data.objects.get(cm.logoObjectName)
-            if logoObject is None:
-                lon = cm.logoObjectName
-                self.report({"WARNING"}, "Custom logo object '%(lon)s' could not be found" % locals())
-                return False
-            if cm.logoObjectName == cm.source_name and (not (cm.animated or cm.modelCreated) or logoObject.protected):
+            elif cm.logoObject.name == source_name:
                 self.report({"WARNING"}, "Source object cannot be its own logo.")
                 return False
-            if logoObject.type != "MESH":
+            elif cm.logoObject.name.startswith("Bricker_%(source_name)s" % locals()):
+                self.report({"WARNING"}, "Bricker object cannot be used as its own logo.")
+                return False
+            elif cm.logoObject.type != "MESH":
                 self.report({"WARNING"}, "Custom logo object is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).")
                 return False
 
@@ -625,7 +618,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if typ == "LEGO":
                 refLogo = getLegoLogo(self, scn, typ, cm.logoResolution, cm.logoDecimate, dimensions)
             else:
-                refLogo = bpy.data.objects.get(cm.logoObjectName)
+                refLogo = cm.logoObject
             # apply transformation to duplicate of logo object and normalize size/position
             logo_details, refLogo = prepareLogoAndGetDetails(scn, refLogo, typ, cm.logoScale, dimensions)
         return logo_details, refLogo
@@ -669,7 +662,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             scn.frame_set(curFrame)
             # duplicate source for current frame
             sourceDup = duplicate(self.source, link_to_scene=True)
-            sourceDup.name = "Bricker_" + cm.source_name + "_f_" + str(curFrame)
+            sourceDup.name = "Bricker_" + source_name + "_f_" + str(curFrame)
             # # apply rigid body transform data
             # if cm.rigid_body:
             #     select(sourceDup, active=True, only=True)
@@ -705,10 +698,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         for obj in duplicates.values():
             safeUnlink(obj)
         return duplicates
-
-    def getObjectToBrickify(self, cm):
-        objToBrickify = bpy.data.objects.get(cm.source_name)
-        return objToBrickify
 
     def getNewParent(self, Bricker_parent_on, loc):
         m = bpy.data.meshes.new(Bricker_parent_on + "_mesh")

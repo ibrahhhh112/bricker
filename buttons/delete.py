@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # system imports
 import time
@@ -95,14 +91,14 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
         # clean up 'Bricker_[source name]' group
         if not skipSource:
-            cls.cleanSource(cm, source, modelType)
+            cls.cleanSource(cm, n, source, modelType)
 
         # clean up 'Bricker_[source name]_dupes' group
         if not skipDupes:
-            cls.cleanDupes(cm, preservedFrames, modelType)
+            cls.cleanDupes(cm, n, preservedFrames, modelType)
 
         if not skipParents:
-            brickLoc, brickRot, brickScl = cls.cleanParents(cm, preservedFrames, modelType)
+            brickLoc, brickRot, brickScl = cls.cleanParents(cm, n, preservedFrames, modelType)
         else:
             brickLoc, brickRot, brickScl = None, None, None
 
@@ -198,9 +194,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         tag_redraw_areas("VIEW_3D")
 
     @classmethod
-    def cleanSource(cls, cm, source, modelType):
+    def cleanSource(cls, cm, n, source, modelType):
         scn = bpy.context.scene
-        n = cm.source_name
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
         # link source to scene
         if source not in list(scn.objects):
@@ -210,9 +205,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         source.cmlist_id = -1
 
     @classmethod
-    def cleanDupes(cls, cm, preservedFrames, modelType):
+    def cleanDupes(cls, cm, n, preservedFrames, modelType):
         scn = bpy.context.scene
-        n = cm.source_name
         if modelType == "ANIMATION":
             dupe_name = "Bricker_%(n)s_f_" % locals()
             dObjects = [bpy.data.objects.get(dupe_name + str(fn)) for fn in range(cm.lastStartFrame, cm.lastStopFrame + 1)]
@@ -234,9 +228,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             delete(dObjects)
 
     @classmethod
-    def cleanParents(cls, cm, preservedFrames, modelType):
+    def cleanParents(cls, cm, n, preservedFrames, modelType):
         scn = bpy.context.scene
-        n = cm.source_name
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         brickLoc, brickRot, brickScl = None, None, None

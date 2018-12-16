@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -51,7 +47,7 @@ def handle_animation(scene):
     for i, cm in enumerate(scn.cmlist):
         if not cm.animated:
             continue
-        n = cm.source_name
+        n = getSourceName(cm)
         for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1):
             curBricks = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if curBricks is None:
@@ -123,7 +119,7 @@ def safe_link_parent(scene):
         return
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
-            n = cm.source_name
+            n = getSourceName(cm)
             Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
             p = bpy.data.objects.get(Bricker_parent_on)
             if (cm.modelCreated or cm.animated) and not cm.exposeParent:
@@ -140,7 +136,7 @@ def safe_unlink_parent(scene):
         return
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
-            n = cm.source_name
+            n = getSourceName(cm)
             Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
             p = bpy.data.objects.get(Bricker_parent_on)
             if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
@@ -185,7 +181,7 @@ def handle_upconversion(scene):
             # convert from v1_3 to v1_4
             if int(cm.version[2]) < 4:
                 # update "_frame_" to "_f_" in brick and group names
-                n = cm.source_name
+                n = getSourceName(cm)
                 Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
                 if cm.animated:
                     for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
@@ -224,15 +220,19 @@ def handle_upconversion(scene):
                         matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
                         sto_scn_new.collection.objects.link(matObj)
                 # update names of Bricker source objects
-                old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
+                old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
                 if old_source is not None:
-                    old_source.name = cm.source_name
+                    old_source = cm.source_obj
                 # transfer dist offset values to new prop locations
                 if cm.distOffsetX != -1:
                     cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
+            # convert from v1_4 to v1_5
             if int(cm.version[2]) < 5:
                 cm.logoType = cm.logoDetail
                 cm.matrixIsDirty = True
                 cm.matrixLost = True
+            # convert from v1_5 to v1_6
+            if int(cm.version[2]) < 6:
+                cm.source_obj = bpy.data.objects.get(cm.source_name)
 
 bpy.app.handlers.load_post.append(handle_upconversion)
