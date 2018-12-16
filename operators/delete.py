@@ -250,7 +250,7 @@ class OBJECT_OT_delete_override(Operator):
         scn = bpy.context.scene
         cm = None
         for cmCur in scn.cmlist:
-            n = cmCur.source_name
+            n = getSourceName(cmCur)
             if not obj.name.startswith("Bricker_%(n)s_brick" % locals()):
                 continue
             if obj.isBrickifiedObject:

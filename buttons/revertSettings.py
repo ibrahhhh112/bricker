@@ -66,9 +66,9 @@ class BrickerRevertSettings(Operator):
         cm.distOffset[0] = float(settings[3])
         cm.distOffset[1] = float(settings[4])
         cm.distOffset[2] = float(settings[5])
-        cm.customObjectName1 = settings[6]
-        cm.customObjectName2 = settings[7]
-        cm.customObjectName3 = settings[8]
+        cm.customObject1 = settings[6]
+        cm.customObject2 = settings[7]
+        cm.customObject3 = settings[8]
         cm.useNormals = str_to_bool(settings[9])
         cm.insidenessRayCastDir = settings[10]
         cm.castDoubleCheckRays = str_to_bool(settings[11])

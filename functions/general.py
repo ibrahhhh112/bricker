@@ -40,8 +40,11 @@ def getSafeScn():
 def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
-    n = cm.source_name
-    return scn, cm, n
+    return scn, cm, getSourceName(cm)
+
+
+def getSourceName(cm):
+    return cm.source_obj.name if cm.source_obj is not None else ""
 
 
 def centerMeshOrigin(m, dimensions, size):
@@ -264,7 +267,7 @@ def brick_materials_loaded():
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
-    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
+    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
     smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
     return listToStr(regularSettings + smokeSettings)
 
@@ -502,25 +505,19 @@ def is_adaptive(ob):
     return False
 
 def customValidObject(cm, targetType="Custom 0", idx=None):
-    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObjectName1], [cm.hasCustomObj2, cm.customObjectName2], [cm.hasCustomObj3, cm.customObjectName3]]):
-        hasCustomObj = customInfo[0]
+    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObject1], [cm.hasCustomObj2, cm.customObject2], [cm.hasCustomObj3, cm.customObject3]]):
+        hasCustomObj, customObj = customInfo
         if idx is not None and idx != i:
             continue
         elif not hasCustomObj and not (i == 0 and cm.brickType == "CUSTOM") and int(targetType.split(" ")[-1]) != i + 1:
             continue
-        customObjName = customInfo[1]
-        if customObjName == "":
-            warningMsg = "Custom object {} not specified.".format(i + 1)
-            return warningMsg
-        customObj = bpy.data.objects.get(customObjName)
         if customObj is None:
-            n = customObjName
-            warningMsg = "Custom brick type object '%(n)s' could not be found" % locals()
+            warningMsg = "Custom brick type object {} could not be found".format(i + 1)
             return warningMsg
-        if customObjName == cm.source_name and (not (cm.animated or cm.modelCreated) or customObj.protected):
+        elif customObj.name == getSourceName(cm) and (not (cm.animated or cm.modelCreated) or customObj.protected):
             warningMsg = "Source object cannot be its own custom brick."
             return warningMsg
-        if customObj.type != "MESH":
+        elif customObj.type != "MESH":
             warningMsg = "Custom object {} is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).".format(i + 1)
             return warningMsg
         custom_details = bounds(customObj)

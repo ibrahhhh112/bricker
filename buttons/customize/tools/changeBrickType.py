@@ -206,7 +206,7 @@ class changeBrickType(Operator):
                 # update height of brick if necessary, and update dictionary accordingly
                 if flatBrickType(brickType):
                     dimensions = Bricks.get_dimensions(brickHeight, zStep, gap)
-                    size = updateBrickSizeAndDict(dimensions, cm.source_name, bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
+                    size = updateBrickSizeAndDict(dimensions, getSourceName(cm), bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
 
                 # check if brick spans 3 matrix locations
                 bAndPBrick = flatBrickType(brickType) and size[2] == 3

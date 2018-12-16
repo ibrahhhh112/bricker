@@ -46,16 +46,30 @@ def uniquifyName(self, context):
         cm.name = name
 
 
-def setNameIfEmpty(self, context):
+def setDefaultObjIfEmpty(self, context):
     scn = context.scene
     last_cmlist_index = scn.cmlist_index
     cm0 = scn.cmlist[last_cmlist_index]
     # verify model doesn't exist with that name
-    if cm0.source_name != "":
+    if cm0.source_obj is not None:
         for i, cm1 in enumerate(scn.cmlist):
-            if cm1 != cm0 and cm1.source_name == cm0.source_name:
-                cm0.source_name = ""
+            if cm1 != cm0 and cm1.source_obj is cm0.source_obj:
+                cm0.source_obj = None
                 scn.cmlist_index = i
+
+
+def verifyCustomObject1(self, context):
+    scn, cm, n = getActiveContextInfo()
+    if cm.customObject1 and cm.customObject1.name.startswith("Bricker_%(n)s" % locals()):
+        cm.customObject1 = None
+def verifyCustomObject2(self, context):
+    scn, cm, n = getActiveContextInfo()
+    if cm.customObject2 and cm.customObject2.name.startswith("Bricker_%(n)s" % locals()):
+        cm.customObject2 = None
+def verifyCustomObject3(self, context):
+    scn, cm, n = getActiveContextInfo()
+    if cm.customObject3 and cm.customObject3.name.startswith("Bricker_%(n)s" % locals()):
+        cm.customObject3 = None
 
 
 def updateBevel(self, context):
@@ -153,7 +167,7 @@ def getCMProps():
             "logoType",
             "logoResolution",
             "logoDecimate",
-            "logoObjectName",
+            "logoObject",
             "logoScale",
             "logoInset",
             "hiddenUndersideDetail",
@@ -169,9 +183,9 @@ def getCMProps():
             "alignBricks",
             "offsetBrickLayers",
             "distOffset",
-            "customObjectName1",
-            "customObjectName2",
-            "customObjectName3",
+            "customObject1",
+            "customObject2",
+            "customObject3",
             "maxWidth",
             "maxDepth",
             "mergeType",

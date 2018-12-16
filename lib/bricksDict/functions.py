@@ -354,17 +354,15 @@ def getDetailsAndBounds(source, cm=None):
 
 def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=None, brickSize=[1, 1, 3]):
     """ returns arguments for makeBricksDict function """
-    source = source or bpy.data.objects.get(cm.source_name)
+    source = source or cm.source_obj
     customData = [None] * 3
     if source_details is None or dimensions is None:
         source_details, dimensions = getDetailsAndBounds(source, cm)
-    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObjectName1], [cm.hasCustomObj2, cm.customObjectName2], [cm.hasCustomObj3, cm.customObjectName3]]):
-        hasCustomObj = customInfo[0]
-        customObjName = customInfo[1]
+    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObject1], [cm.hasCustomObj2, cm.customObject2], [cm.hasCustomObj3, cm.customObject3]]):
+        hasCustomObj, customObj = customInfo
         if (i == 0 and cm.brickType == "CUSTOM") or hasCustomObj:
             scn = bpy.context.scene
             # get custom object
-            customObj = bpy.data.objects[customObjName]
             oldLayers = list(scn.layers) # store scene layers for later reset
             # duplicate custom object
             customObjName = customObj.name + "_duplicate"

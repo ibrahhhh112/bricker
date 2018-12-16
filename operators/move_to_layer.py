@@ -100,7 +100,7 @@ class move_to_layer_override(Operator):
             cm = getItemByID(scn.cmlist, obj.cmlist_id)
             if not cm.animated:
                 continue
-            n = cm.source_name
+            n = getSourceName(cm)
             for f in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                 bricksCurF = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(f)s" % locals())
                 if bricksCurF is not None and bricksCurF.name != obj.name:

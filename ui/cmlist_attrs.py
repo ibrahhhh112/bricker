@@ -36,11 +36,11 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     idx = IntProperty()
 
     # NAME OF SOURCE
-    source_name = StringProperty(
-        name="Source Object Name",
+    source_obj = PointerProperty(
+        type=bpy.types.Object,
+        name="Source Object",
         description="Name of the source object to Brickify",
-        default="",
-        update=setNameIfEmpty)
+        update=setDefaultObjIfEmpty)
 
     # TRANSFORMATION SETTINGS
     modelLoc = StringProperty(default="-1,-1,-1")
@@ -247,18 +247,21 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Construct model using only legal brick sizes",
         update=dirtyBuild,
         default=True)
-    customObjectName1 = StringProperty(
+    customObject1 = PointerProperty(
+        type=bpy.types.Object,
         name="Custom Object Name 1",
         description="Name of custom object 1 to use as bricks",
-        default="")
-    customObjectName2 = StringProperty(
+        update=verifyCustomObject1)
+    customObject2 = PointerProperty(
+        type=bpy.types.Object,
         name="Custom Object Name 2",
         description="Name of custom object 2 to use as bricks",
-        default="")
-    customObjectName3 = StringProperty(
+        update=verifyCustomObject2)
+    customObject3 = PointerProperty(
+        type=bpy.types.Object,
         name="Custom Object Name 3",
         description="Name of custom object 3 to use as bricks",
-        default="")
+        update=verifyCustomObject3)
     distOffset = FloatVectorProperty(
         name="Offset Distance",
         description="Offset of custom bricks (1.0 = side-by-side)",
@@ -441,11 +444,11 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         precision=0,
         min=0, max=10,
         default=7.25)
-    logoObjectName = StringProperty(
+    logoObject = PointerProperty(
+        type=bpy.types.Object,
         name="Logo Object Name",
         description="Name of the custom logo object",
-        update=dirtyBricks,
-        default="")
+        update=dirtyBricks)
     logoScale = FloatProperty(
         name="Logo Scale",
         description="Logo scale relative to stud scale",
@@ -656,6 +659,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     # Bricker Version of Model
     version = StringProperty(default="1.0.4")
     # Left over attrs from earlier versions
+    source_name = StringProperty(default="")
     maxBrickScale1 = IntProperty(default=-1)
     maxBrickScale2 = IntProperty(default=-1)
     distOffsetX = FloatProperty(default=-1)

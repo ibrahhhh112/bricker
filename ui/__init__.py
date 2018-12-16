@@ -125,15 +125,11 @@ class BrickModelsPanel(Panel):
                 col1 = layout.column(align=True)
                 col1.label("Source Object:%(source_name)s" % locals())
                 if not (cm.animated or cm.modelCreated):
-                    split = col1.split(align=True, percentage=0.85)
-                    col = split.column(align=True)
-                    col.prop_search(cm, "source_name", scn, "objects", text='')
-                    col = split.column(align=True)
-                    col.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'source_name'
-                    col1 = layout.column(align=True)
+                    col2 = layout.column(align=True)
+                    col2.prop_search(cm, "source_obj", scn, "objects", text='')
 
             # initialize variables
-            obj = bpy.data.objects.get(cm.source_name)
+            obj = cm.source_obj
             v_str = cm.version[:3]
 
             # if model created with newer version, disable
@@ -271,7 +267,7 @@ class AnimationPanel(Panel):
             col.prop(cm, "startFrame")
             col = split.column(align=True)
             col.prop(cm, "stopFrame")
-            source = bpy.data.objects.get(cm.source_name)
+            source = cm.source_obj
             self.appliedMods = False
             if source:
                 for mod in source.modifiers:
@@ -371,7 +367,7 @@ class ModelSettingsPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
-        source = bpy.data.objects.get(cm.source_name)
+        source = cm.source_obj
 
         col = layout.column(align=True)
         # set up model dimensions variables sX, sY, and sZ
@@ -394,7 +390,7 @@ class ModelSettingsPanel(Panel):
                 r = vec_div(s, full_d)
             elif cm.brickType == "CUSTOM":
                 customObjFound = False
-                customObj = bpy.data.objects.get(cm.customObjectName1)
+                customObj = cm.customObject1
                 if customObj and customObj.type == "MESH":
                     custom_details = bounds(customObj)
                     if 0 not in custom_details.dist.to_tuple():
@@ -442,7 +438,7 @@ class ModelSettingsPanel(Panel):
             row.prop(cm, "calculationAxes", text="")
         row = col.row(align=True)
         row.prop(cm, "shellThickness", text="Thickness")
-        obj = bpy.data.objects.get(cm.source_name)
+        obj = cm.source_obj
         # if obj and not cm.isWaterTight:
         #     row = col.row(align=True)
         #     # row.scale_y = 0.7
@@ -470,7 +466,7 @@ class SmokeSettingsPanel(Panel):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        source = bpy.data.objects.get(cm.source_name)
+        source = cm.source_obj
         if source is None:
             return False
         return is_smoke(source)
@@ -478,7 +474,7 @@ class SmokeSettingsPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
-        source = bpy.data.objects.get(cm.source_name)
+        source = cm.source_obj
 
         col = layout.column(align=True)
         if is_smoke(source):
@@ -542,18 +538,16 @@ class BrickTypesPanel(Panel):
         elif cm.lastSplitModel:
             col.label("Custom Brick Objects:")
         if cm.brickType == "CUSTOM" or cm.lastSplitModel:
-            for prop in ("customObjectName1", "customObjectName2", "customObjectName3"):
+            for prop in ("customObject1", "customObject2", "customObject3"):
                 if prop[-1] == "2" and cm.brickType == "CUSTOM":
                     col.label("Distance Offset:")
                     row = col.row(align=True)
                     row.prop(cm, "distOffset", text="")
                     col = layout.column(align=True)
                     col.label("Other Objects:")
-                split = col.split(align=True, percentage=0.65)
+                split = col.split(align=True, percentage=0.825)
                 col1 = split.column(align=True)
                 col1.prop_search(cm, prop, scn, "objects", text="")
-                col1 = split.column(align=True)
-                col1.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = prop
                 col1 = split.column(align=True)
                 col1.operator("bricker.redraw_custom", icon="FILE_REFRESH", text="").target_prop = prop
 
@@ -714,7 +708,7 @@ class MaterialsPanel(Panel):
     def draw(self, context):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
-        obj = bpy.data.objects.get(cm.source_name)
+        obj = cm.source_obj
 
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -921,11 +915,7 @@ class DetailingPanel(Panel):
                 row = col.row(align=True)
             else:
                 row = col.row(align=True)
-                split = row.split(align=True, percentage=0.85)
-                col1 = split.column(align=True)
-                col1.prop_search(cm, "logoObjectName", scn, "objects", text="")
-                col1 = split.column(align=True)
-                col1.operator("bricker.eye_dropper", icon="EYEDROPPER", text="").target_prop = 'logoObjectName'
+                row.prop_search(cm, "logoObject", scn, "objects", text="")
                 row = col.row(align=True)
                 row.prop(cm, "logoScale", text="Scale")
             row.prop(cm, "logoInset", text="Inset")
@@ -998,7 +988,7 @@ class SupportsPanel(Panel):
             row.prop(cm, "colThickness")
             row = col.row(align=True)
             row.prop(cm, "colStep")
-        obj = bpy.data.objects.get(cm.source_name)
+        obj = cm.source_obj
         # if obj and not cm.isWaterTight:
         #     row = col.row(align=True)
         #     # row.scale_y = 0.7

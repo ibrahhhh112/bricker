@@ -156,9 +156,9 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
 def useEdgeSplitMod(cm, brickD):
     typ = brickD["type"]
     if ("CUSTOM" not in brickD["type"] or
-        (typ == "CUSTOM 1" and cm.customObjectName1.startswith("Bricker_")) or
-        (typ == "CUSTOM 2" and cm.customObjectName2.startswith("Bricker_")) or
-        (typ == "CUSTOM 3" and cm.customObjectName3.startswith("Bricker_"))):
+        (typ == "CUSTOM 1" and cm.customObject1 and cm.customObject1.name.startswith("Bricker_")) or
+        (typ == "CUSTOM 2" and cm.customObject2 and cm.customObject2.name.startswith("Bricker_")) or
+        (typ == "CUSTOM 3" and cm.customObject3 and cm.customObject3.name.startswith("Bricker_"))):
         return True
     else:
         return False

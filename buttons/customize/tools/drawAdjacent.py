@@ -64,7 +64,7 @@ class drawAdjacent(Operator):
             # if no sides were and are selected, don't execute (i.e. if only brick type changed)
             if [False]*6 == [createAdjBricks[i] or self.adjBricksCreated[i][0] for i in range(6)]:
                 return {"CANCELLED"}
-            scn, cm, _ = getActiveContextInfo()
+            scn, cm, n = getActiveContextInfo()
             # revert to last bricksDict
             self.undo_stack.matchPythonToBlenderState()
             # push to undo stack
@@ -103,7 +103,7 @@ class drawAdjacent(Operator):
                         if decriment != 0:
                             adjDictLoc = adjDictLoc.copy()
                             adjDictLoc[2] -= decriment
-                        self.toggleBrick(cm, dimensions, adjDictLoc, dictKey, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
+                        self.toggleBrick(cm, n, dimensions, adjDictLoc, dictKey, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
                     # after ALL bricks toggled, check exposure of bricks above and below new ones
                     for j,adjDictLoc in enumerate(self.adjDKLs[i]):
                         self.bricksDict = verifyBrickExposureAboveAndBelow(scn, zStep, adjDictLoc.copy(), self.bricksDict, decriment=decriment + 1, zNeg=self.zNeg, zPos=self.zPos)
@@ -244,12 +244,11 @@ class drawAdjacent(Operator):
         return not (brickNum == len(self.adjDKLs[side]) - 1 and
                     not any(self.adjBricksCreated[side])) # evaluates True if all values in this list are False
 
-    def toggleBrick(self, cm, dimensions, adjacent_loc, dictKey, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
+    def toggleBrick(self, cm, n, dimensions, adjacent_loc, dictKey, objSize, targetType, side, brickNum, keysToMerge, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = self.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
         zStep = getZStep(cm)
-        n = cm.source_name
 
         adjacent_key, adjBrickD = self.getBrickD(adjacent_loc)
 
