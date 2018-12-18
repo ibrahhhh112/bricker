@@ -117,8 +117,11 @@ def register():
 
 
 def unregister():
-    bpy.app.timers.unregister(handle_selections)
-    bpy.app.timers.unregister(prevent_user_from_viewing_storage_scene)
+    # unregister timers
+    if bpy.app.timers.is_registered(handle_selections):
+        bpy.app.timers.unregister(handle_selections)
+    if bpy.app.timers.is_registered(prevent_user_from_viewing_storage_scene):
+        bpy.app.timers.unregister(prevent_user_from_viewing_storage_scene)
 
     # addon updater unregister
     addon_updater_ops.unregister()

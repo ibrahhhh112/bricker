@@ -27,6 +27,7 @@ from mathutils import Vector, Euler
 from ..functions import *
 from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
 from ..lib.caches import bricker_bfm_cache
+from ..buttons.customize.undo_stack import *
 from ..buttons.customize.tools import *
 
 
@@ -92,10 +93,16 @@ def handle_loading_to_light_cache(scene):
     for cm in bpy.context.scene.cmlist:
         if not (cm.modelCreated or cm.animated):
             continue
+        # reset undo states
+        cm.blender_undo_state = 0
+        python_undo_state[cm.id] = 0
+        # load bricksDict
         bricksDict = getBricksDict(cm=cm)[0]
         if bricksDict is None:
             cm.matrixLost = True
             cm.matrixIsDirty = True
+            scn = bpy.context.scene
+
 
 
 bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
@@ -148,6 +155,42 @@ def safe_unlink_parent(scene):
 
 bpy.app.handlers.save_post.append(safe_unlink_parent)
 bpy.app.handlers.load_post.append(safe_unlink_parent)
+
+
+# @persistent
+# def undo_bricksDict_changes(scene):
+#     scn = bpy.context.scene
+#     if scn.cmlist_index == -1:
+#         return
+#     undo_stack = UndoStack.get_instance()
+#     global python_undo_state
+#     cm = scn.cmlist[scn.cmlist_index]
+#     if cm.id not in python_undo_state:
+#         python_undo_state[cm.id] = 0
+#     # handle undo
+#     if python_undo_state[cm.id] > cm.blender_undo_state:
+#         self.undo_stack.undo_pop()
+#
+#
+# bpy.app.handlers.undo_pre.append(undo_bricksDict_changes)
+#
+#
+# @persistent
+# def redo_bricksDict_changes(scene):
+#     scn = bpy.context.scene
+#     if scn.cmlist_index == -1:
+#         return
+#     undo_stack = UndoStack.get_instance()
+#     global python_undo_state
+#     cm = scn.cmlist[scn.cmlist_index]
+#     if cm.id not in python_undo_state:
+#         python_undo_state[cm.id] = 0
+#     # handle redo
+#     elif python_undo_state[cm.id] < cm.blender_undo_state:
+#         self.undo_stack.redo_pop()
+#
+#
+# bpy.app.handlers.redo_pre.append(redo_bricksDict_changes)
 
 
 @persistent

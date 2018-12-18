@@ -48,7 +48,6 @@ classes = (
     delete.BRICKER_OT_delete_model,
     exportLdraw.BRICKER_OT_export_ldraw,
     exportModelData.BRICKER_OT_export_model_data,
-    eyedropper.OBJECT_OT_eye_dropper,
     materials.BRICKER_OT_apply_material,
     redrawCustomBricks.BRICKER_OT_redraw_custom_bricks,
     reportError.BRICKER_OT_report_error,

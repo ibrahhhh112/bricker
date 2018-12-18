@@ -16,19 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import sys
-import math
-import os
-import time
-import copy
+# NONE!
 
 # Blender imports
 import bpy
-import bpy
-import bgl
-from mathutils import Matrix
-from bpy.types import Operator, SpaceView3D, bpy_struct
-from bpy.app.handlers import persistent, load_post
 
 # Addon imports
 from ...functions import *
@@ -64,9 +55,6 @@ class UndoStack():
         assert hasattr(UndoStack, 'creating'), 'Do not create new UndoStack directly!  Use UndoStack.new()'
         self.undo = []  # undo stack of causing actions, FSM state, tool states, and rftargets
         self.redo = []  # redo stack of causing actions, FSM state, tool states, and rftargets
-        scn = bpy.context.scene
-        for cm in scn.cmlist:
-            cm.blender_undo_state = 0
 
     ###################################################
     # class variables

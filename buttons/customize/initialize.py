@@ -25,6 +25,7 @@ from bpy.types import Operator
 # Addon imports
 from .undo_stack import *
 from ...ui.app_handlers import brickerRunningBlockingOp
+from ...ui.timers import *
 from ...functions import *
 from ...ui.cmlist_actions import *
 
@@ -68,6 +69,11 @@ class BRICKER_OT_initialize_undo_stack(Operator):
         # add new scn.cmlist item
         if self.action == "ADD":
             BRICKER_OT_cmlist_actions.addItem()
+        # register timers
+        if not bpy.app.timers.is_registered(handle_selections):
+            bpy.app.timers.register(handle_selections)
+        if not bpy.app.timers.is_registered(prevent_user_from_viewing_storage_scene):
+            bpy.app.timers.register(prevent_user_from_viewing_storage_scene)
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

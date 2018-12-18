@@ -203,12 +203,13 @@ class OBJECT_OT_delete_override(Operator):
                 self.deleteBrickObject(obj, update_model, use_global)
             elif not obj.protected:
                 obj_users_scene = len(obj.users_scene)
-                scn.collection.objects.unlink(obj)
                 if use_global or obj_users_scene == 1:
                     bpy.data.objects.remove(obj, do_unlink=True)
             else:
                 print(obj.name + ' is protected')
                 protected.append(obj.name)
+
+        tag_redraw_viewport_in_all_screens()
 
         return protected
 
@@ -266,7 +267,6 @@ class OBJECT_OT_delete_override(Operator):
             deselect(bpy.context.object)
         else:
             obj_users_scene = len(obj.users_scene)
-            scn.collection.objects.unlink(obj)
             if use_global or obj_users_scene == 1:
                 bpy.data.objects.remove(obj, do_unlink=True)
 

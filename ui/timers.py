@@ -24,6 +24,7 @@ Created by Christopher Gearhart
 
 # Blender imports
 import bpy
+from bpy.app.handlers import persistent
 
 # Addon imports
 from .app_handlers import brickerIsActive, brickerRunningBlockingOp
@@ -45,12 +46,10 @@ from ..buttons.customize.tools import *
 
 
 def handle_selections():
-    scn = bpy.context.scene
-    print(1)
     if not brickerIsActive() or brickerRunningBlockingOp():
         return 0.5
-    print(2)
-    obj = bpy.context.object
+    scn = bpy.context.scene
+    obj = bpy.context.view_layer.objects.active
     # curLayers = str(list(scn.layers))
     # # if scn.layers changes and active object is no longer visible, set scn.cmlist_index to -1
     # if scn.Bricker_last_layers != curLayers:
@@ -63,8 +62,8 @@ def handle_selections():
     #         setIndex = False
     #         for i, cm in enumerate(scn.cmlist):
     #             if i != scn.cmlist_index:
-    #                 nextObjVisible, obj = isBrickerObjVisible(scn, cm, getSourceName(cm))
-    #                 if nextObjVisible and bpy.context.object == obj:
+    #                 nextObjVisible, obj0 = isBrickerObjVisible(scn, cm, getSourceName(cm))
+    #                 if nextObjVisible and obj == obj0:
     #                     scn.cmlist_index = i
     #                     setIndex = True
     #                     break
@@ -81,7 +80,7 @@ def handle_selections():
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
-                    scn.Bricker_last_active_object_name = bpy.context.object.name
+                    scn.Bricker_last_active_object_name = obj.name
             elif cm.animated:
                 cf = scn.frame_current
                 if cf > cm.stopFrame:
@@ -91,7 +90,7 @@ def handle_selections():
                 cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
                 if len(bpy.data.collections[cn].objects) > 0:
                     select(list(bpy.data.collections[cn].objects), active=True, only=True)
-                    scn.Bricker_last_active_object_name = bpy.context.object.name
+                    scn.Bricker_last_active_object_name = obj.name
             else:
                 select(source, active=True, only=True)
             scn.Bricker_last_active_object_name = source.name
@@ -101,7 +100,7 @@ def handle_selections():
                     deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
-    elif obj and scn.Bricker_last_active_object_name != obj.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source is not None) and bpy.context.object.type == "MESH":
+    elif obj and scn.Bricker_last_active_object_name != obj.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and obj.type == "MESH":
         scn.Bricker_last_active_object_name = obj.name
         beginningString = "Bricker_"
         if obj.name.startswith(beginningString):
@@ -125,13 +124,15 @@ def handle_selections():
                 # adjust scn.active_brick_detail based on active brick
                 x0, y0, z0 = strToList(getDictKey(obj.name))
                 cm.activeKey = (x0, y0, z0)
-            return 0.2
+            tag_redraw_viewport_in_all_screens()
+            return 0.05
         # if no matching cmlist item found, set cmlist_index to -1
         scn.cmlist_index = -1
-    return 0.2
+        tag_redraw_viewport_in_all_screens()
+    return 0.05
 
 
-def prevent_user_from_viewing_storage_scene(scene):
+def prevent_user_from_viewing_storage_scene():
     scn = bpy.context.scene
     if not brickerIsActive() or brickerRunningBlockingOp() or bpy.props.Bricker_developer_mode != 0:
         return 0.5
@@ -141,5 +142,5 @@ def prevent_user_from_viewing_storage_scene(scene):
             i += 1
         bpy.context.screen.scene = bpy.data.scenes[i]
         showErrorMessage("This scene is for Bricker internal use only")
-        return 1.0
+        return 0.5
     return 0.1

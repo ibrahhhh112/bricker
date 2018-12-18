@@ -144,12 +144,21 @@ def remove_item(ls, item):
     return True
 
 
-def tag_redraw_areas(areaTypes=["ALL"]):
+def tag_redraw_areas(areaTypes=("ALL")):
     areaTypes = confirmIter(areaTypes)
     for area in bpy.context.screen.areas:
         for areaType in areaTypes:
             if areaType == "ALL" or area.type == areaType:
                 area.tag_redraw()
+
+
+def tag_redraw_viewport_in_all_screens():
+    """redraw the 3D viewport in all screens (bypasses bpy.context.screen)"""
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+
 
 
 def disableRelationshipLines():
@@ -330,7 +339,11 @@ def getLayersList(layers):
 
 
 def deselectAll():
-    deselect(bpy.context.selected_objects)
+    try:
+        selected_objects = bpy.context.selected_objects
+    except AttributeError:
+        selected_objects = [obj for obj in bpy.context.view_layer.objects if obj.select_get()]
+    deselect(selected_objects)
 
 
 def selectAll(hidden=False):
@@ -352,11 +365,10 @@ def unhide(objs):
             obj.hide_viewport = False
 
 
-def setActiveObj(obj, scene=None):
-    # TODO: Fix this function
+def setActiveObj(obj, view_layer=None):
     assert type(obj) == Object
-    scene = scene or bpy.context.scene
-    bpy.context.object = obj
+    view_layer = view_layer or bpy.context.view_layer
+    view_layer.objects.active = obj
 
 
 def isObjVisibleInViewport(obj):
@@ -373,7 +385,7 @@ def isObjVisibleInViewport(obj):
     return objVisible
 
 
-def select(objList, active:bool=False, only:bool=False, scene:Scene=None):
+def select(objList, active:bool=False, only:bool=False):
     """ selects objs in list and deselects the rest """
     # confirm objList is a list of objects
     objList = confirmList(objList)
@@ -384,7 +396,7 @@ def select(objList, active:bool=False, only:bool=False, scene:Scene=None):
         if obj is not None and obj.select_get() == False:
             obj.select_set(True)
     # set active object
-    if active: setActiveObj(objList[0], scene=scene)
+    if active: setActiveObj(objList[0])
 
 
 def deselect(objList):
