@@ -73,14 +73,14 @@ def getUVCoord(mesh, face, point, image):
     return Vector(uv_coord)
 
 
-def getUVTextureData(obj):
+def getUVLayerData(obj):
     """ returns data of active uv texture for object """
-    if len(obj.data.uv_textures) == 0:
+    if len(obj.data.uv_layers) == 0:
         return None
-    active_uv = obj.data.uv_textures.active
+    active_uv = obj.data.uv_layers.active
     if active_uv is None:
-        obj.data.uv_textures.active = obj.data.uv_textures[0]
-        active_uv = obj.data.uv_textures.active
+        obj.data.uv_layers.active = obj.data.uv_layers[0]
+        active_uv = obj.data.uv_layers.active
     return active_uv.data
 
 
@@ -108,8 +108,8 @@ def getUVImages(obj):
     """ returns dictionary with duplicate pixel arrays for all UV textures in object """
     scn, cm, _ = getActiveContextInfo()
     # get list of images to store
-    uv_tex_data = getUVTextureData(obj)
-    images = [uv_tex.image for uv_tex in uv_tex_data] if uv_tex_data else []
+    uv_layer_data = getUVLayerData(obj)
+    images = [uv_layer.image for uv_layer in uv_layer_data] if uv_layer_data else []
     images.append(bpy.data.images.get(cm.uvImageName))
     images.append(getFirstImgTexNode(obj))
     images = uniquify1(images)
@@ -269,8 +269,8 @@ def verifyImg(im):
 def getUVImage(scn, obj, face_idx, uvImageName):
     """ returns UV image (priority to user settings, then face index, then first one found in object """
     image = verifyImg(bpy.data.images.get(uvImageName))
-    if image is None and obj.data.uv_textures.active:
-        image = verifyImg(obj.data.uv_textures.active.data[face_idx].image)
+    if image is None and obj.data.uv_layers.active:
+        image = verifyImg(obj.data.uv_layers.active.data[face_idx].image)
     if image is None:
         image = verifyImg(getFirstImgTexNode(obj))
     return image
@@ -282,7 +282,7 @@ def getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImageName):
         return None
     # get closest material using UV map
     face = obj.data.polygons[face_idx]
-    # get uv_texture image for face
+    # get uv_layer image for face
     image = getUVImage(scn, obj, face_idx, uvImageName)
     if image is None:
         return None

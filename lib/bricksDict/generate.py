@@ -66,7 +66,8 @@ def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundTy
     intersections = 0
     # cast rays until no more rays to cast
     while True:
-        _,location,normal,index = obj.ray_cast(orig, direction)#distance=edgeLen*1.00000000001)
+        obj_eval = bpy.context.depsgraph.objects.get(obj.name, None)
+        _,location,normal,index = obj_eval.ray_cast(orig, direction)#distance=edgeLen*1.00000000001)
         if index == -1: break
         if intersections == 0:
             firstDirection = direction.dot(normal)
@@ -636,7 +637,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     brickType = cm.brickType  # prevents cm.brickType update function from running over and over in for loop
     uvImageName = cm.uvImageName
     noOffset = vec_round(offset, precision=5) == Vector((0, 0, 0))
-    # get uv_texture image and pixels for material calculation
+    # get uv_layer image and pixels for material calculation
     uv_images = getUVImages(source)
     for x in range(len(coordMatrix)):
         for y in range(len(coordMatrix[0])):
