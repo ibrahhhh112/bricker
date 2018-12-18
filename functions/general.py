@@ -64,6 +64,8 @@ def safeUnlink(obj, hide=True, protect=True):
     scn = bpy.context.scene
     safeScn = getSafeScn()
     try:
+        for cn in obj.users_collection:
+            cn.objects.unlink(obj)
         scn.collection.objects.unlink(obj)
     except RuntimeError:
         pass

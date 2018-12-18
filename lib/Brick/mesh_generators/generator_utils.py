@@ -230,7 +230,7 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
                         curRatio = (v.co.x - sMin.x) / sDistX
                         v.co.z = sMin.z + sDistZ * curRatio
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"][::1 if underside else -1])
-                select(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
+                selectVerts(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
                 if edgeXp is not None:
                     adjXNum = xNum - 1
                     topVertsD = createVertListDict2(studVerts["bottom"] if underside else studVerts["outer"]["bottom"])
@@ -265,7 +265,7 @@ def addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edg
         for yNum in range(brickSize[1]):
             bme, innerCylinderVerts = makeCylinder(r, h, N, co=Vector((xNum*d.x*2,yNum*d.y*2,d.z - thickZ + h/2)), loopCut=loopCut, botFace=False, flipNormals=True, bme=bme)
             if loopCut:
-                select(innerCylinderVerts["mid"])
+                selectVerts(innerCylinderVerts["mid"])
             botVertsD = createVertListDict(innerCylinderVerts["bottom"])
             botVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = botVertsD
     connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, botVertsDofDs, xNum, yNum, bme)
@@ -285,11 +285,11 @@ def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=
             if hollow:
                 _, studVerts = makeTube(r, h, t, circleVerts, co=Vector((0, 0, z)), loopCut=loopCut, botFace=botFace, bme=bme)
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"])
-                select(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
+                selectVerts(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
             else:
                 # split stud at center by creating cylinder and circle and joining them (allows Bevel to work correctly)
                 _, studVerts = makeCylinder(r, h, circleVerts, co=Vector((x, y, z)), botFace=False, loopCut=loopCut, bme=bme)
-                select(studVerts["mid" if loopCut else "bottom"])
+                selectVerts(studVerts["mid" if loopCut else "bottom"])
             if edgeXp is not None:
                 topVertsD = createVertListDict2(studVerts["outer"]["bottom"] if hollow else studVerts["bottom"])
                 topVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = topVertsD

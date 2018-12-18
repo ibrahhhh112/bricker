@@ -165,7 +165,7 @@ def disableRelationshipLines():
     # disable relationship lines
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
-            area.spaces[0].show_relationship_lines = False
+            area.spaces[0].overlay.show_relationship_lines = False
 
 
 def drawBMesh(bm, name="drawnBMesh"):
@@ -393,10 +393,22 @@ def select(objList, active:bool=False, only:bool=False):
     if only: deselectAll()
     # select/deselect objects in list
     for obj in objList:
-        if obj is not None and obj.select_get() == False:
+        if obj is not None and not obj.select_get():
             obj.select_set(True)
     # set active object
     if active: setActiveObj(objList[0])
+
+
+def selectVerts(vertList, only:bool=False):
+    """ selects verts in list and deselects the rest """
+    # confirm vertList is a list of vertices
+    vertList = confirmList(vertList)
+    # deselect all if selection is exclusive
+    if only: deselectAll()
+    # select/deselect vertices in list
+    for v in vertList:
+        if v is not None and not v.select:
+            v.select = True
 
 
 def deselect(objList):
@@ -405,7 +417,7 @@ def deselect(objList):
     objList = confirmList(objList)
     # select/deselect objects in list
     for obj in objList:
-        if obj is not None and obj.select_get() == True:
+        if obj is not None and obj.select_get():
             obj.select_set(False)
 
 

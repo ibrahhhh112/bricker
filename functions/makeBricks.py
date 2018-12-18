@@ -271,7 +271,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = brick.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 brick.vertex_groups.remove(vg)
-            vg = brick.vertex_groups.new("%(name)s_bvl" % locals())
+            vg = brick.vertex_groups.new(name="%(name)s_bvl" % locals())
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
             # set up remaining brick info if brick object just created
@@ -303,7 +303,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = allBricksObj.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 allBricksObj.vertex_groups.remove(vg)
-            vg = allBricksObj.vertex_groups.new("%(name)s_bvl" % locals())
+            vg = allBricksObj.vertex_groups.new(name="%(name)s_bvl" % locals())
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
         if materialType == "CUSTOM":
@@ -316,7 +316,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated
-        bColl.collection.objects.link(allBricksObj)
+        bColl.objects.link(allBricksObj)
         if not allBricksObj.isBrickifiedObject:
             scn.collection.objects.link(allBricksObj)
             # protect allBricksObj from being deleted

@@ -108,8 +108,10 @@ def getUVImages(obj):
     """ returns dictionary with duplicate pixel arrays for all UV textures in object """
     scn, cm, _ = getActiveContextInfo()
     # get list of images to store
-    uv_layer_data = getUVLayerData(obj)
-    images = [uv_layer.image for uv_layer in uv_layer_data] if uv_layer_data else []
+    images = []
+    # TODO: Reinstate this functionality
+    # uv_tex_data = getUVTextureData(obj)
+    # images = [uv_tex.image for uv_tex in uv_tex_data] if uv_tex_data else []
     images.append(bpy.data.images.get(cm.uvImageName))
     images.append(getFirstImgTexNode(obj))
     images = uniquify1(images)
@@ -269,8 +271,9 @@ def verifyImg(im):
 def getUVImage(scn, obj, face_idx, uvImageName):
     """ returns UV image (priority to user settings, then face index, then first one found in object """
     image = verifyImg(bpy.data.images.get(uvImageName))
-    if image is None and obj.data.uv_layers.active:
-        image = verifyImg(obj.data.uv_layers.active.data[face_idx].image)
+    # TODO: Reinstate this functionality
+    # if image is None and obj.data.uv_layers.active:
+    #     image = verifyImg(obj.data.uv_layers.active.data[face_idx].image)
     if image is None:
         image = verifyImg(getFirstImgTexNode(obj))
     return image
