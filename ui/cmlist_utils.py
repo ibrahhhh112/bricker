@@ -246,7 +246,7 @@ def matchProperties(cmTo, cmFrom, overrideIdx=-1):
         matObjTo = bpy.data.objects.get(matObjNamesTo[i])
         if matObjFrom is None or matObjTo is None:
             continue
-        matObjTo.data.materials.clear(1)
+        matObjTo.data.materials.clear(update_data=True)
         for mat in matObjFrom.data.materials:
             matObjTo.data.materials.append(mat)
     # match properties from 'cmFrom' to 'cmTo'

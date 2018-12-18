@@ -32,7 +32,7 @@ from .common import *
 
 def getSafeScn():
     safeScn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
-    if safeScn == None:
+    if safeScn is None:
         safeScn = bpy.data.scenes.new("Bricker_storage (DO NOT MODIFY)")
     return safeScn
 

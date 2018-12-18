@@ -24,7 +24,7 @@ from .general import *
 
 def clearExistingMaterials(obj, from_idx=0, from_data=False):
     if from_data:
-        brick.data.materials.clear(1)
+        brick.data.materials.clear(update_data=True)
     else:
         select(obj, active=True)
         obj.active_material_index = from_idx

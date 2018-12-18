@@ -696,7 +696,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # unlink source duplicate
         scn.update()
         for obj in duplicates.values():
-            safeUnlink(obj)
+            safeUnlink(obj, hide=False)
         return duplicates
 
     def getNewParent(self, Bricker_parent_on, loc):

@@ -23,7 +23,7 @@ import numpy as np
 
 # Blender imports
 import bpy
-from bpy.types import Object
+from bpy.types import Object, Depsgraph
 from mathutils import Matrix, Vector
 
 # Addon imports
@@ -46,7 +46,7 @@ def VectorRound(vec, dec, roundType="ROUND"):
         lst = [(math.ceil(vec[i] * 10**dec)) / 10**dec for i in range(len(vec))]
     return Vector(lst)
 
-def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundType:str="CEILING", edgeLen:int=0):
+def castRays(obj:Object, depsgraph:Depsgraph, point:Vector, direction:Vector, miniDist:float, roundType:str="CEILING", edgeLen:int=0):
     """
     obj       -- source object to test intersections for
     point     -- origin point for ray casting
@@ -66,7 +66,7 @@ def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundTy
     intersections = 0
     # cast rays until no more rays to cast
     while True:
-        obj_eval = bpy.context.depsgraph.objects.get(obj.name, None)
+        obj_eval = depsgraph.objects.get(obj.name, None)
         _,location,normal,index = obj_eval.ray_cast(orig, direction)#distance=edgeLen*1.00000000001)
         if index == -1: break
         if intersections == 0:
@@ -111,17 +111,21 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
     intersections = 0
     noMoreChecks = False
     outsideL = []
+    try:
+        depsgraph = obj.users_scene[0].view_layers[0].depsgraph
+    except Exception as e:
+        depsgraph = bpy.context.depsgraph
     # set axis of direction
     axes = "XYZ" if direction[0] > 0 else ("YZX" if direction[1] > 0 else "ZXY")
     # run initial intersection check
-    intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj, point, direction, miniDist, edgeLen=edgeLen)
+    intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj, depsgraph, point, direction, miniDist, edgeLen=edgeLen)
     if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
         outsideL.append(0)
         if intersections%2 == 0 and not (useNormals and firstDirection > 0):
             outsideL[0] = 1
         elif castDoubleCheckRays:
             # double check vert is inside mesh
-            count, firstDirection = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
+            count, firstDirection = castRays(obj, depsgraph, point, -direction, -miniDist, roundType="FLOOR")
             if count%2 == 0 and not (useNormals and firstDirection > 0):
                 outsideL[0] = 1
 
@@ -137,12 +141,12 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
                 outsideL.append(0)
                 direction = dirs[i][0]
                 miniDist = dirs[i][1]
-                count, firstDirection = castRays(obj, point, direction, miniDist)
+                count, firstDirection = castRays(obj, depsgraph, point, direction, miniDist)
                 if count%2 == 0 and not (useNormals and firstDirection > 0):
                     outsideL[len(outsideL) - 1] = 1
                 elif castDoubleCheckRays:
                     # double check vert is inside mesh
-                    count, firstDirection = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
+                    count, firstDirection = castRays(obj, depsgraph, point, -direction, -miniDist, roundType="FLOOR")
                     if count%2 == 0 and not (useNormals and firstDirection > 0):
                         outsideL[len(outsideL) - 1] = 1
 

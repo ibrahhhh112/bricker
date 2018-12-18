@@ -70,7 +70,7 @@ class BRICKER_OT_close_error(bpy.types.Operator):
     def execute(self, context):
         try:
             txt = bpy.data.texts['Bricker_log']
-            bpy.data.texts.remove(txt, True)
+            bpy.data.texts.remove(txt, do_unlink=True)
         except:
             handle_exception()
         return{"FINISHED"}

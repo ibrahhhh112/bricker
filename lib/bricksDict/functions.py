@@ -199,16 +199,12 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
             if scn.render.engine == "CYCLES":
                 # a new material node tree already has a diffuse and material output node
                 output = mat_nodes['Material Output']
-                # remove default Diffuse BSDF
-                diffuse = mat_nodes['Diffuse BSDF']
-                mat_nodes.remove(diffuse)
-                # add Principled BSDF
-                principled = mat_nodes.new('ShaderNodeBsdfPrincipled')
+                principled = mat_nodes.get('Principled BSDF')
                 # set values for Principled BSDF
                 principled.inputs[0].default_value = rgba
                 principled.inputs[1].default_value = sss
                 sat_mat = getSaturationMatrix(sssSat)
-                principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) * sat_mat).to_tuple()
+                principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) @ sat_mat).to_tuple()
                 principled.inputs[5].default_value = specular
                 principled.inputs[7].default_value = roughness
                 principled.inputs[14].default_value = ior

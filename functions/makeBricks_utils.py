@@ -90,12 +90,12 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
                 addEdgeSplitMod(brick)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
-            brick.matrix_world = Matrix.Identity(4) * randomRotMatrix
+            brick.matrix_world = Matrix.Identity(4) @ randomRotMatrix
         # set brick location
         brick.location = brickLoc
         # set brick material
         if len(m.materials) > 0 or len(brick.material_slots) > 0:
-            m.materials.clear(1)
+            m.materials.clear(update_data=True)
         if mat is not None or internalMat is not None:
             m.materials.append(mat or internalMat)
             brick.material_slots[0].link = 'OBJECT'
