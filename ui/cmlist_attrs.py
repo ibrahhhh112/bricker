@@ -620,6 +620,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
     animated: BoolProperty(default=False)
     materialApplied: BoolProperty(default=False)
     armature: BoolProperty(default=False)
+    collection: PointerProperty(type=bpy.types.Collection)
     # rigid_body: BoolProperty(default=False)
     bevelAdded: BoolProperty(default=False)
     customized: BoolProperty(default=True)

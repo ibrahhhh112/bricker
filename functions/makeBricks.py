@@ -280,8 +280,6 @@ def makeBricks(source, origSource, parent, logo, logo_details, dimensions, brick
             brick.parent = parent
             if not brick.isBrick:
                 brick.isBrick = True
-        # store brick collection
-        brick_coll = brick.users_collection[0]
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
@@ -319,16 +317,8 @@ def makeBricks(source, origSource, parent, logo, logo_details, dimensions, brick
         # add bricks obj to scene and bricksCreated
         bColl.objects.link(allBricksObj)
         bricksCreated.append(allBricksObj)
-        # store brick collection
-        brick_coll = allBricksObj.users_collection[0] if not allBricksObj.isBrickifiedObject else None
         # protect allBricksObj from being deleted
         allBricksObj.isBrickifiedObject = True
-
-    # link brick collection to scene collection
-    if brick_coll is not None:
-        for item in origSource.stored_parents:
-            if brick_coll.name not in item.collection.children:
-                item.collection.children.link(brick_coll)
 
     # reset 'attempted_merge' for all items in bricksDict
     for key0 in bricksDict:

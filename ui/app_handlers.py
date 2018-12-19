@@ -277,5 +277,8 @@ def handle_upconversion(scene):
             # convert from v1_5 to v1_6
             if int(cm.version[2]) < 6:
                 cm.source_obj = bpy.data.objects.get(cm.source_name)
+                n = getSourceName(cm)
+                cm.collection = bpy.data.collections.get("Bricker_%(n)s_bricks" % locals())
+
 
 bpy.app.handlers.load_post.append(handle_upconversion)

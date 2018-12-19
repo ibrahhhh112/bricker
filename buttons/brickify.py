@@ -51,8 +51,7 @@ def updateCanRun(type):
         if type == "ANIMATION":
             return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
         elif type == "MODEL":
-            Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-            return commonNeedsUpdate or (collExists(Bricker_bricks_gn) and len(bpy.data.collections[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
+            return commonNeedsUpdate or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
 
 
 class BRICKER_OT_brickify(bpy.types.Operator):
@@ -89,10 +88,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     obj = bpy.data.objects.get(n)
                     if obj:
                         bpy.data.objects.remove(obj, do_unlink=True)
-                for n in self.createdGroups:
-                    cn = bpy.data.collections.get(n)
+                for cn in self.createdCollections:
                     if cn:
-                        bpy.data.collections.remove(cn)
+                        bpy.data.collections.remove(cn, do_unlink=True)
                 if self.source:
                     self.source.protected = False
                     select(self.source, active=True)
@@ -115,7 +113,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
         # initialize vars
         self.createdObjects = []
-        self.createdGroups = []
+        self.createdCollections = []
         self.setAction(cm)
         self.source = cm.source_obj
 
@@ -127,10 +125,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # set up variables
         scn, cm, n = getActiveContextInfo()
         self.undo_stack.iterateStates(cm)
-        Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
 
         # ensure that Bricker can run successfully
-        if not self.isValid(scn, cm, n, self.source, Bricker_bricks_gn):
+        if not self.isValid(scn, cm, n, self.source):
             return {"CANCELLED"}
 
         # initialize variables
@@ -139,7 +136,15 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
         # store parent collections to source
         if len(self.source.stored_parents) == 0:
+            # store parent collections of source
             for cn in self.source.users_collection:
+                self.source.stored_parents.add().collection = cn
+        else:
+            # store parent collections of brick collection
+            self.source.stored_parents.clear()
+            brickColl = cm.collection
+            brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
+            for cn in brickCollUsers:
                 self.source.stored_parents.add().collection = cn
 
         # # check if source object is smoke simulation domain
@@ -162,10 +167,21 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # TODO: potentially necessary to ensure self.source (and its parent collections) are viewable?
 
         if "ANIM" not in self.action:
-            self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
+            final_coll = self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
         else:
-            self.brickifyAnimation(scn, cm, n, matrixDirty)
+            final_coll = self.brickifyAnimation(scn, cm, n, matrixDirty)
             cm.animIsDirty = False
+
+        # link final bricks collection to scene collection
+        cm.collection = final_coll
+        for item in self.source.stored_parents:
+            if final_coll.name not in item.collection.children:
+                item.collection.children.link(final_coll)
+        # select the bricks object unless it's massive
+        if "ANIM" not in self.action and not cm.splitModel:
+            obj = final_coll.objects[0]
+            if len(obj.data.vertices) < 500000:
+                select(obj, active=True)
 
         # set cmlist_id for all created objects
         for obj_name in self.createdObjects:
@@ -285,10 +301,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # create new bricks
         coll_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
 
-        ct = time.time()
         bColl = bpy.data.collections.get(coll_name)
         if bColl:
-            self.createdGroups.append(coll_name)
+            self.createdCollections.append(bColl)
             # transform bricks to appropriate location
             self.transformBricks(bColl, cm, parent, self.source, sourceDup_details, self.action)
             # apply old animation data to objects
@@ -316,6 +331,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             scn.frame_set(origFrame)
 
         cm.lastSourceMid = vecToStr(parentLoc)
+
+        return bColl
 
     def brickifyAnimation(self, scn, cm, n, matrixDirty):
         """ create brick animation """
@@ -397,7 +414,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # create new bricks
             try:
                 coll_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
-                self.createdGroups.append(coll_name)
+                bColl = bpy.data.collections.get(coll_name)
+                self.createdCollections.append(bColl)
             except KeyboardInterrupt:
                 self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
                 if curFrame != cm.startFrame:
@@ -409,7 +427,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return
 
             # get object with created bricks
-            obj = bpy.data.collections[coll_name].objects[0]
+            obj = bColl.objects[0]
             # hide obj unless on scene current frame
             showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
             if not showCurObj:
@@ -434,6 +452,17 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="ANIM")
             BRICKER_OT_bevel.runBevelAction(bricks, cm)
+
+        # link animation frames to animation collection
+        anim_coll_name = "Bricker_%(n)s_bricks" % locals()
+        anim_coll = bpy.data.collections.get(anim_coll_name)
+        if anim_coll is None:
+            anim_coll = bpy.data.collections.new(anim_coll_name)
+        for cn in self.createdCollections:
+            anim_coll.children.link(cn)
+
+        return anim_coll
+
 
     @classmethod
     def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False, origSource=None):
@@ -480,7 +509,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
         return coll_name
 
-    def isValid(self, scn, cm, source_name, source, Bricker_bricks_gn):
+    def isValid(self, scn, cm, source_name, source):
         """ returns True if brickify action can run, else report WARNING/ERROR and return False """
         # ensure custom object(s) are valid
         if (cm.brickType == "CUSTOM" or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3):
@@ -495,6 +524,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # ensure source name isn't too long
         if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
+            return False
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.materialName != "" and bpy.data.materials.find(cm.materialName) == -1:
             mn = cm.materialName
@@ -511,9 +541,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False
 
+        brick_coll_name = "Bricker_%(source_name)s_bricks" % locals()
         if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
-            if collExists(Bricker_bricks_gn):
+            if collExists(brick_coll_name):
                 self.report({"WARNING"}, "Brickified Model already created.")
                 return False
             # verify source exists and is of type mesh
@@ -545,7 +576,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if self.action == "UPDATE_MODEL":
             # make sure 'Bricker_[source name]_bricks' group exists
-            if not collExists(Bricker_bricks_gn):
+            if not collExists(brick_coll_name):
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
                 return False
 
@@ -603,9 +634,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         obj = bColl.objects[0] if len(bColl.objects) > 0 else None
         if obj is None:
             return
-        # select the bricks object unless it's massive
-        if not cm.splitModel and len(obj.data.vertices) < 500000:
-            select(obj, active=True)
         # if model contains armature, lock the location, rotation, and scale of created bricks object
         if not cm.splitModel and cm.armature:
             obj.lock_location = (True, True, True)

@@ -760,7 +760,7 @@ class BRICKER_PT_materials(Panel):
             if cm.useUVMap:
                 split = row.split(align=True, factor=0.75)
                 split.prop_search(cm, "uvImageName", bpy.data, "images", text="")
-                split.operator("image.open", icon="FILESEL", text="")
+                split.operator("image.open", icon="FILEBROWSER", text="")
             if len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
                 col.scale_y = 0.7

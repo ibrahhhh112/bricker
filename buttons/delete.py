@@ -196,11 +196,10 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     @classmethod
     def cleanSource(cls, cm, n, source, modelType):
         scn = bpy.context.scene
-        Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-        brickColl = bpy.data.collections[Bricker_bricks_gn]
-        # link source to scene
-        stored_parent_collections = [item.collection for item in source.stored_parents]
-        safeLink(source, collections=stored_parent_collections)
+        # link source to all collections containing Bricker model
+        brickColl = cm.collection
+        brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
+        safeLink(source, collections=brickCollUsers)
         source.stored_parents.clear()
         # reset source properties
         source.name = n
@@ -232,7 +231,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     @classmethod
     def cleanParents(cls, cm, n, preservedFrames, modelType):
         scn = bpy.context.scene
-        Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         brickLoc, brickRot, brickScl = None, None, None
         p = bpy.data.objects.get(Bricker_parent_on)
@@ -246,7 +244,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 except KeyError:
                     loc_diff = None
                 storeTransformData(cm, p, offsetBy=loc_diff)
-            if not cm.lastSplitModel and collExists(Bricker_bricks_gn):
+            if not cm.lastSplitModel and cm.collection is not None:
                 bricks = getBricks()
                 if len(bricks) > 0:
                     b = bricks[0]
@@ -283,13 +281,12 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     def cleanBricks(cls, scn, cm, n, preservedFrames, modelType, skipTransAndAnimData):
         trans_and_anim_data = []
         wm = bpy.context.window_manager
-        Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
         if modelType == "MODEL":
             # clean up Bricker_bricks group
             sys.stdout.write("\rDeleting...")
             sys.stdout.flush()
-            if collExists(Bricker_bricks_gn):
-                brickColl = bpy.data.collections[Bricker_bricks_gn]
+            if cm.collection is not None:
+                brickColl = cm.collection
                 bricks = getBricks()
                 if not cm.lastSplitModel:
                     if len(bricks) > 0:
@@ -312,7 +309,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 if percent < 1:
                     update_progress("Deleting", percent)
                     wm.progress_update(percent*100)
-                Bricker_bricks_curF_gn = Bricker_bricks_gn + "_f_" + str(i)
+                Bricker_bricks_curF_gn = "Bricker_{n}_bricks_f_{i}".format(n=n, i=str(i))
                 brickColl = bpy.data.collections.get(Bricker_bricks_curF_gn)
                 if brickColl:
                     bricks = list(brickColl.objects)
@@ -321,6 +318,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     if len(bricks) > 0:
                         delete(bricks)
                     bpy.data.collections.remove(brickColl, do_unlink=True)
+            bpy.data.collections.remove(cm.collection, do_unlink=True)
             cm.animated = False
         # finish status update
         update_progress("Deleting", 1)
