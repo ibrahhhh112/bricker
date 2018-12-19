@@ -168,7 +168,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     source.rotation_euler.rotate(rotateBy)
                 # set source origin back to original point (tracked by last vert)
                 scn.update()
-                setObjOrigin(source, source.matrix_world * source.data.vertices[0].co)
+                setObjOrigin(source, source.matrix_world @ source.data.vertices[0].co)
                 source.data.vertices[0].co = last_co
                 source.rotation_mode = lastMode
             # adjust source loc to account for local_orient_offset applied in BrickerBrickify.transformBricks
@@ -197,9 +197,11 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     def cleanSource(cls, cm, n, source, modelType):
         scn = bpy.context.scene
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
+        brickColl = bpy.data.collections[Bricker_bricks_gn]
         # link source to scene
-        if source not in list(scn.objects):
-            safeLink(source)
+        stored_parent_collections = [item.collection for item in source.stored_parents]
+        safeLink(source, collections=stored_parent_collections)
+        source.stored_parents.clear()
         # reset source properties
         source.name = n
         source.cmlist_id = -1

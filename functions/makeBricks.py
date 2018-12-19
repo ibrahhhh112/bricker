@@ -42,7 +42,7 @@ from .mat_utils import *
 
 
 @timed_call('Time Elapsed')
-def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
+def makeBricks(source, origSource, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
     zStep = getZStep(cm)
@@ -279,8 +279,9 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 bColl.objects.link(brick)
             brick.parent = parent
             if not brick.isBrick:
-                scn.collection.objects.link(brick)
                 brick.isBrick = True
+        # store brick collection
+        brick_coll = brick.users_collection[0]
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
@@ -317,11 +318,17 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated
         bColl.objects.link(allBricksObj)
-        if not allBricksObj.isBrickifiedObject:
-            scn.collection.objects.link(allBricksObj)
-            # protect allBricksObj from being deleted
-            allBricksObj.isBrickifiedObject = True
         bricksCreated.append(allBricksObj)
+        # store brick collection
+        brick_coll = allBricksObj.users_collection[0] if not allBricksObj.isBrickifiedObject else None
+        # protect allBricksObj from being deleted
+        allBricksObj.isBrickifiedObject = True
+
+    # link brick collection to scene collection
+    if brick_coll is not None:
+        for item in origSource.stored_parents:
+            if brick_coll.name not in item.collection.children:
+                item.collection.children.link(brick_coll)
 
     # reset 'attempted_merge' for all items in bricksDict
     for key0 in bricksDict:

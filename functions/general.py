@@ -75,10 +75,11 @@ def safeUnlink(obj, hide=True, protect=True):
         obj.hide_viewport = True
 
 
-def safeLink(obj, unhide=True, protect=False):
-    scn = bpy.context.scene
+def safeLink(obj, unhide=True, protect=False, collections=None):
     safeScn = getSafeScn()
-    scn.collection.objects.link(obj)
+    collections = collections or [bpy.context.scene.collection]
+    for cn in collections:
+        cn.objects.link(obj)
     obj.protected = protect
     if unhide:
         obj.hide_viewport = False

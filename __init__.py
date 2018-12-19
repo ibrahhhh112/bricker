@@ -44,6 +44,7 @@ from bpy.utils import register_class, unregister_class
 from . import addon_updater_ops
 from .ui.timers import *
 from .ui.cmlist_attrs import BRICKER_UL_created_models
+from .ui.other_property_groups import *
 from .lib import keymaps, preferences, classesToRegister
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 
@@ -67,6 +68,7 @@ def register():
     Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
     Object.isBrick = BoolProperty(name='Is Brick', default=False)
     Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
+    Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
     Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
 
     Scene.Bricker_runningBlockingOperation = BoolProperty(default=False)
@@ -138,6 +140,7 @@ def unregister():
     del Scene.Bricker_last_layers
     del Scene.Bricker_runningBlockingOperation
     del Material.num_averaged
+    del Object.stored_parents
     del Object.cmlist_id
     del Object.isBrick
     del Object.isBrickifiedObject

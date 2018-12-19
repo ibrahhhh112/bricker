@@ -137,6 +137,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.source.cmlist_id = cm.id
         matrixDirty = matrixReallyIsDirty(cm)
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
+        # store parent collections to source
+        if len(self.source.stored_parents) == 0:
+            for cn in self.source.users_collection:
+                self.source.stored_parents.add().collection = cn
 
         # # check if source object is smoke simulation domain
         cm.isSmoke = is_smoke(self.source)
@@ -469,7 +473,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, origSource, curFrame)
         # make bricks
         coll_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
+        bricksCreated, bricksDict = makeBricks(source, origSource, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated, active=True, only=True)
         # store current bricksDict to cache

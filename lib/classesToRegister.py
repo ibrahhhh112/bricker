@@ -100,4 +100,6 @@ classes = (
     # bricker/ui/ (matlist)
     BRICKER_OT_matlist_actions,
     MATERIAL_UL_matslots_example,
+    # bricker/ui/ (other_property_groups)
+    BRICKER_UL_collections_tuple
 )
