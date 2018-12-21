@@ -188,21 +188,12 @@ def setObjOrigin(obj, loc):
 #             bpy.data.meshes.remove(m)
 
 
-def getBricks(cm=None, typ=None):
+def getBricks(cm=None):
     """ get bricks in 'cm' model """
-    scn, cm, n = getActiveContextInfo(cm=cm)
-    typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
-    if typ == "MODEL":
-        gn = "Bricker_%(n)s_bricks" % locals()
-        bColl = bpy.data.collections[gn]
-        bricks = list(bColl.objects)
-    elif typ == "ANIM":
-        bricks = []
-        for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
-            gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-            bColl = bpy.data.collections.get(gn)
-            if bColl:
-                bricks += list(bColl.objects)
+    cm = cm or getActiveContextInfo()[1]
+    if cm.collection is None:
+        return []
+    bricks = list(cm.collection.all_objects)
     return bricks
 
 

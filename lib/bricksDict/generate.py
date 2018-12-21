@@ -352,8 +352,9 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     return brickFreqMatrix
 
 
-def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, printStatus=True, cursorStatus=False):
+def getBrickMatrixSmoke(faceIdxMatrix, brickShell, source_details, printStatus=True, cursorStatus=False):
     cm = getActiveContextInfo()[1]
+    source = cm.source_obj
     density_grid, flame_grid, color_grid, domain_res, max_res, adapt = getSmokeInfo(source)
     brickFreqMatrix = deepcopy(faceIdxMatrix)
     colorMatrix = deepcopy(faceIdxMatrix)
@@ -604,7 +605,7 @@ def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:t
            }
 
 @timed_call('Time Elapsed')
-def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=False):
+def makeBricksDict(source, source_details, brickScale, cursorStatus=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
     source_details -- object details with subattributes for distance and midpoint of x, y, z axes
@@ -627,7 +628,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     # set up faceIdxMatrix and brickFreqMatrix
     faceIdxMatrix = np.zeros((len(coordMatrix), len(coordMatrix[0]), len(coordMatrix[0][0]))).tolist()
     if cm.isSmoke:
-        brickFreqMatrix, smokeColors = getBrickMatrixSmoke(origSource, faceIdxMatrix, cm.brickShell, source_details, cursorStatus=cursorStatus)
+        brickFreqMatrix, smokeColors = getBrickMatrixSmoke(faceIdxMatrix, cm.brickShell, source_details, cursorStatus=cursorStatus)
     else:
         brickFreqMatrix = getBrickMatrix(source, faceIdxMatrix, coordMatrix, cm.brickShell, axes=calculationAxes, cursorStatus=cursorStatus)
         smokeColors = None

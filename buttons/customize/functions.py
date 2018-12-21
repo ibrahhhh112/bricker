@@ -39,8 +39,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
     source = cm.source_obj
     source_details, dimensions = getDetailsAndBounds(source, cm)
     n = source.name
-    Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
-    parent = bpy.data.objects.get(Bricker_parent_on)
+    parent = cm.parent_obj
     logo_details, refLogo = BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks

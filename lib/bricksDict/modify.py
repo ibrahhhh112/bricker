@@ -26,7 +26,7 @@ from .functions import *
 from ...functions import *
 
 
-def updateMaterials(bricksDict, source, origSource, curFrame=None):
+def updateMaterials(bricksDict, source, curFrame=None):
     """ sets all matNames in bricksDict based on near_face """
     scn, cm, n = getActiveContextInfo()
     useUVMap = cm.useUVMap and (len(source.data.uv_layers) > 0 or cm.uvImageName != "")

@@ -222,7 +222,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # set up variables
         origFrame = None
         source = None
-        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
 
         if self.action == "CREATE":
             # set modelCreatedOnFrame
@@ -286,12 +285,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         sourceDup_details, dimensions = getDetailsAndBounds(sourceDup)
 
         # get parent object
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent = bpy.data.objects.get(Bricker_parent_on)
         # if parent doesn't exist, get parent with new location
         parentLoc = sourceDup_details.mid
         if parent is None:
             parent = self.getNewParent(Bricker_parent_on, parentLoc)
             cm.parent_name = parent.name
+        cm.parent_obj = parent
         parent["loc_diff"] = self.source.location - parentLoc
         self.createdObjects.append(parent.name)
 
@@ -299,7 +300,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         logo_details, refLogo = self.getLogo(scn, cm, dimensions)
 
         # create new bricks
-        coll_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
+        coll_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None)
 
         bColl = bpy.data.collections.get(coll_name)
         if bColl:
@@ -338,7 +339,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         """ create brick animation """
         # set up variables
         scn, cm, n = getActiveContextInfo()
-        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         sceneCurFrame = scn.frame_current
         objsToSelect = []
 
@@ -369,10 +369,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             BRICKER_OT_delete_model.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
 
         # get parent object
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(Bricker_parent_on)
         if parent0 is None:
             parent0 = self.getNewParent(Bricker_parent_on, self.source.location)
             cm.parent_name = parent0.name
+        cm.parent_obj = parent0
         self.createdObjects.append(parent0.name)
 
         # begin drawing status to cursor
@@ -413,7 +415,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
             # create new bricks
             try:
-                coll_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
+                coll_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, selectCreated=False)
                 bColl = bpy.data.collections.get(coll_name)
                 self.createdCollections.append(bColl)
             except KeyboardInterrupt:
@@ -465,7 +467,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
 
     @classmethod
-    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False, origSource=None):
+    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
@@ -474,7 +476,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # multiply brickScale by offset distance
             brickScale2 = brickScale if cm.brickType != "CUSTOM" else vec_mult(brickScale, Vector(cm.distOffset))
             # get bricks dictionary
-            bricksDict, loadedFromCache = getBricksDict(dType=action, source=source, source_details=source_details, dimensions=dimensions, brickScale=brickScale2, updateCursor=updateCursor, curFrame=curFrame, origSource=origSource, restrictContext=False)
+            bricksDict, loadedFromCache = getBricksDict(dType=action, source=source, source_details=source_details, dimensions=dimensions, brickScale=brickScale2, updateCursor=updateCursor, curFrame=curFrame, restrictContext=False)
         else:
             loadedFromCache = True
         # reset all values for certain keys in bricksDict dictionaries
@@ -499,10 +501,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             updateInternal(bricksDict, cm, keys, clearExisting=loadedFromCache)
             cm.buildIsDirty = True
         # update materials in bricksDict
-        if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, origSource, curFrame)
+        if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, curFrame)
         # make bricks
         coll_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, origSource, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated, active=True, only=True)
         # store current bricksDict to cache
@@ -731,9 +733,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             safeUnlink(obj, hide=False)
         return duplicates
 
-    def getNewParent(self, Bricker_parent_on, loc):
-        m = bpy.data.meshes.new(Bricker_parent_on + "_mesh")
-        parent = bpy.data.objects.new(Bricker_parent_on, m)
+    def getNewParent(self, name, loc):
+        m = bpy.data.meshes.new(name + "_mesh")
+        parent = bpy.data.objects.new(name, m)
         parent.location = loc
         safeScn = getSafeScn()
         safeScn.collection.objects.link(parent)
