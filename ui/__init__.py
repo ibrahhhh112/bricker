@@ -726,7 +726,7 @@ class BRICKER_PT_materials(Panel):
                     row.label(text="Switch to '' or 'Eevee' for Brick materials")
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
-                    row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                    row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     # import settings
                     if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
@@ -813,7 +813,7 @@ class BRICKER_PT_materials(Panel):
                     col1.operator("bricker.mat_list_action", icon='REMOVE', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
                     if not brick_materials_loaded():
-                        col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                        col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ADD")
                     # import settings
