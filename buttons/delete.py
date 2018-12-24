@@ -250,7 +250,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     brickRot = b.matrix_world.to_euler().copy()
                     brickScl = b.matrix_world.to_scale().copy()  # currently unused
         # clean up Bricker_parent objects
-        parents = [p] + list(p.children)
+        parents = [p] + (list(p.children) if modelType == "ANIMATION" else [])
+        print(parents)
         for parent in parents:
             if parent is None:
                 continue

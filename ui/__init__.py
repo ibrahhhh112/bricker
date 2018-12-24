@@ -721,9 +721,9 @@ class BRICKER_PT_materials(Panel):
             row = col.row(align=True)
             row.prop_search(cm, "materialName", bpy.data, "materials", text="")
             if brick_materials_installed():
-                if bpy.context.scene.render.engine != 'CYCLES':
+                if bpy.context.scene.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
                     row = col.row(align=True)
-                    row.label(text="Switch to 'Cycles' for Brick materials")
+                    row.label(text="Switch to '' or 'Eevee' for Brick materials")
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
                     row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
@@ -800,8 +800,8 @@ class BRICKER_PT_materials(Panel):
             if matObj is not None:
                 if not brick_materials_installed():
                     col.label(text="'ABS Plastic Materials' not installed")
-                elif scn.render.engine != 'CYCLES':
-                    col.label(text="Switch to 'Cycles' for Brick Materials")
+                elif scn.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
+                    col.label(text="Switch to 'Cycles' or 'Eevee' for Brick Materials")
                 else:
                     # draw materials UI list and list actions
                     numMats = len(matObj.data.materials)
@@ -832,7 +832,7 @@ class BRICKER_PT_materials(Panel):
                     col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
 
         if cm.materialType == "SOURCE" and obj:
-            noUV = scn.render.engine == "CYCLES" and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0)
+            noUV = scn.render.engine in ("CYCLES", "BLENDER_EEVEE") and cm.colorSnap != "NONE" and (not cm.useUVMap or len(obj.data.uv_layers) == 0)
             if noUV:
                 col = layout.column(align=True)
                 col.scale_y = 0.5
@@ -846,7 +846,7 @@ class BRICKER_PT_materials(Panel):
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
                 col.label(text=nodeNames)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
-                if scn.render.engine in ["CYCLES", "octane"]:
+                if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                     col = layout.column(align=True)
                     col.label(text="Material Properties:")
                     row = col.row(align=True)
@@ -855,14 +855,14 @@ class BRICKER_PT_materials(Panel):
                     row.prop(cm, "colorSnapRoughness")
                     row = col.row(align=True)
                     row.prop(cm, "colorSnapIOR")
-                if scn.render.engine == "CYCLES":
+                if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
                     row = col.row(align=True)
                     row.prop(cm, "colorSnapSubsurface")
                     row = col.row(align=True)
                     row.prop(cm, "colorSnapSubsurfaceSaturation")
                     row = col.row(align=True)
                     row.prop(cm, "colorSnapTransmission")
-                if scn.render.engine in ["CYCLES", "octane"]:
+                if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                     row = col.row(align=True)
                     row.prop(cm, "includeTransparency")
                 col = layout.column(align=False)

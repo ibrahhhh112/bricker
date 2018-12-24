@@ -156,12 +156,14 @@ def getFirstNode(mat, types:list=None):
     scn = bpy.context.scene
     if types is None:
         # get material type(s) based on render engine
-        if scn.render.engine == "CYCLES":
-            types = ["BSDF_DIFFUSE", "BSDF_PRINCIPLED"]
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
+            types = ("BSDF_DIFFUSE", "BSDF_PRINCIPLED")
         elif scn.render.engine == "octane":
-            types = ["OCT_DIFFUSE_MAT"]
+            types = ("OCT_DIFFUSE_MAT")
         # elif scn.render.engine == "LUXCORE":
-        #     types = ["CUSTOM"]
+        #     types = ("CUSTOM")
+        else:
+            types = ()
     # get first node of target type
     mat_nodes = mat.node_tree.nodes
     for node in mat_nodes:
@@ -192,13 +194,12 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
     mat = mat or bpy.data.materials.new(name=mat_name)
     # set diffuse and transparency of material
     if mat_is_new:
-        if scn.render.engine in ["CYCLES", "octane"]:
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
             mat.use_nodes = True
             mat_nodes = mat.node_tree.nodes
             mat_links = mat.node_tree.links
-            if scn.render.engine == "CYCLES":
-                # a new material node tree already has a diffuse and material output node
-                output = mat_nodes['Material Output']
+            if scn.render.engine == ("CYCLES", "BLENDER_EEVEE"):
+                # get principled material node
                 principled = mat_nodes.get('Principled BSDF')
                 # set values for Principled BSDF
                 principled.inputs[0].default_value = rgba
@@ -210,6 +211,8 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 principled.inputs[14].default_value = ior
                 principled.inputs[15].default_value = transmission
                 if includeTransparency:
+                    # a new material node tree already has a diffuse and material output node
+                    output = mat_nodes['Material Output']
                     # create transparent and mix nodes
                     transparent = mat_nodes.new("ShaderNodeBsdfTransparent")
                     mix = mat_nodes.new("ShaderNodeMixShader")
@@ -219,8 +222,6 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                     mat_links.new(mix.outputs['Shader'], output.inputs["Surface"])
                     # set mix factor to 1 - alpha
                     mix.inputs[0].default_value = 1 - rgba[3]
-                else:
-                    mat_links.new(principled.outputs['BSDF'], output.inputs['Surface'])
             elif scn.render.engine == "octane":
                 # a new material node tree already has a diffuse and material output node
                 output = mat_nodes['Material Output']
@@ -244,8 +245,8 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
             #     matte.inputs[0].default_value = rgba
             #     matte.inputs['Opacity'].default_value = rgba[3]
     else:
-        # if scn.render.engine in ["CYCLES", "octane", "LUXCORE"]:
-        if scn.render.engine in ["CYCLES", "octane"]:
+        # if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane", "LUXCORE"):
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
             # make sure 'use_nodes' is enabled
             mat.use_nodes = True
             # get first node
@@ -255,6 +256,16 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 rgba1 = first_node.inputs[0].default_value
                 newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 first_node.inputs[0].default_value = newRGBA
+        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
+            # set values for Principled BSDF
+            first_node.inputs[0].default_value = rgba
+            first_node.inputs[1].default_value = sss
+            sat_mat = getSaturationMatrix(sssSat)
+            first_node.inputs[3].default_value[:3] = (Vector(rgba[:3]) @ sat_mat).to_tuple()
+            first_node.inputs[5].default_value = specular
+            first_node.inputs[7].default_value = roughness
+            first_node.inputs[14].default_value = ior
+            first_node.inputs[15].default_value = transmission
     mat.num_averaged += 1
     return mat_name
 

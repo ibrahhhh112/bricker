@@ -58,7 +58,7 @@ def register():
 
     bpy.props.bricker_module_name = __name__
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
-    bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
+    bpy.props.bricker_preferences = bpy.context.preferences.addons[__package__].preferences
 
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False

@@ -32,7 +32,7 @@ from ..buttons.customize.tools import *
 
 
 def brickerIsActive():
-    return hasattr(bpy.props, "bricker_module_name") and bpy.props.bricker_module_name in bpy.context.user_preferences.addons.keys()
+    return hasattr(bpy.props, "bricker_module_name") and bpy.props.bricker_module_name in bpy.context.preferences.addons.keys()
 
 
 def brickerRunningBlockingOp():
