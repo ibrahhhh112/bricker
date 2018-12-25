@@ -88,7 +88,7 @@ class paintbrushTools:
             tag_redraw_areas()
             # draw created bricks
             drawUpdatedBricks(cm, self.bricksDict, uniquify(brickKeys + keysToUpdate), action="updating surrounding bricks", selectCreated=False, tempBrick=True)
-            self.keysToMergeOnCommit += brickKeys + keysToUpdate
+            self.keysToMergeOnCommit += brickKeys + onlyNewKeys
 
     def changeMaterial(self, cm, n, curKey, curLoc, objSize):
         if max(objSize[:2]) > 1 or objSize[2] > cm.zStep:
