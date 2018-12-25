@@ -64,18 +64,15 @@ class paintbrushTools:
             drawUpdatedBricks(cm, self.bricksDict, [nextKey], action="adding new brick", selectCreated=False, tempBrick=True)
 
     def removeBrick(self, cm, n, event, curKey, curLoc, objSize):
-        shallowDelete = self.obj.name in self.addedBricks and self.mode == "DRAW"
+        shallowDelete = curKey in self.keysToMergeOnRelease and self.mode == "DRAW"
         deepDelete = event.shift and self.mode == "DRAW" and self.obj.name not in self.addedBricksFromDelete
-        if deepDelete:
+        if shallowDelete or deepDelete:
             # split bricks and update adjacent brickDs
             brickKeys, curKey = self.splitBrickAndGetNearest1x1(cm, n, curKey, curLoc, objSize)
             curLoc = getDictLoc(self.bricksDict, curKey)
             keysToUpdate, onlyNewKeys = OBJECT_OT_delete_override.updateAdjBricksDicts(self.bricksDict, cm.zStep, curKey, curLoc, [])
-            self.addedBricksFromDelete += [self.bricksDict[k]["name"] for k in onlyNewKeys]
-        if shallowDelete:
-            # remove current brick from addedBricks
-            self.addedBricks.remove(self.bricksDict[curKey]["name"])
-        if shallowDelete or deepDelete:
+            if deepDelete:
+                self.addedBricksFromDelete += [self.bricksDict[k]["name"] for k in onlyNewKeys]
             # reset bricksDict values
             self.bricksDict[curKey]["draw"] = False
             self.bricksDict[curKey]["val"] = 0
@@ -89,7 +86,6 @@ class paintbrushTools:
             if brick is not None:
                 delete(brick)
             tag_redraw_areas()
-        if deepDelete:
             # draw created bricks
             drawUpdatedBricks(cm, self.bricksDict, uniquify(brickKeys + keysToUpdate), action="updating surrounding bricks", selectCreated=False, tempBrick=True)
             self.keysToMergeOnCommit += brickKeys + keysToUpdate

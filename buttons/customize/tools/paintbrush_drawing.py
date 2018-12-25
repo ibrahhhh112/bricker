@@ -26,6 +26,7 @@ import math
 # Blender imports
 import bpy
 import bgl
+import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d, region_2d_to_origin_3d, region_2d_to_vector_3d
 from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
@@ -47,14 +48,18 @@ class paintbrushDrawing:
     # from CG Cookie's retopoflow plugin
 
     def ui_start(self):
-        # report something useful to user
-        bpy.context.area.header_text_set("Click & drag to add bricks (+'ALT' to remove). Press 'RETURN' to commit changes")
-        # paintbrush.update_dpi()
+        # # report something useful to user
+        # bpy.context.area.header_text_set("Click & drag to add bricks (+'ALT' to remove). Press 'RETURN' to commit changes")
+        # update dpi
+        ui_scale = bpy.context.user_preferences.view.ui_scale
+        pixel_size = bpy.context.user_preferences.system.pixel_size
+        self.dpi = int(72 * ui_scale * pixel_size)
+
 
         # add callback handlers
         self.cb_pr_handle = SpaceView3D.draw_handler_add(self.draw_callback_preview,   (bpy.context, ), 'WINDOW', 'PRE_VIEW')
         # self.cb_pv_handle = SpaceView3D.draw_handler_add(self.draw_callback_postview,  (bpy.context, ), 'WINDOW', 'POST_VIEW')
-        # self.cb_pp_handle = SpaceView3D.draw_handler_add(self.draw_callback_postpixel, (bpy.context, ), 'WINDOW', 'POST_PIXEL')
+        self.cb_pp_handle = SpaceView3D.draw_handler_add(self.draw_callback_postpixel, (bpy.context, ), 'WINDOW', 'POST_PIXEL')
         # darken other spaces
         self.spaces = [
             bpy.types.SpaceClipEditor,
@@ -134,6 +139,12 @@ class paintbrushDrawing:
     #     except: handle_exception()
     #     bgl.glPopAttrib()                           # restore OpenGL attributes
 
+    def draw_callback_postpixel(self, context):
+        bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
+        try:    self.draw_postpixel()
+        except: handle_exception()
+        bgl.glPopAttrib()                           # restore OpenGL attributes
+
     def draw_callback_cover(self, context):
         bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)
         bgl.glMatrixMode(bgl.GL_PROJECTION)
@@ -183,6 +194,47 @@ class paintbrushDrawing:
         bgl.glPopMatrix()
         bgl.glMatrixMode(bgl.GL_MODELVIEW)
         bgl.glPopMatrix()
+
+    def draw_postpixel(self):
+        # draw text
+        if self.mode == "DRAW":
+            text = "Click & drag to add bricks"
+            self.draw_text_2d(text, position=(50, 250))
+            text = "+'ALT' to remove"
+            self.draw_text_2d(text, position=(50, 220))
+            text = "+'SHIFT' to cut"
+            self.draw_text_2d(text, position=(50, 190))
+        elif self.mode == "PAINT":
+            text = "Click & drag to paint bricks with target material"
+            self.draw_text_2d(text, position=(50, 190))
+        elif self.mode == "MERGE/SPLIT":
+            text = "Click & drag to merge bricks"
+            self.draw_text_2d(text, position=(50, 250))
+            text = "+'ALT' to split horizontally"
+            self.draw_text_2d(text, position=(50, 220))
+            text = "+'SHIFT' to split vertically"
+            self.draw_text_2d(text, position=(50, 190))
+        text = "'RETURN' to commit changes"
+        self.draw_text_2d(text, position=(50, 160))
+
+        # if self.mode == "DRAW":
+        #     text = "Click & drag to add bricks (+'ALT' to remove, +'SHIFT' to cut)"
+        # elif self.mode == "PAINT":
+        #     text = "Click & drag to paint bricks with target material"
+        # elif self.mode == "MERGE/SPLIT":
+        #     text = "Click & drag to merge bricks (+'ALT' to split horizontally, +'SHIFT' to split vertically)"
+        # self.draw_text_2d(text, position=(127, 80))
+        # text = "Press 'RETURN' to commit changes"
+        # self.draw_text_2d(text, position=(127, 50))
+
+    def draw_text_2d(self, text, color=(1, 1, 1, 1), position=(0, 0)):
+        font_id = 0  # XXX, need to find out how best to get this.
+        # draw some text
+        bgl.glColor4f(*color)
+        blf.position(font_id, position[0], position[1], 0)
+        blf.size(font_id, 11, self.dpi)
+        blf.draw(font_id, text)
+        bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
     # def draw_centerpoint(color, point, width=1):
     #     bgl.glLineWidth(width)
