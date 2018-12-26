@@ -159,11 +159,7 @@ class BrickerApplyMaterial(bpy.types.Operator):
                 randIdx = randS0.randint(0, len(brick_mats)) if len(brick_mats) > 1 else 0
                 # Assign random material to object
                 mat = bpy.data.materials.get(brick_mats[randIdx])
-                if len(lastMatSlots) == 0:
-                    addMaterial(brick, mat)
-                else:
-                    brick.material_slots[0].link = 'OBJECT'
-                    brick.material_slots[0].material = mat
+                setMaterial(brick, mat)
                 if lastSplitModel:
                     bricksDict[brick.name.split("__")[-1]]["mat_name"] = mat.name
             elif len(lastMatSlots) == len(brick_mats):

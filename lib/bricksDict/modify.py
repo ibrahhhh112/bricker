@@ -231,7 +231,7 @@ def brickAvail(bricksDict, sourceKey, targetKey, mergeInconsistentMats, mergeWit
         return False
     sourceBrick = bricksDict[sourceKey]
     # checks if brick materials can be merged (same material, or mergeInconsistentMats, or one of the mats is "" (internal)
-    matsMergable = (mergeWithInternals and "" in (sourceBrick["mat_name"], brick["mat_name"])) or mergeInconsistentMats or sourceBrick["mat_name"] == brick["mat_name"] or materialType == "NONE"
+    matsMergable = (mergeWithInternals and "" in (sourceBrick["mat_name"], brick["mat_name"])) or mergeInconsistentMats or sourceBrick["mat_name"] == brick["mat_name"]
     # returns True if brick is present, brick isn't drawn already, and brick materials can be merged
     return brick["draw"] and mergableBrickType(brick["type"], up=False) and not brick["attempted_merge"] and matsMergable
 

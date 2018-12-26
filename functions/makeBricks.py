@@ -309,13 +309,12 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = allBricksObj.vertex_groups.new("%(name)s_bvl" % locals())
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
-        if materialType == "CUSTOM":
+        if materialType in ("CUSTOM", "NONE"):
             mat = bpy.data.materials.get(materialName)
-            if mat is not None:
-                addMaterial(allBricksObj, mat)
+            setMaterial(allBricksObj, mat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
             for mat in mats:
-                addMaterial(allBricksObj, mat)
+                setMaterial(allBricksObj, mat)
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated

@@ -38,6 +38,7 @@ from .hashObject import hash_object
 from ..lib.Brick import Bricks
 from ..lib.bricksDict import *
 from .common import *
+from .mat_utils import *
 from .wrappers import *
 from .general import *
 from ..lib.caches import bricker_mesh_cache
@@ -100,12 +101,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize,
         # set brick location
         brick.location = brickLoc
         # set brick material
-        if len(m.materials) > 0 or len(brick.material_slots) > 0:
-            m.materials.clear(1)
-        if mat is not None or internalMat is not None:
-            m.materials.append(mat or internalMat)
-            brick.material_slots[0].link = 'OBJECT'
-            brick.material_slots[0].material = mat or internalMat
+        setMaterial(brick, mat or internalMat)
         # append to bricksCreated
         bricksCreated.append(brick)
     else:
