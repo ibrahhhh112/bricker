@@ -205,7 +205,6 @@ def getCMProps():
             "materialName",
             "internalMatName",
             "matShellDepth",
-            "mergeInconsistentMats",
             "randomMatSeed",
             "useUVMap",
             "uvImageName",

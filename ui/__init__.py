@@ -733,8 +733,6 @@ class MergeSettingsPanel(Panel):
             row.prop(cm, "connectThresh")
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "mergeInconsistentMats")
-        row = col.row(align=True)
         row.prop(cm, "mergeInternals")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)

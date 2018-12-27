@@ -306,11 +306,6 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         min=1, max=50,
         default=1,
         update=dirtyModel)
-    mergeInconsistentMats = BoolProperty(
-        name="Merge Inconsistent Materials",
-        description="Merge bricks whether or not they share a material",
-        default=False,
-        update=dirtyBuild)
     mergeInternals = EnumProperty(
         name="Merge Shell with Internals",
         description="Merge bricks on shell with internal bricks",
