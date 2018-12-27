@@ -63,11 +63,11 @@ class InitializeUndoStack(Operator):
             # handle undo
             elif python_undo_state[cm.id] > cm.blender_undo_state:
                 self.undo_stack.undo_pop()
-                tag_redraw_areas()
+                tag_redraw_areas("VIEW_3D")
             # handle redo
             elif python_undo_state[cm.id] < cm.blender_undo_state:
                 self.undo_stack.redo_pop()
-                tag_redraw_areas()
+                tag_redraw_areas("VIEW_3D")
         return {"PASS_THROUGH"}
 
     def execute(self, context):

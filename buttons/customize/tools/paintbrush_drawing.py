@@ -196,7 +196,10 @@ class paintbrushDrawing:
         bgl.glPopMatrix()
 
     def draw_postpixel(self):
-        # draw text
+        dtext = "  'D' for Draw/Cut Tool"
+        mtext = "  'S' for Merge/Split Tool"
+        ptext = "  'M' for Material Paintbrush Tool"
+        # draw instructions text
         if self.mode == "DRAW":
             text = "Click & drag to add bricks"
             self.draw_text_2d(text, position=(50, 250))
@@ -204,9 +207,7 @@ class paintbrushDrawing:
             self.draw_text_2d(text, position=(50, 220))
             text = "+'SHIFT' to cut"
             self.draw_text_2d(text, position=(50, 190))
-        elif self.mode == "PAINT":
-            text = "Click & drag to paint bricks with target material"
-            self.draw_text_2d(text, position=(50, 190))
+            dtext = "*" + dtext[1:]
         elif self.mode == "MERGE/SPLIT":
             text = "Click & drag to merge bricks"
             self.draw_text_2d(text, position=(50, 250))
@@ -214,8 +215,22 @@ class paintbrushDrawing:
             self.draw_text_2d(text, position=(50, 220))
             text = "+'SHIFT' to split vertically"
             self.draw_text_2d(text, position=(50, 190))
+            mtext = "*" + mtext[1:]
+        elif self.mode == "PAINT":
+            text = "Click & drag to paint bricks with target material"
+            self.draw_text_2d(text, position=(50, 190))
+            ptext = "*" + ptext[1:]
         text = "'RETURN' to commit changes"
         self.draw_text_2d(text, position=(50, 160))
+        # ...api_current/bpy.types.Area.html?highlight=bpy.types.area
+        header_height = bpy.context.area.regions[0].height # 26px
+        height = bpy.context.area.height + header_height
+        # draw tool switcher text
+        text = "Switch Tools:"
+        self.draw_text_2d(text, position=(40, height - 200))
+        self.draw_text_2d(dtext, position=(40, height - 230))
+        self.draw_text_2d(mtext, position=(40, height - 260))
+        self.draw_text_2d(ptext, position=(40, height - 290))
 
         # if self.mode == "DRAW":
         #     text = "Click & drag to add bricks (+'ALT' to remove, +'SHIFT' to cut)"
@@ -227,8 +242,7 @@ class paintbrushDrawing:
         # text = "Press 'RETURN' to commit changes"
         # self.draw_text_2d(text, position=(127, 50))
 
-    def draw_text_2d(self, text, color=(1, 1, 1, 1), position=(0, 0)):
-        font_id = 0  # XXX, need to find out how best to get this.
+    def draw_text_2d(self, text, font_id=0, color=(1, 1, 1, 1), position=(0, 0)):
         # draw some text
         bgl.glColor4f(*color)
         blf.position(font_id, position[0], position[1], 0)

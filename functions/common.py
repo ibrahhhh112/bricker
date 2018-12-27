@@ -149,7 +149,7 @@ def remove_item(ls, item):
 
 
 def tag_redraw_areas(areaTypes=["ALL"]):
-    areaTypes = confirmIter(areaTypes)
+    areaTypes = confirmList(areaTypes)
     for area in bpy.context.screen.areas:
         for areaType in areaTypes:
             if areaType == "ALL" or area.type == areaType:
@@ -300,7 +300,7 @@ def hash_str(string):
 
 def confirmList(itemList):
     """ if single item passed, convert to list """
-    if type(itemList) != list:
+    if type(itemList) not in (list, tuple):
         itemList = [itemList]
     return itemList
 
@@ -386,7 +386,7 @@ def setActiveObj(obj, scene=None):
 def select(objList, active:bool=False, deselect:bool=False, only:bool=False, scene:Scene=None):
     """ selects objs in list and deselects the rest """
     # confirm objList is a list of objects
-    objList = confirmList(objList)
+    objList = confirmIter(objList)
     # deselect all if selection is exclusive
     if only and not deselect:
         deselectAll()
@@ -402,7 +402,7 @@ def select(objList, active:bool=False, deselect:bool=False, only:bool=False, sce
 # def deselect(objList, scene:Scene=None):
 #     """ selects objs in list and deselects the rest """
 #     # confirm objList is a list of objects
-#     objList = confirmList(objList)
+#     objList = confirmIter(objList)
 #     # select/deselect objects in list
 #     for obj in objList:
 #         if obj is not None:

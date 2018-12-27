@@ -85,7 +85,7 @@ class paintbrushTools:
             brick = bpy.data.objects.get(self.bricksDict[curKey]["name"])
             if brick is not None:
                 delete(brick)
-            tag_redraw_areas()
+            tag_redraw_areas("VIEW_3D")
             # draw created bricks
             drawUpdatedBricks(cm, self.bricksDict, uniquify(brickKeys + keysToUpdate), action="updating surrounding bricks", selectCreated=False, tempBrick=True)
             self.keysToMergeOnCommit += brickKeys + onlyNewKeys
