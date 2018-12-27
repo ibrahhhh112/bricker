@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import time
@@ -31,7 +27,7 @@ from ..functions import *
 from ..ui.cmlist_actions import *
 
 
-class bakeModel(bpy.types.Operator):
+class BRICKER_OT_bake_model(bpy.types.Operator):
     """Convert model from Bricker model to standard Blender object (source object will be lost)"""
     bl_idname = "bricker.bake_model"
     bl_label = "Bake Model"
@@ -71,12 +67,11 @@ class bakeModel(bpy.types.Operator):
         for obj in objsToDelete:
             bpy.data.objects.remove(obj, do_unlink=True)
         # delete brick group
-        Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-        brickGroup = bpy.data.groups.get(Bricker_bricks_gn)
+        brickGroup = cm.collection
         if brickGroup is not None:
-            bpy.data.groups.remove(brickGroup, do_unlink=True)
+            bpy.data.collections.remove(brickGroup, do_unlink=True)
         # remove current cmlist index
         cm.modelCreated = False
-        cmlist_actions.removeItem(self, scn.cmlist_index)
+        BRICKER_OT_cmlist_actions.removeItem(self, scn.cmlist_index)
         scn.cmlist_index = -1
         return{"FINISHED"}

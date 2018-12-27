@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import bmesh
@@ -27,7 +23,7 @@ import numpy as np
 
 # Blender imports
 import bpy
-from bpy.types import Object
+from bpy.types import Object, Depsgraph
 from mathutils import Matrix, Vector
 
 # Addon imports
@@ -49,7 +45,7 @@ def VectorRound(vec, dec, roundType="ROUND"):
         lst = [(math.ceil(vec[i] * 10**dec)) / 10**dec for i in range(len(vec))]
     return Vector(lst)
 
-def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundType:str="CEILING", edgeLen:int=0):
+def castRays(obj:Object, depsgraph:Depsgraph, point:Vector, direction:Vector, miniDist:float, roundType:str="CEILING", edgeLen:int=0):
     """
     obj       -- source object to test intersections for
     point     -- origin point for ray casting
@@ -69,7 +65,8 @@ def castRays(obj:Object, point:Vector, direction:Vector, miniDist:float, roundTy
     intersections = 0
     # cast rays until no more rays to cast
     while True:
-        _,location,normal,index = obj.ray_cast(orig,direction)#distance=edgeLen*1.00000000001)
+        obj_eval = depsgraph.objects.get(obj.name, None)
+        _,location,normal,index = obj_eval.ray_cast(orig, direction)#distance=edgeLen*1.00000000001)
         if index == -1: break
         if intersections == 0:
             firstDirection = direction.dot(normal)
@@ -113,17 +110,21 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
     intersections = 0
     noMoreChecks = False
     outsideL = []
+    try:
+        depsgraph = obj.users_scene[0].view_layers[0].depsgraph
+    except Exception as e:
+        depsgraph = bpy.context.depsgraph
     # set axis of direction
     axes = "XYZ" if direction[0] > 0 else ("YZX" if direction[1] > 0 else "ZXY")
     # run initial intersection check
-    intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj, point, direction, miniDist, edgeLen=edgeLen)
+    intersections, firstDirection, firstIntersection, nextIntersection, lastIntersection, edgeIntersects = castRays(obj, depsgraph, point, direction, miniDist, edgeLen=edgeLen)
     if insidenessRayCastDir == "HIGH EFFICIENCY" or axes[0] in insidenessRayCastDir:
         outsideL.append(0)
         if intersections%2 == 0 and not (useNormals and firstDirection > 0):
             outsideL[0] = 1
         elif castDoubleCheckRays:
             # double check vert is inside mesh
-            count, firstDirection = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
+            count, firstDirection = castRays(obj, depsgraph, point, -direction, -miniDist, roundType="FLOOR")
             if count%2 == 0 and not (useNormals and firstDirection > 0):
                 outsideL[0] = 1
 
@@ -139,12 +140,12 @@ def rayObjIntersections(scn, point, direction, miniDist:Vector, edgeLen, obj, us
                 outsideL.append(0)
                 direction = dirs[i][0]
                 miniDist = dirs[i][1]
-                count, firstDirection = castRays(obj, point, direction, miniDist)
+                count, firstDirection = castRays(obj, depsgraph, point, direction, miniDist)
                 if count%2 == 0 and not (useNormals and firstDirection > 0):
                     outsideL[len(outsideL) - 1] = 1
                 elif castDoubleCheckRays:
                     # double check vert is inside mesh
-                    count, firstDirection = castRays(obj, point, -direction, -miniDist, roundType="FLOOR")
+                    count, firstDirection = castRays(obj, depsgraph, point, -direction, -miniDist, roundType="FLOOR")
                     if count%2 == 0 and not (useNormals and firstDirection > 0):
                         outsideL[len(outsideL) - 1] = 1
 
@@ -349,8 +350,9 @@ def getBrickMatrix(source, faceIdxMatrix, coordMatrix, brickShell, axes="xyz", p
     return brickFreqMatrix
 
 
-def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, printStatus=True, cursorStatus=False):
+def getBrickMatrixSmoke(faceIdxMatrix, brickShell, source_details, printStatus=True, cursorStatus=False):
     cm = getActiveContextInfo()[1]
+    source = cm.source_obj
     density_grid, flame_grid, color_grid, domain_res, max_res, adapt = getSmokeInfo(source)
     brickFreqMatrix = deepcopy(faceIdxMatrix)
     colorMatrix = deepcopy(faceIdxMatrix)
@@ -438,7 +440,7 @@ def getBrickMatrixSmoke(source, faceIdxMatrix, brickShell, source_details, print
                 # add brightness
                 c_ave += brightness
                 # add saturation
-                c_ave = c_ave * sat_mat
+                c_ave = c_ave @ sat_mat
                 brickFreqMatrix[x][y][z] = 0 if alpha < (1 - smokeDensity) else 1
                 colorMatrix[x][y][z] = list(c_ave) + [alpha]
 
@@ -601,7 +603,7 @@ def createBricksDictEntry(name:str, loc:list, val:float=0, draw:bool=False, co:t
            }
 
 @timed_call('Time Elapsed')
-def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=False):
+def makeBricksDict(source, source_details, brickScale, cursorStatus=False):
     """ make dictionary with brick information at each coordinate of lattice surrounding source
     source         -- source object to construct lattice around
     source_details -- object details with subattributes for distance and midpoint of x, y, z axes
@@ -624,7 +626,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     # set up faceIdxMatrix and brickFreqMatrix
     faceIdxMatrix = np.zeros((len(coordMatrix), len(coordMatrix[0]), len(coordMatrix[0][0]))).tolist()
     if cm.isSmoke:
-        brickFreqMatrix, smokeColors = getBrickMatrixSmoke(origSource, faceIdxMatrix, cm.brickShell, source_details, cursorStatus=cursorStatus)
+        brickFreqMatrix, smokeColors = getBrickMatrixSmoke(faceIdxMatrix, cm.brickShell, source_details, cursorStatus=cursorStatus)
     else:
         brickFreqMatrix = getBrickMatrix(source, faceIdxMatrix, coordMatrix, cm.brickShell, axes=calculationAxes, cursorStatus=cursorStatus)
         smokeColors = None
@@ -638,7 +640,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     brickType = cm.brickType  # prevents cm.brickType update function from running over and over in for loop
     uvImageName = cm.uvImageName
     noOffset = vec_round(offset, precision=5) == Vector((0, 0, 0))
-    # get uv_texture image and pixels for material calculation
+    # get uv_layer image and pixels for material calculation
     uv_images = getUVImages(source)
     for x in range(len(coordMatrix)):
         for y in range(len(coordMatrix[0])):

@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import bmesh
@@ -192,8 +188,10 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
     if underside: circleVerts = round_up(circleVerts, 4)
     # make studs
     topVertsDofDs = {}
-    for xNum in range(1, max(brickSize[:2])):
-        for yNum in range(min(brickSize[:2])):
+    # for xNum in range(1, max(brickSize[:2])):
+    #     for yNum in range(min(brickSize[:2])):
+    for xNum in range(1, brickSize[0]):
+        for yNum in range(brickSize[1]):
             x = dimensions["width"] * xNum
             y = dimensions["width"] * yNum
             if underside:
@@ -232,13 +230,13 @@ def addSlopeStuds(dimensions, height, brickSize, brickType, circleVerts, bme, ed
                         curRatio = (v.co.x - sMin.x) / sDistX
                         v.co.z = sMin.z + sDistZ * curRatio
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"][::1 if underside else -1])
-                select(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
+                selectVerts(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
                 if edgeXp is not None:
                     adjXNum = xNum - 1
                     topVertsD = createVertListDict2(studVerts["bottom"] if underside else studVerts["outer"]["bottom"])
                     topVertsDofDs["%(adjXNum)s,%(yNum)s" % locals()] = topVertsD
     if edgeXp is not None and not underside:
-        connectCirclesToSquare(dimensions, [max(brickSize[:2]) - 1, min(brickSize[:2]), brickSize[2]], circleVerts, edgeXn[::-1], edgeXp, edgeYn, edgeYp[::-1], topVertsDofDs, xNum - 1, yNum, bme, flipNormals=not underside)
+        connectCirclesToSquare(dimensions, [brickSize[0] - 1, brickSize[1], brickSize[2]], circleVerts, edgeXn[::-1], edgeXp, edgeYn, edgeYp[::-1], topVertsDofDs, xNum - 1, yNum, bme, flipNormals=not underside)
     if underside:
         bme.faces.new((edgeXp + allSemiCircleVerts)[::-1])
         bme.faces.new(edgeXn[::-1] + endVerts)
@@ -267,7 +265,7 @@ def addInnerCylinders(dimensions, brickSize, circleVerts, d, edgeXp, edgeXn, edg
         for yNum in range(brickSize[1]):
             bme, innerCylinderVerts = makeCylinder(r, h, N, co=Vector((xNum*d.x*2,yNum*d.y*2,d.z - thickZ + h/2)), loopCut=loopCut, botFace=False, flipNormals=True, bme=bme)
             if loopCut:
-                select(innerCylinderVerts["mid"])
+                selectVerts(innerCylinderVerts["mid"])
             botVertsD = createVertListDict(innerCylinderVerts["bottom"])
             botVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = botVertsD
     connectCirclesToSquare(dimensions, brickSize, circleVerts, edgeXp, edgeXn, edgeYp, edgeYn, botVertsDofDs, xNum, yNum, bme)
@@ -287,11 +285,11 @@ def addStuds(dimensions, height, brickSize, brickType, circleVerts, bme, edgeXp=
             if hollow:
                 _, studVerts = makeTube(r, h, t, circleVerts, co=Vector((0, 0, z)), loopCut=loopCut, botFace=botFace, bme=bme)
                 if edgeXp is not None: bme.faces.new(studVerts["inner"]["bottom"])
-                select(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
+                selectVerts(studVerts["inner"]["mid" if loopCut else "bottom"] + studVerts["outer"]["mid" if loopCut else "bottom"])
             else:
                 # split stud at center by creating cylinder and circle and joining them (allows Bevel to work correctly)
                 _, studVerts = makeCylinder(r, h, circleVerts, co=Vector((x, y, z)), botFace=False, loopCut=loopCut, bme=bme)
-                select(studVerts["mid" if loopCut else "bottom"])
+                selectVerts(studVerts["mid" if loopCut else "bottom"])
             if edgeXp is not None:
                 topVertsD = createVertListDict2(studVerts["outer"]["bottom"] if hollow else studVerts["bottom"])
                 topVertsDofDs["%(xNum)s,%(yNum)s" % locals()] = topVertsD

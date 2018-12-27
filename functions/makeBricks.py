@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import bmesh
@@ -62,6 +58,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     # get bricksDict keys in sorted order
     if keys == "ALL":
         keys = list(bricksDict.keys())
+    if len(keys) == 0:
+        return None, None
     # get dictionary of keys based on z value
     keysDict = getKeysDict(bricksDict, keys)
     denom = sum([len(keysDict[z0]) for z0 in keysDict.keys()])
@@ -72,14 +70,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
     # get brick group
     group_name = group_name or 'Bricker_%(n)s_bricks' % locals()
-    bGroup = bpy.data.groups.get(group_name)
+    bColl = bpy.data.collections.get(group_name)
     # create new group if no existing group found
-    if bGroup is None:
-        bGroup = bpy.data.groups.new(group_name)
+    if bColl is None:
+        bColl = bpy.data.collections.new(group_name)
     # else, replace existing group
     elif clearExistingGroup:
-        for obj0 in bGroup.objects:
-            bGroup.objects.unlink(obj0)
+        for obj0 in bColl.objects:
+            bColl.objects.unlink(obj0)
 
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id
@@ -273,15 +271,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = brick.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 brick.vertex_groups.remove(vg)
-            vg = brick.vertex_groups.new("%(name)s_bvl" % locals())
+            vg = brick.vertex_groups.new(name="%(name)s_bvl" % locals())
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
             # set up remaining brick info if brick object just created
-            if clearExistingGroup or brick.name not in bGroup.objects.keys():
-                bGroup.objects.link(brick)
+            if clearExistingGroup or brick.name not in bColl.objects.keys():
+                bColl.objects.link(brick)
             brick.parent = parent
             if not brick.isBrick:
-                scn.objects.link(brick)
                 brick.isBrick = True
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
@@ -305,7 +302,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = allBricksObj.vertex_groups.get("%(name)s_bvl" % locals())
             if vg:
                 allBricksObj.vertex_groups.remove(vg)
-            vg = allBricksObj.vertex_groups.new("%(name)s_bvl" % locals())
+            vg = allBricksObj.vertex_groups.new(name="%(name)s_bvl" % locals())
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
         if materialType in ("CUSTOM", "NONE"):
@@ -317,12 +314,10 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated
-        bGroup.objects.link(allBricksObj)
-        if not allBricksObj.isBrickifiedObject:
-            scn.objects.link(allBricksObj)
-            # protect allBricksObj from being deleted
-            allBricksObj.isBrickifiedObject = True
+        bColl.objects.link(allBricksObj)
         bricksCreated.append(allBricksObj)
+        # protect allBricksObj from being deleted
+        allBricksObj.isBrickifiedObject = True
 
     # reset 'attempted_merge' for all items in bricksDict
     for key0 in bricksDict:

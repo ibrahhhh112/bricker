@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import random
@@ -67,9 +63,9 @@ def stopWatch(text, lastTime, precision=5):
     return time.time()
 
 
-def groupExists(name):
+def collExists(name):
     """ check if group exists in blender's memory """
-    return name in bpy.data.groups.keys()
+    return name in bpy.data.collections.keys()
 
 
 def getItemByID(collection, id):
@@ -92,7 +88,7 @@ def str_to_bool(s):
 
 # def get_settings():
 #     if not hasattr(get_settings, 'settings'):
-#         addons = bpy.context.user_preferences.addons
+#         addons = bpy.context.preferences.addons
 #         folderpath = os.path.dirname(os.path.abspath(__file__))
 #         while folderpath:
 #             folderpath,foldername = os.path.split(folderpath)
@@ -156,11 +152,20 @@ def tag_redraw_areas(areaTypes=["ALL"]):
                 area.tag_redraw()
 
 
+def tag_redraw_viewport_in_all_screens():
+    """redraw the 3D viewport in all screens (bypasses bpy.context.screen)"""
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+
+
+
 def disableRelationshipLines():
     # disable relationship lines
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
-            area.spaces[0].show_relationship_lines = False
+            area.spaces[0].overlay.show_relationship_lines = False
 
 
 def drawBMesh(bm, name="drawnBMesh"):
@@ -170,10 +175,9 @@ def drawBMesh(bm, name="drawnBMesh"):
     obj = bpy.data.objects.new(name, m)
 
     scn = bpy.context.scene   # grab a reference to the scene
-    scn.objects.link(obj)     # link new object to scene
-    scn.objects.active = obj  # make new object active
-    obj.select = True         # make new object selected (does not deselect other objects)
-    bm.to_mesh(m)          # push bmesh data into m
+    scn.collection.objects.link(obj)     # link new object to scene
+    select(obj, active=True)  # select new object and make active (does not deselect other objects)
+    bm.to_mesh(m)             # push bmesh data into m
     return obj
 
 
@@ -333,80 +337,87 @@ def getLayersList(layers):
     return newLayersList
 
 
-def setLayers(layers, scn=None):
-    """ set active layers of scn w/o 'dag ZERO' error """
-    assert len(layers) == 20
-    scn = scn or bpy.context.scene
-    # update scene (prevents dag ZERO errors)
-    if bpy.props.Bricker_developer_mode > 0:
-        scn.update()
-    # set active layers of scn
-    scn.layers = layers
-
-
-def openLayer(layerNum, scn=None):
-    assert type(layerNum) == int
-    scn = scn or bpy.context.scene
-    layerList = [i == layerNum - 1 for i in range(20)]
-    scn.layers = layerList
-    return layerList
-
-
 def deselectAll():
-    for obj in bpy.context.selected_objects:
-        if obj.select:
-            obj.select = False
+    try:
+        selected_objects = bpy.context.selected_objects
+    except AttributeError:
+        selected_objects = [obj for obj in bpy.context.view_layer.objects if obj.select_get()]
+    deselect(selected_objects)
 
 
 def selectAll(hidden=False):
     for obj in bpy.context.scene.objects:
-        if not obj.select and (not obj.hide or hidden):
-            obj.select = True
+        if not obj.select_get() and (not obj.hide_viewport or hidden):
+            obj.select_set(True)
 
 
 def hide(objs):
     objs = confirmIter(objs)
     for obj in objs:
-        obj.hide = True
+        obj.hide_viewport = True
 
 
 def unhide(objs):
     objs = confirmIter(objs)
     for obj in objs:
-        if obj.hide:
-            obj.hide = False
+        if obj.hide_viewport:
+            obj.hide_viewport = False
 
 
-def setActiveObj(obj, scene=None):
+def setActiveObj(obj, view_layer=None):
     assert type(obj) == Object
-    scene = scene or bpy.context.scene
-    scene.objects.active = obj
+    view_layer = view_layer or bpy.context.view_layer
+    view_layer.objects.active = obj
 
 
-def select(objList, active:bool=False, deselect:bool=False, only:bool=False, scene:Scene=None):
+def isObjVisibleInViewport(obj):
+    if obj is None:
+        return False
+    objVisible = True
+    if obj.hide_viewport:
+        objVisible = False
+    else:
+        for cn in obj.users_collection:
+            if cn.hide_viewport:
+                objVisible = False
+                break
+    return objVisible
+
+
+def select(objList, active:bool=False, only:bool=False):
     """ selects objs in list and deselects the rest """
     # confirm objList is a list of objects
     objList = confirmIter(objList)
     # deselect all if selection is exclusive
-    if only and not deselect:
-        deselectAll()
+    if only: deselectAll()
     # select/deselect objects in list
     for obj in objList:
-        if obj is not None:
-            obj.select = not deselect
+        if obj is not None and not obj.select_get():
+            obj.select_set(True)
     # set active object
-    if active:
-        setActiveObj(objList[0], scene=scene)
+    if active: setActiveObj(objList[0])
 
 
-# def deselect(objList, scene:Scene=None):
-#     """ selects objs in list and deselects the rest """
-#     # confirm objList is a list of objects
-#     objList = confirmIter(objList)
-#     # select/deselect objects in list
-#     for obj in objList:
-#         if obj is not None:
-#             obj.select = False
+def selectVerts(vertList, only:bool=False):
+    """ selects verts in list and deselects the rest """
+    # confirm vertList is a list of vertices
+    vertList = confirmList(vertList)
+    # deselect all if selection is exclusive
+    if only: deselectAll()
+    # select/deselect vertices in list
+    for v in vertList:
+        if v is not None and not v.select:
+            v.select = True
+
+
+def deselect(objList):
+    """ deselects objs in list """
+    # confirm objList is a list of objects
+    objList = confirmList(objList)
+    # select/deselect objects in list
+    for obj in objList:
+        if obj is not None and obj.select_get():
+            obj.select_set(False)
 
 
 def delete(objs):
@@ -414,16 +425,16 @@ def delete(objs):
     for obj in objs:
         if obj is None:
             continue
-        bpy.data.objects.remove(obj, True)
+        bpy.data.objects.remove(obj, do_unlink=True)
 
 
 def duplicate(obj, linked=False, link_to_scene=False):
     copy = obj.copy()
     if not linked and copy.data:
         copy.data = copy.data.copy()
-    copy.hide = False
+    copy.hide_viewport = False
     if link_to_scene:
-        bpy.context.scene.objects.link(copy)
+        bpy.context.scene.collection.objects.link(copy)
     return copy
 
 
@@ -515,7 +526,7 @@ def showErrorMessage(message, wrap=80):
 
     def draw(self,context):
         for line in lines:
-            self.layout.label(line)
+            self.layout.label(text=line)
 
     bpy.context.window_manager.popup_menu(draw, title="Error Message", icon="ERROR")
     return
@@ -599,7 +610,7 @@ def apply_transform(obj):
     s_mat_x = Matrix.Scale(scale.x, 4, Vector((1, 0, 0)))
     s_mat_y = Matrix.Scale(scale.y, 4, Vector((0, 1, 0)))
     s_mat_z = Matrix.Scale(scale.z, 4, Vector((0, 0, 1)))
-    m.transform(s_mat_x * s_mat_y * s_mat_z)
+    m.transform(s_mat_x @ s_mat_y @ s_mat_z)
     m.transform(rot.to_matrix().to_4x4())
     m.transform(Matrix.Translation(loc))
 

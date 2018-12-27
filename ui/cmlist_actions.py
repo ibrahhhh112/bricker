@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -33,7 +29,7 @@ from .cmlist_utils import *
 
 
 # ui list item actions
-class cmlist_actions(bpy.types.Operator):
+class BRICKER_OT_cmlist_actions(bpy.types.Operator):
     bl_idname = "cmlist.list_action"
     bl_label = "Brick Model List Action"
 
@@ -77,7 +73,7 @@ class cmlist_actions(bpy.types.Operator):
     ###################################################
     # class variables
 
-    action = bpy.props.EnumProperty(
+    action: bpy.props.EnumProperty(
         items=(
             ('UP', "Up", ""),
             ('DOWN', "Down", ""),
@@ -92,27 +88,21 @@ class cmlist_actions(bpy.types.Operator):
     @staticmethod
     def addItem():
         scn = bpy.context.scene
-        active_object = scn.objects.active
+        active_object = bpy.context.object
         # if active object isn't on visible layer, don't set it as default source for new model
-        if active_object:
-            objVisible = False
-            for i in range(20):
-                if active_object.layers[i] and scn.layers[i]:
-                    objVisible = True
-            if not objVisible:
-                active_object = None
+        if active_object and not isObjVisibleInViewport(active_object):
+            active_object = None
         # if active object already has a model or isn't on visible layer, don't set it as default source for new model
-        # NOTE: active object may have been removed, so we need to re-check if none
-        if active_object:
+        elif active_object:
             for cm in scn.cmlist:
-                if cm.source_name == active_object.name:
+                if cm.source_obj is active_object:
                     active_object = None
                     break
         item = scn.cmlist.add()
         last_index = scn.cmlist_index
         scn.cmlist_index = len(scn.cmlist)-1
         if active_object and active_object.type == "MESH" and not active_object.name.startswith("Bricker_"):
-            item.source_name = active_object.name
+            item.source_obj = active_object
             item.name = active_object.name
             item.version = bpy.props.bricker_version
             # get Bricker preferences
@@ -122,14 +112,14 @@ class cmlist_actions(bpy.types.Operator):
                 item.brickHeight = prefs.absoluteBrickHeight
             else:
                 # set brick height based on model height
-                source = bpy.data.objects.get(item.source_name)
+                source = item.source_obj
                 if source:
                     source_details = bounds(source, use_adaptive_domain=False)
                     h = max(source_details.dist)
                     item.brickHeight = h / prefs.relativeBrickHeight
 
         else:
-            item.source_name = ""
+            item.source_obj = None
             item.name = "<New Model>"
         # get all existing IDs
         existingIDs = [cm.id for cm in scn.cmlist]
@@ -157,7 +147,7 @@ class cmlist_actions(bpy.types.Operator):
             for n in matObjNames:
                 matObj = bpy.data.objects.get(n)
                 if matObj is not None:
-                    bpy.data.objects.remove(matObj, True)
+                    bpy.data.objects.remove(matObj, do_unlink=True)
             scn.cmlist.remove(idx)
             if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
                 scn.cmlist_index = 0
@@ -184,7 +174,7 @@ class cmlist_actions(bpy.types.Operator):
 
 
 # copy settings from current index to all other indices
-class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
+class BRICKER_OT_copy_settings_to_others(bpy.types.Operator):
     bl_idname = "cmlist.copy_to_others"
     bl_label = "Copy Settings to Other Brick Models"
     bl_description = "Copies the settings from the current model to all other Brick Models"
@@ -211,7 +201,7 @@ class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
 
 
 # copy settings from current index to memory
-class Bricker_Uilist_copySettings(bpy.types.Operator):
+class BRICKER_OT_copy_settings(bpy.types.Operator):
     bl_idname = "cmlist.copy_settings"
     bl_label = "Copy Settings from Current Brick Model"
     bl_description = "Stores the ID of the current model for pasting"
@@ -234,7 +224,7 @@ class Bricker_Uilist_copySettings(bpy.types.Operator):
 
 
 # paste settings from index in memory to current index
-class Bricker_Uilist_pasteSettings(bpy.types.Operator):
+class BRICKER_OT_paste_settings(bpy.types.Operator):
     bl_idname = "cmlist.paste_settings"
     bl_label = "Paste Settings to Current Brick Model"
     bl_description = "Pastes the settings from stored model ID to the current index"
@@ -260,7 +250,7 @@ class Bricker_Uilist_pasteSettings(bpy.types.Operator):
 
 
 # select bricks from current model
-class Bricker_Uilist_selectBricks(bpy.types.Operator):
+class BRICKER_OT_select_bricks(bpy.types.Operator):
     bl_idname = "cmlist.select_bricks"
     bl_label = "Select All Bricks in Current Brick Model"
     bl_description = "Select all bricks in the current model"
@@ -274,27 +264,34 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
         cm = scn.cmlist[scn.cmlist_index]
         return cm.animated or cm.modelCreated
 
-    deselect = BoolProperty(default=False)
+    deselect: BoolProperty(default=False)
 
     def execute(self, context):
         try:
-            select(getBricks(), deselect=self.deselect)
+            if self.deselect:
+                deselect(self.bricks)
+            else:
+                select(self.bricks)
         except:
             handle_exception()
         return{'FINISHED'}
+
+    def __init__(self):
+        self.bricks = getBricks()
+
 
 
 # -------------------------------------------------------------------
 # draw
 # -------------------------------------------------------------------
 
-class Bricker_UL_cmlist_items(UIList):
+class BRICKER_UL_cmlist_items(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # Make sure your code supports all 3 layout types
         if self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-        split = layout.split(0.9)
+        split = layout.split(factor=0.9)
         split.prop(item, "name", text="", emboss=False, translate=False, icon='MOD_REMESH')
 
     def invoke(self, context, event):

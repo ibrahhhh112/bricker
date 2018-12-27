@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import copy
@@ -36,7 +32,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class changeBrickType(Operator):
+class BRICKER_OT_change_type(Operator):
     """change brick type of active brick"""
     bl_idname = "bricker.change_brick_type"
     bl_label = "Change Brick Type"
@@ -121,16 +117,16 @@ class changeBrickType(Operator):
 
 
     # properties
-    brickType = bpy.props.EnumProperty(
+    brickType: bpy.props.EnumProperty(
         name="Brick Type",
         description="Choose what type of brick should be drawn at this location",
         items=get_items,
         default=None)
-    flipBrick = bpy.props.BoolProperty(
+    flipBrick: bpy.props.BoolProperty(
         name="Flip Brick Orientation",
         description="Flip the brick about the non-mirrored axis",
         default=False)
-    rotateBrick = bpy.props.BoolProperty(
+    rotateBrick: bpy.props.BoolProperty(
         name="Rotate 90 Degrees",
         description="Rotate the brick about the Z axis (brick width & depth must be equivalent)",
         default=False)
@@ -148,7 +144,7 @@ class changeBrickType(Operator):
         scn.Bricker_runningBlockingOperation = True
         legalBrickSizes = bpy.props.Bricker_legal_brick_sizes
         # get original active and selected objects
-        active_obj = scn.objects.active
+        active_obj = bpy.context.object
         initial_active_obj_name = active_obj.name if active_obj else ""
         selected_objects = bpy.context.selected_objects
         objNamesToSelect = []
@@ -208,8 +204,8 @@ class changeBrickType(Operator):
 
                 # update height of brick if necessary, and update dictionary accordingly
                 if flatBrickType(brickType):
-                    dimensions = Bricks.get_dimensions(brickHeight, cm.zStep, gap)
-                    size = updateBrickSizeAndDict(dimensions, cm.source_name, bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
+                    dimensions = Bricks.get_dimensions(brickHeight, zStep, gap)
+                    size = updateBrickSizeAndDict(dimensions, getSourceName(cm), bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
 
                 # check if brick spans 3 matrix locations
                 bAndPBrick = flatBrickType(brickType) and size[2] == 3

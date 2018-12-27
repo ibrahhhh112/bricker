@@ -1,23 +1,19 @@
-'''
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -29,11 +25,12 @@ from bpy.types import Operator
 # Addon imports
 from .undo_stack import *
 from ...ui.app_handlers import brickerRunningBlockingOp
+from ...ui.timers import *
 from ...functions import *
 from ...ui.cmlist_actions import *
 
 
-class InitializeUndoStack(Operator):
+class BRICKER_OT_initialize_undo_stack(Operator):
     """ initializes undo stack for changes to the BFM cache """
     bl_category = "Bricker"
     bl_idname = "bricker.initialize"
@@ -73,7 +70,12 @@ class InitializeUndoStack(Operator):
     def execute(self, context):
         # add new scn.cmlist item
         if self.action == "ADD":
-            cmlist_actions.addItem()
+            BRICKER_OT_cmlist_actions.addItem()
+        # register timers
+        if not bpy.app.timers.is_registered(handle_selections):
+            bpy.app.timers.register(handle_selections)
+        if not bpy.app.timers.is_registered(prevent_user_from_viewing_storage_scene):
+            bpy.app.timers.register(prevent_user_from_viewing_storage_scene)
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
@@ -95,7 +97,7 @@ class InitializeUndoStack(Operator):
     ###################################################
     # class variables
 
-    action = bpy.props.EnumProperty(
+    action: bpy.props.EnumProperty(
         items=(
             ("NONE", "None", ""),
             ("ADD", "Add Model", ""),

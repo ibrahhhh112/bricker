@@ -1,8 +1,25 @@
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 bl_info = {
     "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
     "version"     : (1, 6, 0),
-    "blender"     : (2, 79, 0),
+    "blender"     : (2, 80, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "",  # used for warning icon and text in addons panel
@@ -10,31 +27,10 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for 'BRICKER_OT_test_brick_generators' button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 # NOTE: Copy contents from 'paintbrush_tools_backup' to 'paintbrush_tools'
-
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 # System imports
 # NONE!
@@ -42,66 +38,62 @@ Created by Christopher Gearhart
 # Blender imports
 import bpy
 from bpy.props import *
+from bpy.types import Scene, Material, Object
+from bpy.utils import register_class, unregister_class
 
 # Addon imports
-from .ui import *
-from .buttons import *
-from .buttons.customize import *
-from .operators import *
-from .lib.preferences import *
-# from .lib.rigid_body_props import *
-from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
-from .lib import keymaps
-
-# updater import
 from . import addon_updater_ops
+from .ui.timers import *
+from .ui.cmlist_attrs import BRICKER_UL_created_models
+from .ui.other_property_groups import *
+from .lib import keymaps, preferences, classesToRegister
+from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 
 # store keymaps here to access after registration
 addon_keymaps = []
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    for cls in classesToRegister.classes:
+        bpy.utils.register_class(cls)
 
     bpy.props.bricker_module_name = __name__
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
-    bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
+    bpy.props.bricker_preferences = bpy.context.preferences.addons[__package__].preferences
 
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
     bpy.props.running_bricksculpt_tool = False
 
-    bpy.types.Object.protected = BoolProperty(name='protected', default=False)
-    bpy.types.Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
-    bpy.types.Object.isBrick = BoolProperty(name='Is Brick', default=False)
-    bpy.types.Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
-    bpy.types.Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
+    Object.protected = BoolProperty(name='protected', default=False)
+    Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
+    Object.isBrick = BoolProperty(name='Is Brick', default=False)
+    Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
+    Object.stored_parents = CollectionProperty(type=BRICKER_UL_collections_tuple)
+    Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
 
-    # # backup rigid body settings
-    # bpy.types.Object.rigid_body_settings = PointerProperty(type=Bricker_RigidBodySettings)
+    Scene.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
-    bpy.types.Scene.Bricker_runningBlockingOperation = BoolProperty(default=False)
+    Scene.Bricker_last_layers = StringProperty(default="")
+    Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
+    Scene.Bricker_active_object_name = StringProperty(default="")
+    Scene.Bricker_last_active_object_name = StringProperty(default="")
 
-    bpy.types.Scene.Bricker_last_layers = StringProperty(default="")
-    bpy.types.Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
-    bpy.types.Scene.Bricker_active_object_name = StringProperty(default="")
-    bpy.types.Scene.Bricker_last_active_object_name = StringProperty(default="")
-
-    bpy.types.Scene.Bricker_copy_from_id = IntProperty(default=-1)
+    Scene.Bricker_copy_from_id = IntProperty(default=-1)
 
     # define legal brick sizes (key:height, val:[width,depth])
     bpy.props.Bricker_legal_brick_sizes = getLegalBrickSizes()
 
     # Add attribute for Bricker Instructions addon
-    bpy.types.Scene.isBrickerInstalled = BoolProperty(default=True)
+    Scene.isBrickerInstalled = BoolProperty(default=True)
 
-    if not hasattr(bpy.types.Scene, "include_transparent"):
-        bpy.types.Scene.include_transparent = False
-    if not hasattr(bpy.types.Scene, "include_uncommon"):
-        bpy.types.Scene.include_uncommon = False
+    if not hasattr(Scene, "include_transparent"):
+        Scene.include_transparent = False
+    if not hasattr(Scene, "include_uncommon"):
+        Scene.include_uncommon = False
 
-    # bpy.types.Scene.Bricker_snapping = BoolProperty(
+    # Scene.Bricker_snapping: BoolProperty(
     #     name="Bricker Snap",
     #     description="Snap to brick dimensions",
     #     default=False)
@@ -117,35 +109,44 @@ def register():
         addon_keymaps.append(km)
 
     # other things (UI List)
-    bpy.types.Scene.cmlist = CollectionProperty(type=Bricker_CreatedModels)
-    bpy.types.Scene.cmlist_index = IntProperty(default=-1)
+    Scene.cmlist = CollectionProperty(type=BRICKER_UL_created_models)
+    Scene.cmlist_index = IntProperty(default=-1)
 
     # addon updater code and configurations
     addon_updater_ops.register(bl_info)
 
+    # register timers
+    bpy.app.timers.register(handle_selections)
+    bpy.app.timers.register(prevent_user_from_viewing_storage_scene)
+
 
 def unregister():
-    Scn = bpy.types.Scene
+    # unregister timers
+    if bpy.app.timers.is_registered(handle_selections):
+        bpy.app.timers.unregister(handle_selections)
+    if bpy.app.timers.is_registered(prevent_user_from_viewing_storage_scene):
+        bpy.app.timers.unregister(prevent_user_from_viewing_storage_scene)
 
     # addon updater unregister
     addon_updater_ops.unregister()
 
-    del Scn.cmlist_index
-    del Scn.cmlist
+    del Scene.cmlist_index
+    del Scene.cmlist
     # bpy.types.VIEW3D_HT_header.remove(Bricker_snap_button)
-    # del Scn.Bricker_snapping
-    del Scn.isBrickerInstalled
-    del Scn.Bricker_copy_from_id
-    del Scn.Bricker_last_active_object_name
-    del Scn.Bricker_active_object_name
-    del Scn.Bricker_last_cmlist_index
-    del Scn.Bricker_last_layers
-    del Scn.Bricker_runningBlockingOperation
-    del bpy.types.Material.num_averaged
-    del bpy.types.Object.cmlist_id
-    del bpy.types.Object.isBrick
-    del bpy.types.Object.isBrickifiedObject
-    del bpy.types.Object.protected
+    # del Scene.Bricker_snapping
+    del Scene.isBrickerInstalled
+    del Scene.Bricker_copy_from_id
+    del Scene.Bricker_last_active_object_name
+    del Scene.Bricker_active_object_name
+    del Scene.Bricker_last_cmlist_index
+    del Scene.Bricker_last_layers
+    del Scene.Bricker_runningBlockingOperation
+    del Material.num_averaged
+    del Object.stored_parents
+    del Object.cmlist_id
+    del Object.isBrick
+    del Object.isBrickifiedObject
+    del Object.protected
     del bpy.props.running_bricksculpt_tool
     del bpy.props.Bricker_developer_mode
     del bpy.props.bricker_undoUpdating
@@ -160,7 +161,8 @@ def unregister():
         wm.keyconfigs.addon.keymaps.remove(km)
     addon_keymaps.clear()
 
-    bpy.utils.unregister_module(__name__)
+    for cls in reversed(classesToRegister.classes):
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":

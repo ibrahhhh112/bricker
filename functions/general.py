@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import collections
@@ -37,7 +33,7 @@ from .common import *
 
 def getSafeScn():
     safeScn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
-    if safeScn == None:
+    if safeScn is None:
         safeScn = bpy.data.scenes.new("Bricker_storage (DO NOT MODIFY)")
     return safeScn
 
@@ -45,8 +41,11 @@ def getSafeScn():
 def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
-    n = cm.source_name
-    return scn, cm, n
+    return scn, cm, getSourceName(cm)
+
+
+def getSourceName(cm):
+    return cm.source_obj.name if cm.source_obj is not None else ""
 
 
 def centerMeshOrigin(m, dimensions, size):
@@ -66,24 +65,27 @@ def safeUnlink(obj, hide=True, protect=True):
     scn = bpy.context.scene
     safeScn = getSafeScn()
     try:
-        scn.objects.unlink(obj)
+        for cn in obj.users_collection:
+            cn.objects.unlink(obj)
+        scn.collection.objects.unlink(obj)
     except RuntimeError:
         pass
-    safeScn.objects.link(obj)
+    safeScn.collection.objects.link(obj)
     obj.protected = protect
     if hide:
-        obj.hide = True
+        obj.hide_viewport = True
 
 
-def safeLink(obj, unhide=True, protect=False):
-    scn = bpy.context.scene
+def safeLink(obj, unhide=True, protect=False, collections=None):
     safeScn = getSafeScn()
-    scn.objects.link(obj)
+    collections = collections or [bpy.context.scene.collection]
+    for cn in collections:
+        cn.objects.link(obj)
     obj.protected = protect
     if unhide:
-        obj.hide = False
+        obj.hide_viewport = False
     try:
-        safeScn.objects.unlink(obj)
+        safeScn.collection.objects.unlink(obj)
     except RuntimeError:
         pass
 
@@ -135,7 +137,7 @@ def bounds(obj, local=False, use_adaptive_domain=True):
     om = obj.matrix_world
 
     if not local:
-        worldify = lambda p: om * Vector(p[:])
+        worldify = lambda p: om @ Vector(p[:])
         coords = [worldify(p).to_tuple() for p in local_coords]
     else:
         coords = [p[:] for p in local_coords]
@@ -180,25 +182,16 @@ def setObjOrigin(obj, loc):
 #     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
 #     if fromObj and deleteFromObj:
 #         m = fromObj.data
-#         bpy.data.objects.remove(fromObj, True)
+#         bpy.data.objects.remove(fromObj, do_unlink=True)
 #         bpy.data.meshes.remove(m)
 
 
-def getBricks(cm=None, typ=None):
+def getBricks(cm=None):
     """ get bricks in 'cm' model """
-    scn, cm, n = getActiveContextInfo(cm=cm)
-    typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
-    if typ == "MODEL":
-        gn = "Bricker_%(n)s_bricks" % locals()
-        bGroup = bpy.data.groups[gn]
-        bricks = list(bGroup.objects)
-    elif typ == "ANIM":
-        bricks = []
-        for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
-            gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-            bGroup = bpy.data.groups.get(gn)
-            if bGroup:
-                bricks += list(bGroup.objects)
+    cm = cm or getActiveContextInfo()[1]
+    if cm.collection is None:
+        return []
+    bricks = list(cm.collection.all_objects)
     return bricks
 
 
@@ -266,7 +259,7 @@ def brick_materials_loaded():
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
-    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
+    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
     smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
     return listToStr(regularSettings + smokeSettings)
 
@@ -441,8 +434,8 @@ def getFlipRot(dir):
     return flip, rot
 
 
-def legalBrickSize(s, t):
-     return s[:2] in bpy.props.Bricker_legal_brick_sizes[s[2]][t]
+def legalBrickSize(size, type):
+     return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
 
 
 def get_override(area_type, region_type):
@@ -530,25 +523,19 @@ def is_adaptive(ob):
     return False
 
 def customValidObject(cm, targetType="Custom 0", idx=None):
-    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObjectName1], [cm.hasCustomObj2, cm.customObjectName2], [cm.hasCustomObj3, cm.customObjectName3]]):
-        hasCustomObj = customInfo[0]
+    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObject1], [cm.hasCustomObj2, cm.customObject2], [cm.hasCustomObj3, cm.customObject3]]):
+        hasCustomObj, customObj = customInfo
         if idx is not None and idx != i:
             continue
         elif not hasCustomObj and not (i == 0 and cm.brickType == "CUSTOM") and int(targetType.split(" ")[-1]) != i + 1:
             continue
-        customObjName = customInfo[1]
-        if customObjName == "":
-            warningMsg = "Custom object {} not specified.".format(i + 1)
-            return warningMsg
-        customObj = bpy.data.objects.get(customObjName)
         if customObj is None:
-            n = customObjName
-            warningMsg = "Custom brick type object '%(n)s' could not be found" % locals()
+            warningMsg = "Custom brick type object {} could not be found".format(i + 1)
             return warningMsg
-        if customObjName == cm.source_name and (not (cm.animated or cm.modelCreated) or customObj.protected):
+        elif customObj.name == getSourceName(cm) and (not (cm.animated or cm.modelCreated) or customObj.protected):
             warningMsg = "Source object cannot be its own custom brick."
             return warningMsg
-        if customObj.type != "MESH":
+        elif customObj.type != "MESH":
             warningMsg = "Custom object {} is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).".format(i + 1)
             return warningMsg
         custom_details = bounds(customObj)
@@ -638,7 +625,7 @@ def createNewMatObjs(cm_id):
         matObj = bpy.data.objects.get(n)
         if matObj is None:
             matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-            getSafeScn().objects.link(matObj)
+            getSafeScn().collection.objects.link(matObj)
         matObjs.append(matObj)
     return matObjs  # returns list of two matObjs: [RANDOM, ABS]
 
@@ -669,5 +656,4 @@ def updateCanRun(type):
         if type == "ANIMATION":
             return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
         elif type == "MODEL":
-            Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-            return commonNeedsUpdate or (groupExists(Bricker_bricks_gn) and len(bpy.data.groups[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
+            return commonNeedsUpdate or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3

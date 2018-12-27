@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # system imports
 import time
@@ -34,7 +30,7 @@ props = bpy.props
 from ..functions import *
 
 
-class BrickerBevel(bpy.types.Operator):
+class BRICKER_OT_bevel(bpy.types.Operator):
     """Execute bevel modifier to all bricks with above settings"""
     bl_idname = "bricker.bevel"
     bl_label = "Bevel Bricks"
@@ -67,7 +63,7 @@ class BrickerBevel(bpy.types.Operator):
             # get bricks to bevel
             bricks = getBricks()
             # create or remove bevel
-            BrickerBevel.runBevelAction(bricks, cm, action, setBevel=True)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm, action, setBevel=True)
         except:
             handle_exception()
         return{"FINISHED"}
@@ -79,10 +75,10 @@ class BrickerBevel(bpy.types.Operator):
     def runBevelAction(bricks, cm, action="ADD", setBevel=False):
         """ chooses whether to add or remove bevel """
         if action == "REMOVE":
-            BrickerBevel.removeBevelMods(bricks)
+            BRICKER_OT_bevel.removeBevelMods(bricks)
             cm.bevelAdded = False
         elif action == "ADD":
-            BrickerBevel.createBevelMods(cm, bricks)
+            BRICKER_OT_bevel.createBevelMods(cm, bricks)
             cm.bevelAdded = True
 
     @classmethod

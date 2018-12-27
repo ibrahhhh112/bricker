@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -32,7 +28,7 @@ from ..lib.bricksDict import *
 from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
-from ..buttons.delete import BrickerDelete
+from ..buttons.delete import BRICKER_OT_delete_model
 from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
@@ -83,9 +79,9 @@ class OBJECT_OT_delete_override(Operator):
     ###################################################
     # class variables
 
-    use_global = BoolProperty(default=False)
-    update_model = BoolProperty(default=True)
-    undo = BoolProperty(default=True)
+    use_global: BoolProperty(default=False)
+    update_model: BoolProperty(default=True)
+    undo: BoolProperty(default=True)
 
     ################################################
     # class methods
@@ -205,12 +201,13 @@ class OBJECT_OT_delete_override(Operator):
                 self.deleteBrickObject(obj, update_model, use_global)
             elif not obj.protected:
                 obj_users_scene = len(obj.users_scene)
-                scn.objects.unlink(obj)
                 if use_global or obj_users_scene == 1:
-                    bpy.data.objects.remove(obj, True)
+                    bpy.data.objects.remove(obj, do_unlink=True)
             else:
                 print(obj.name + ' is protected')
                 protected.append(obj.name)
+
+        tag_redraw_viewport_in_all_screens()
 
         return protected
 
@@ -260,24 +257,23 @@ class OBJECT_OT_delete_override(Operator):
         scn = bpy.context.scene
         cm = None
         for cmCur in scn.cmlist:
-            n = cmCur.source_name
+            n = getSourceName(cmCur)
             if not obj.name.startswith("Bricker_%(n)s_brick" % locals()):
                 continue
             if obj.isBrickifiedObject:
                 cm = cmCur
                 break
             elif obj.isBrick:
-                bGroup = bpy.data.groups.get("Bricker_%(n)s_bricks" % locals())
-                if bGroup and len(bGroup.objects) < 2:
+                bColl = cmCur.collection
+                if bColl and len(bColl.objects) < 2:
                     cm = cmCur
                     break
         if cm and update_model:
-            BrickerDelete.runFullDelete(cm=cm)
-            scn.objects.active.select = False
+            BRICKER_OT_delete_model.runFullDelete(cm=cm)
+            deselect(bpy.context.object)
         else:
             obj_users_scene = len(obj.users_scene)
-            scn.objects.unlink(obj)
             if use_global or obj_users_scene == 1:
-                bpy.data.objects.remove(obj, True)
+                bpy.data.objects.remove(obj, do_unlink=True)
 
     ################################################

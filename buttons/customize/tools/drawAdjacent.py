@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import copy
@@ -37,7 +33,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class drawAdjacent(Operator):
+class BRICKER_OT_draw_adjacent(Operator):
     """Draw brick to one side of active brick"""
     bl_idname = "bricker.draw_adjacent"
     bl_label = "Draw Adjacent Bricks"
@@ -50,7 +46,7 @@ class drawAdjacent(Operator):
     def poll(self, context):
         """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
-        active_obj = scn.objects.active
+        active_obj = bpy.context.object
         # check active object is not None
         if active_obj is None:
             return False
@@ -68,7 +64,7 @@ class drawAdjacent(Operator):
             # if no sides were and are selected, don't execute (i.e. if only brick type changed)
             if [False]*6 == [createAdjBricks[i] or self.adjBricksCreated[i][0] for i in range(6)]:
                 return {"CANCELLED"}
-            scn, cm, _ = getActiveContextInfo()
+            scn, cm, n = getActiveContextInfo()
             # revert to last bricksDict
             self.undo_stack.matchPythonToBlenderState()
             # push to undo stack
@@ -79,7 +75,7 @@ class drawAdjacent(Operator):
             # get fresh copy of self.bricksDict
             self.bricksDict, _ = getBricksDict(cm=cm)
             # initialize vars
-            obj = scn.objects.active
+            obj = bpy.context.object
             initial_active_obj_name = obj.name
             keysToMerge = []
             updateHasCustomObjs(cm, targetType)
@@ -120,7 +116,7 @@ class drawAdjacent(Operator):
                 setCurBrickVal(self.bricksDict, curLoc)
 
             # attempt to merge created bricks
-            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, keysToMerge, cm, targetType=targetType)
+            keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, keysToMerge, cm, targetType=targetType)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.zPos or self.zNeg:
@@ -148,7 +144,7 @@ class drawAdjacent(Operator):
             self.undo_stack = UndoStack.get_instance()
             self.orig_undo_stack_length = self.undo_stack.getLength()
             scn, cm, _ = getActiveContextInfo()
-            obj = scn.objects.active
+            obj = bpy.context.object
             dictKey = getDictKey(obj.name)
             cm.customized = True
 
@@ -184,17 +180,17 @@ class drawAdjacent(Operator):
         return items
 
     # define props for popup
-    brickType = bpy.props.EnumProperty(
+    brickType: bpy.props.EnumProperty(
         name="Brick Type",
         description="Type of brick to draw adjacent to current brick",
         items=get_items,
         default=None)
-    zPos = bpy.props.BoolProperty(name="+Z (Top)", default=False)
-    zNeg = bpy.props.BoolProperty(name="-Z (Bottom)", default=False)
-    xPos = bpy.props.BoolProperty(name="+X (Front)", default=False)
-    xNeg = bpy.props.BoolProperty(name="-X (Back)", default=False)
-    yPos = bpy.props.BoolProperty(name="+Y (Right)", default=False)
-    yNeg = bpy.props.BoolProperty(name="-Y (Left)", default=False)
+    zPos: bpy.props.BoolProperty(name="+Z (Top)", default=False)
+    zNeg: bpy.props.BoolProperty(name="-Z (Bottom)", default=False)
+    xPos: bpy.props.BoolProperty(name="+X (Front)", default=False)
+    xNeg: bpy.props.BoolProperty(name="-X (Back)", default=False)
+    yPos: bpy.props.BoolProperty(name="+Y (Right)", default=False)
+    yNeg: bpy.props.BoolProperty(name="-Y (Left)", default=False)
 
     #############################################
     # class methods

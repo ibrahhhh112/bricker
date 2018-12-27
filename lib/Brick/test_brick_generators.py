@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import bpy
@@ -33,7 +29,7 @@ from ...functions.general import *
 from ...functions.makeBricks_utils import *
 
 
-class testBrickGenerators(bpy.types.Operator):
+class BRICKER_OT_test_brick_generators(bpy.types.Operator):
     """Draws some test bricks for testing of brick generators"""
     bl_idname = "bricker.test_brick_generators"
     bl_label = "Test Brick Generators"
@@ -62,7 +58,7 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=T
     # move object to target location
     ob.location = loc
     # link and select object
-    scn.objects.link(ob)
+    scn.collection.objects.link(ob)
     scn.update()
 
     # send bmesh data to object data
@@ -72,10 +68,6 @@ def newObjFromBmesh(layer, bme, meshName, objName=None, loc=(0,0,0), edgeSplit=T
     # add edge split modifier
     if edgeSplit:
         addEdgeSplitMod(ob)
-
-    # move to appropriate layer
-    layerList = [i == layer - 1 for i in range(20)]
-    ob.layers = layerList
 
     return ob
 
@@ -137,6 +129,6 @@ def test_brick_generators():
         # newObjFromBmesh(7, makeTile(dimensions, brickSize=[2,4,1], circleVerts=16, type="TILE", detail=detail), "2x4 Tile "  + detail, loc=(offset*1.5, -0.2, 0))
         # newObjFromBmesh(7, makeTile(dimensions, brickSize=[1,8,1], circleVerts=16, type="TILE", detail=detail), "1x8 Tile "  + detail, loc=(offset, -4.4, 0))
 
-    openLayer(17)
+    # openLayer(17)
 
     cm.brickType = lastBrickType

@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -41,11 +37,10 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCr
     if action is not None:
         print("[Bricker] %(action)s..." % locals())
     # get arguments for createNewBricks
-    n = cm.source_name
-    source = bpy.data.objects.get(n)
+    source = cm.source_obj
     source_details, dimensions = getDetailsAndBounds(source, cm)
-    Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
-    parent = bpy.data.objects.get(Bricker_parent_on)
+    n = source.name
+    parent = cm.parent_obj
     logo_details, refLogo = [None, None] if tempBrick else BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
@@ -53,7 +48,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCr
     # add bevel if it was previously added
     if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)
-        BrickerBevel.runBevelAction(bricks, cm)
+        BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
 
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
@@ -129,7 +124,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     items = []
     legalBS = bpy.props.Bricker_legal_brick_sizes
     scn = bpy.context.scene
-    objs = bpy.context.selected_objects if by == "SELECTION" else [scn.objects.active]
+    objs = bpy.context.selected_objects if by == "SELECTION" else [bpy.context.object]
     objNamesD, bricksDicts = createObjNamesAndBricksDictsDs(objs)
     invalidItems = []
     for cm_id in objNamesD.keys():
@@ -285,9 +280,9 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             sizeStr = listToStr(sorted(siz[:2]) + [siz[2]])
             if (sizeStr == brickSize or typ == brickType) and (include == "BOTH" or (include == "INT" and not onShell) or (include == "EXT" and onShell)):
                 selectedSomething = True
-                curObj.select = True
+                select(curObj)
             elif only:
-                curObj.select = False
+                deselect(curObj)
 
         # if no brickSize bricks exist, remove from cm.brickSizesUsed or cm.brickTypesUsed
         removeUnusedFromList(cm, brickType=brickType, brickSize=brickSize, selectedSomething=selectedSomething)

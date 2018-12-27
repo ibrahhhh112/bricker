@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # system imports
 import random
@@ -35,16 +31,16 @@ from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BrickerApplyMaterial
-from .delete import BrickerDelete
-from .bevel import BrickerBevel
+from .materials import BRICKER_OT_apply_material
+from .delete import BRICKER_OT_delete_model
+from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
 # from ..lib.rigid_body_props import *
 from ..functions import *
 
 
-class BrickerBrickify(bpy.types.Operator):
+class BRICKER_OT_brickify(bpy.types.Operator):
     """ Create brick sculpture from source object mesh """
     bl_idname = "bricker.brickify"
     bl_label = "Create/Update Brick Model from Source Object"
@@ -75,11 +71,10 @@ class BrickerBrickify(bpy.types.Operator):
                 for n in self.createdObjects:
                     obj = bpy.data.objects.get(n)
                     if obj:
-                        bpy.data.objects.remove(obj, True)
-                for n in self.createdGroups:
-                    group = bpy.data.groups.get(n)
-                    if group:
-                        bpy.data.groups.remove(group)
+                        bpy.data.objects.remove(obj, do_unlink=True)
+                for cn in self.createdCollections:
+                    if cn:
+                        bpy.data.collections.remove(cn, do_unlink=True)
                 if self.source:
                     self.source.protected = False
                     select(self.source, active=True)
@@ -103,9 +98,9 @@ class BrickerBrickify(bpy.types.Operator):
         self.undo_stack.iterateStates(cm)
         # initialize vars
         self.createdObjects = []
-        self.createdGroups = []
+        self.createdCollections = []
         self.setAction(cm)
-        self.source = self.getObjectToBrickify(cm)
+        self.source = cm.source_obj
         if self.splitBeforeUpdate:
             cm.splitModel = True
 
@@ -121,16 +116,28 @@ class BrickerBrickify(bpy.types.Operator):
     def runBrickify(self, context):
         # set up variables
         scn, cm, n = getActiveContextInfo()
-        Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
+        self.undo_stack.iterateStates(cm)
 
         # ensure that Bricker can run successfully
-        if not self.isValid(scn, cm, self.source, Bricker_bricks_gn):
+        if not self.isValid(scn, cm, n, self.source):
             return {"CANCELLED"}
 
         # initialize variables
         self.source.cmlist_id = cm.id
         matrixDirty = matrixReallyIsDirty(cm)
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
+        # store parent collections to source
+        if len(self.source.stored_parents) == 0:
+            # store parent collections of source
+            for cn in self.source.users_collection:
+                self.source.stored_parents.add().collection = cn
+        else:
+            # store parent collections of brick collection
+            self.source.stored_parents.clear()
+            brickColl = cm.collection
+            brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
+            for cn in brickCollUsers:
+                self.source.stored_parents.add().collection = cn
 
         # # check if source object is smoke simulation domain
         cm.isSmoke = is_smoke(self.source)
@@ -139,7 +146,7 @@ class BrickerBrickify(bpy.types.Operator):
 
         # clear cache if updating from previous version
         if createdWithUnsupportedVersion(cm) and "UPDATE" in self.action:
-            Caches.clearCache(cm)
+            BRICKER_OT_caches.clearCache(cm)
             cm.matrixIsDirty = True
 
         # make sure matrix really is dirty
@@ -148,16 +155,25 @@ class BrickerBrickify(bpy.types.Operator):
             if not matrixDirty and loadedFromCache:
                 cm.matrixIsDirty = False
 
-        # set layers to source layers
-        oldLayers = list(scn.layers)
-        sourceLayers = list(self.source.layers)
-        if oldLayers != sourceLayers:
-            setLayers(sourceLayers)
+        # TODO: potentially necessary to ensure current View Layer includes collection with self.source
+        # TODO: potentially necessary to ensure self.source (and its parent collections) are viewable?
 
         if "ANIM" not in self.action:
-            self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
+            final_coll = self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
         else:
-            self.brickifyAnimation(scn, cm, n, matrixDirty)
+            final_coll = self.brickifyAnimation(scn, cm, n, matrixDirty)
+            cm.animIsDirty = False
+
+        # link final bricks collection to scene collection
+        cm.collection = final_coll
+        for item in self.source.stored_parents:
+            if final_coll.name not in item.collection.children:
+                item.collection.children.link(final_coll)
+        # select the bricks object unless it's massive
+        if "ANIM" not in self.action and not cm.splitModel:
+            obj = final_coll.objects[0]
+            if len(obj.data.vertices) < 500000:
+                select(obj, active=True)
 
         # set cmlist_id for all created objects
         for obj_name in self.createdObjects:
@@ -191,9 +207,6 @@ class BrickerBrickify(bpy.types.Operator):
         # unlink source from scene and link to safe scene
         if self.source.name in scn.objects.keys():
             safeUnlink(self.source, hide=False)
-        # reset layers
-        if oldLayers != sourceLayers:
-            setLayers(oldLayers)
 
         disableRelationshipLines()
 
@@ -202,7 +215,6 @@ class BrickerBrickify(bpy.types.Operator):
         # set up variables
         origFrame = None
         source = None
-        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
 
         if self.action == "CREATE":
             # set modelCreatedOnFrame
@@ -222,7 +234,7 @@ class BrickerBrickify(bpy.types.Operator):
         # delete old bricks if present
         if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
             # skip source, dupes, and parents
-            trans_and_anim_data = BrickerDelete.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
+            trans_and_anim_data = BRICKER_OT_delete_model.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
         else:
             storeTransformData(cm, None)
             trans_and_anim_data = []
@@ -235,7 +247,7 @@ class BrickerBrickify(bpy.types.Operator):
                 sourceDup.rotation_mode = "XYZ"
                 sourceDup.rotation_euler = Euler((0, 0, 0))
             self.createdObjects.append(sourceDup.name)
-            self.source.select = False
+            deselect(self.source)
             # remove modifiers and constraints
             for mod in sourceDup.modifiers:
                 sourceDup.modifiers.remove(mod)
@@ -246,7 +258,8 @@ class BrickerBrickify(bpy.types.Operator):
                 parent_clear(sourceDup)
             # send to new mesh
             if not cm.isSmoke:
-                sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+                # TODO: use view layer with smoke, not just the first view layer
+                sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
             # apply transformation data
             apply_transform(sourceDup)
             scn.update()
@@ -257,7 +270,7 @@ class BrickerBrickify(bpy.types.Operator):
         sourceDup = sourceDup or self.source
 
         # link sourceDup if it isn't in scene
-        if sourceDup.name not in scn.objects.keys():
+        if sourceDup.name not in scn.collection.all_objects.keys():
             safeLink(sourceDup)
             scn.update()
 
@@ -265,12 +278,14 @@ class BrickerBrickify(bpy.types.Operator):
         sourceDup_details, dimensions = getDetailsAndBounds(sourceDup)
 
         # get parent object
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent = bpy.data.objects.get(Bricker_parent_on)
         # if parent doesn't exist, get parent with new location
         parentLoc = sourceDup_details.mid
         if parent is None:
             parent = self.getNewParent(Bricker_parent_on, parentLoc)
             cm.parent_name = parent.name
+        cm.parent_obj = parent
         parent["loc_diff"] = self.source.location - parentLoc
         self.createdObjects.append(parent.name)
 
@@ -278,13 +293,13 @@ class BrickerBrickify(bpy.types.Operator):
         logo_details, refLogo = self.getLogo(scn, cm, dimensions)
 
         # create new bricks
-        group_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None, origSource=self.source)
+        coll_name = self.createNewBricks(sourceDup, parent, sourceDup_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=None, sceneCurFrame=None)
 
-        bGroup = bpy.data.groups.get(group_name)
-        if bGroup:
-            self.createdGroups.append(group_name)
+        bColl = bpy.data.collections.get(coll_name)
+        if bColl:
+            self.createdCollections.append(bColl)
             # transform bricks to appropriate location
-            self.transformBricks(bGroup, cm, parent, self.source, sourceDup_details, self.action)
+            self.transformBricks(bColl, cm, parent, self.source, sourceDup_details, self.action)
             # apply old animation data to objects
             for d0 in trans_and_anim_data:
                 obj = bpy.data.objects.get(d0["name"])
@@ -303,7 +318,7 @@ class BrickerBrickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="MODEL")
-            BrickerBevel.runBevelAction(bricks, cm)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
         # set active frame to original active frame
         if origFrame and scn.frame_current != origFrame:
@@ -311,17 +326,18 @@ class BrickerBrickify(bpy.types.Operator):
 
         cm.lastSourceMid = vecToStr(parentLoc)
 
+        return bColl
+
     def brickifyAnimation(self, scn, cm, n, matrixDirty):
         """ create brick animation """
         # set up variables
         scn, cm, n = getActiveContextInfo()
-        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         sceneCurFrame = scn.frame_current
         objsToSelect = []
 
         if self.action == "UPDATE_ANIM":
             safeLink(self.source)
-            self.source.name = cm.source_name  # fixes issue with smoke simulation cache
+            self.source.name = n  # fixes issue with smoke simulation cache
 
         # if there are no changes to apply, simply return "FINISHED"
         self.updatedFramesOnly = False
@@ -332,7 +348,7 @@ class BrickerBrickify(bpy.types.Operator):
                 return "FINISHED"
 
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
-            Caches.clearCache(cm, brick_mesh=False)
+            BRICKER_OT_caches.clearCache(cm, brick_mesh=False)
 
         if cm.splitModel:
             cm.splitModel = False
@@ -343,13 +359,15 @@ class BrickerBrickify(bpy.types.Operator):
             if self.updatedFramesOnly:
                 # preserve duplicates, parents, and bricks for frames that haven't changed
                 preservedFrames = [cm.startFrame, cm.stopFrame]
-            BrickerDelete.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
+            BRICKER_OT_delete_model.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
 
         # get parent object
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(Bricker_parent_on)
         if parent0 is None:
             parent0 = self.getNewParent(Bricker_parent_on, self.source.location)
             cm.parent_name = parent0.name
+        cm.parent_obj = parent0
         self.createdObjects.append(parent0.name)
 
         # begin drawing status to cursor
@@ -357,7 +375,7 @@ class BrickerBrickify(bpy.types.Operator):
         wm.progress_begin(0, cm.stopFrame + 1 - cm.startFrame)
 
         # prepare duplicate objects for animation
-        duplicates = self.getDuplicateObjects(scn, cm, cm.source_name, cm.startFrame, cm.stopFrame)
+        duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
@@ -390,8 +408,9 @@ class BrickerBrickify(bpy.types.Operator):
 
             # create new bricks
             try:
-                group_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
-                self.createdGroups.append(group_name)
+                coll_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, selectCreated=False)
+                bColl = bpy.data.collections.get(coll_name)
+                self.createdCollections.append(bColl)
             except KeyboardInterrupt:
                 self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
                 if curFrame != cm.startFrame:
@@ -403,11 +422,11 @@ class BrickerBrickify(bpy.types.Operator):
                 return
 
             # get object with created bricks
-            obj = bpy.data.groups[group_name].objects[0]
+            obj = bColl.objects[0]
             # hide obj unless on scene current frame
             showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
             if not showCurObj:
-                obj.hide = True
+                obj.hide_viewport = True
                 obj.hide_render = True
             # lock location, rotation, and scale of created bricks
             obj.lock_location = (True, True, True)
@@ -427,10 +446,21 @@ class BrickerBrickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="ANIM")
-            BrickerBevel.runBevelAction(bricks, cm)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm)
+
+        # link animation frames to animation collection
+        anim_coll_name = "Bricker_%(n)s_bricks" % locals()
+        anim_coll = bpy.data.collections.get(anim_coll_name)
+        if anim_coll is None:
+            anim_coll = bpy.data.collections.new(anim_coll_name)
+        for cn in self.createdCollections:
+            anim_coll.children.link(cn)
+
+        return anim_coll
+
 
     @classmethod
-    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False, origSource=None):
+    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
@@ -439,7 +469,7 @@ class BrickerBrickify(bpy.types.Operator):
             # multiply brickScale by offset distance
             brickScale2 = brickScale if cm.brickType != "CUSTOM" else vec_mult(brickScale, Vector(cm.distOffset))
             # get bricks dictionary
-            bricksDict, loadedFromCache = getBricksDict(dType=action, source=source, source_details=source_details, dimensions=dimensions, brickScale=brickScale2, updateCursor=updateCursor, curFrame=curFrame, origSource=origSource, restrictContext=False)
+            bricksDict, loadedFromCache = getBricksDict(dType=action, source=source, source_details=source_details, dimensions=dimensions, brickScale=brickScale2, updateCursor=updateCursor, curFrame=curFrame, restrictContext=False)
         else:
             loadedFromCache = True
         # reset all values for certain keys in bricksDict dictionaries
@@ -464,17 +494,17 @@ class BrickerBrickify(bpy.types.Operator):
             updateInternal(bricksDict, cm, keys, clearExisting=loadedFromCache)
             cm.buildIsDirty = True
         # update materials in bricksDict
-        if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, origSource, curFrame)
+        if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, curFrame)
         # make bricks
-        group_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, tempBrick=tempBrick, redraw=redraw)
+        coll_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, tempBrick=tempBrick, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated)
         # store current bricksDict to cache
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
-        return group_name
+        return coll_name
 
-    def isValid(self, scn, cm, source, Bricker_bricks_gn):
+    def isValid(self, scn, cm, source_name, source):
         """ returns True if brickify action can run, else report WARNING/ERROR and return False """
         # ensure custom object(s) are valid
         if (cm.brickType == "CUSTOM" or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3):
@@ -484,11 +514,12 @@ class BrickerBrickify(bpy.types.Operator):
                 return False
         # ensure source is defined
         if source is None:
-            self.report({"WARNING"}, "Source object '{n}' could not be found".format(n=cm.source_name))
+            self.report({"WARNING"}, "Source object '%(source_name)s' could not be found" % locals())
             return False
         # ensure source name isn't too long
-        if len(cm.source_name) > 30:
+        if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
+            return False
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.materialName != "" and bpy.data.materials.find(cm.materialName) == -1:
             mn = cm.materialName
@@ -507,13 +538,14 @@ class BrickerBrickify(bpy.types.Operator):
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False
 
+        brick_coll_name = "Bricker_%(source_name)s_bricks" % locals()
         if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
-            if groupExists(Bricker_bricks_gn):
+            if collExists(brick_coll_name):
                 self.report({"WARNING"}, "Brickified Model already created.")
                 return False
             # verify source exists and is of type mesh
-            if cm.source_name == "":
+            if source_name == "":
                 self.report({"WARNING"}, "Please select a mesh to Brickify")
                 return False
             # ensure source is not bricker model
@@ -522,8 +554,7 @@ class BrickerBrickify(bpy.types.Operator):
                 return False
             # ensure source exists
             if source is None:
-                n = cm.source_name
-                self.report({"WARNING"}, "'%(n)s' could not be found" % locals())
+                self.report({"WARNING"}, "'%(source_name)s' could not be found" % locals())
                 return False
             # ensure object data is mesh
             if source.type != "MESH":
@@ -542,33 +573,31 @@ class BrickerBrickify(bpy.types.Operator):
 
         if self.action == "UPDATE_MODEL":
             # make sure 'Bricker_[source name]_bricks' group exists
-            if not groupExists(Bricker_bricks_gn):
+            if not collExists(brick_coll_name):
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
                 return False
 
         # check that custom logo object exists in current scene and is of type "MESH"
         if cm.logoType == "CUSTOM" and cm.brickType != "CUSTOM":
-            if cm.logoObjectName == "":
+            if cm.logoObject is None:
                 self.report({"WARNING"}, "Custom logo object not specified.")
                 return False
-            logoObject = bpy.data.objects.get(cm.logoObjectName)
-            if logoObject is None:
-                lon = cm.logoObjectName
-                self.report({"WARNING"}, "Custom logo object '%(lon)s' could not be found" % locals())
-                return False
-            if cm.logoObjectName == cm.source_name and (not (cm.animated or cm.modelCreated) or logoObject.protected):
+            elif cm.logoObject.name == source_name:
                 self.report({"WARNING"}, "Source object cannot be its own logo.")
                 return False
-            if logoObject.type != "MESH":
+            elif cm.logoObject.name.startswith("Bricker_%(source_name)s" % locals()):
+                self.report({"WARNING"}, "Bricker object cannot be used as its own logo.")
+                return False
+            elif cm.logoObject.type != "MESH":
                 self.report({"WARNING"}, "Custom logo object is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).")
                 return False
 
         return True
 
-    def transformBricks(self, bGroup, cm, parent, source, sourceDup_details, action):
+    def transformBricks(self, bColl, cm, parent, source, sourceDup_details, action):
         # if using local orientation and creating model for first time
         if cm.useLocalOrient and action == "CREATE":
-            obj = parent if cm.splitModel else bGroup.objects[0]
+            obj = parent if cm.splitModel else bColl.objects[0]
             source_details = bounds(source)
             lastMode = source.rotation_mode
             obj.rotation_mode = "XYZ"
@@ -581,7 +610,7 @@ class BrickerBrickify(bpy.types.Operator):
         if cm.lastSplitModel and not cm.splitModel:
             # transfer transformation of parent to object
             parent.rotation_mode = "XYZ"
-            for obj in bGroup.objects:
+            for obj in bColl.objects:
                 obj.location = parent.location
                 obj.rotation_mode = parent.rotation_mode
                 obj.rotation_euler.rotate(parent.rotation_euler)
@@ -594,17 +623,14 @@ class BrickerBrickify(bpy.types.Operator):
         # if model is not split
         elif not cm.splitModel:
             # apply stored transformation to bricks
-            applyTransformData(cm, bGroup.objects)
+            applyTransformData(cm, bColl.objects)
         # if model wasn't split but is now
         elif not cm.lastSplitModel:
             # apply stored transformation to parent of bricks
             applyTransformData(cm, parent)
-        obj = bGroup.objects[0] if len(bGroup.objects) > 0 else None
+        obj = bColl.objects[0] if len(bColl.objects) > 0 else None
         if obj is None:
             return
-        # select the bricks object unless it's massive
-        if not cm.splitModel and len(obj.data.vertices) < 500000:
-            select(obj, active=True)
         # if model contains armature, lock the location, rotation, and scale of created bricks object
         if not cm.splitModel and cm.armature:
             obj.lock_location = (True, True, True)
@@ -621,7 +647,7 @@ class BrickerBrickify(bpy.types.Operator):
             if typ == "LEGO":
                 refLogo = getLegoLogo(self, scn, typ, cm.logoResolution, cm.logoDecimate, dimensions)
             else:
-                refLogo = bpy.data.objects.get(cm.logoObjectName)
+                refLogo = cm.logoObject
             # apply transformation to duplicate of logo object and normalize size/position
             logo_details, refLogo = prepareLogoAndGetDetails(scn, refLogo, typ, cm.logoScale, dimensions)
         return logo_details, refLogo
@@ -642,9 +668,6 @@ class BrickerBrickify(bpy.types.Operator):
             elif mod.type == "SMOKE":
                 smoke = True
                 point_cache = mod.domain_settings.point_cache
-        # if self.source.rigid_body is not None:
-        #     cm.rigid_body = True
-        #     storeRigidBodySettings(self.source)
 
         # step through uncached frames to run simulation
         if soft_body or smoke:
@@ -668,7 +691,7 @@ class BrickerBrickify(bpy.types.Operator):
             scn.frame_set(curFrame)
             # duplicate source for current frame
             sourceDup = duplicate(self.source, link_to_scene=True)
-            sourceDup.name = "Bricker_" + cm.source_name + "_f_" + str(curFrame)
+            sourceDup.name = "Bricker_" + source_name + "_f_" + str(curFrame)
             # # apply rigid body transform data
             # if cm.rigid_body:
             #     select(sourceDup, active=True, only=True)
@@ -688,7 +711,8 @@ class BrickerBrickify(bpy.types.Operator):
             sourceDup.animation_data_clear()
             # send to new mesh
             if not cm.isSmoke:
-                sourceDup.data = self.source.to_mesh(scn, True, 'PREVIEW')
+                # TODO: use view layer with smoke, not just the first view layer
+                sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
             # apply transform data
             apply_transform(sourceDup)
             duplicates[curFrame] = sourceDup
@@ -701,19 +725,15 @@ class BrickerBrickify(bpy.types.Operator):
         # unlink source duplicate
         scn.update()
         for obj in duplicates.values():
-            safeUnlink(obj)
+            safeUnlink(obj, hide=False)
         return duplicates
 
-    def getObjectToBrickify(self, cm):
-        objToBrickify = bpy.data.objects.get(cm.source_name)
-        return objToBrickify
-
-    def getNewParent(self, Bricker_parent_on, loc):
-        m = bpy.data.meshes.new(Bricker_parent_on + "_mesh")
-        parent = bpy.data.objects.new(Bricker_parent_on, m)
+    def getNewParent(self, name, loc):
+        m = bpy.data.meshes.new(name + "_mesh")
+        parent = bpy.data.objects.new(name, m)
         parent.location = loc
         safeScn = getSafeScn()
-        safeScn.objects.link(parent)
+        safeScn.collection.objects.link(parent)
         return parent
 
     def setAction(self, cm):

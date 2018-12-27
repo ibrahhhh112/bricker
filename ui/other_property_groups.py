@@ -15,5 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+# System imports
+# NONE!
 
-__all__ = ["caches", "preferences", "bricksDict"]
+# Blender imports
+import bpy
+from bpy.props import *
+
+
+class BRICKER_UL_collections_tuple(bpy.types.PropertyGroup):
+    collection: PointerProperty(type=bpy.types.Collection)

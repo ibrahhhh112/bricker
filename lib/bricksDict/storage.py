@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import json
@@ -32,7 +28,7 @@ from .functions import *
 from ..caches import bricker_bfm_cache
 from ...functions import *
 
-def getBricksDict(dType="MODEL", source=None, source_details=None, dimensions=None, brickScale=None, updateCursor=True, curFrame=None, cm=None, origSource=None, restrictContext=True):
+def getBricksDict(dType="MODEL", source=None, source_details=None, dimensions=None, brickScale=None, updateCursor=True, curFrame=None, cm=None, restrictContext=True):
     """ retrieve bricksDict from cache if possible, else create a new one """
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
@@ -55,7 +51,7 @@ def getBricksDict(dType="MODEL", source=None, source_details=None, dimensions=No
         if source is None or source_details is None or dimensions is None or brickScale is None:
             source, source_details, dimensions, brickScale, _ = getArgumentsForBricksDict(cm)
         # create new bricksDict
-        bricksDict = makeBricksDict(source, source_details, brickScale, origSource=origSource, cursorStatus=updateCursor)
+        bricksDict = makeBricksDict(source, source_details, brickScale, cursorStatus=updateCursor)
     return bricksDict, loadedFromCache
 
 def lightToDeepCache(bricker_bfm_cache):

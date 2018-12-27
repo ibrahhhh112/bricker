@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import copy
@@ -33,7 +29,7 @@ from ....brickify import *
 from .....functions import *
 
 
-class selectBricksByType(Operator):
+class BRICKER_OT_select_bricks_by_type(Operator):
     """Select bricks of specified type"""
     bl_idname = "bricker.select_bricks_by_type"
     bl_label = "Select Bricks by Type"
@@ -78,19 +74,19 @@ class selectBricksByType(Operator):
         return items
 
     # define props for popup
-    brickType = bpy.props.EnumProperty(
+    brickType: bpy.props.EnumProperty(
         name="By Type",
         description="Select all bricks of specified type",
         items=get_items)
-    only = bpy.props.BoolProperty(
+    only: bpy.props.BoolProperty(
         name="Only",
         description="Select only bricks of given type/size",
         default=False)
-    allModels = bpy.props.BoolProperty(
+    allModels: bpy.props.BoolProperty(
         name="All Models",
         description="Select bricks of given type/size from all models in file",
         default=False)
-    include = bpy.props.EnumProperty(
+    include: bpy.props.EnumProperty(
         name="Include",
         description="Include bricks on shell, inside shell, or both",
         items = [("EXT", "Externals", ""),
