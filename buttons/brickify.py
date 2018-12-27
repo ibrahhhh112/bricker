@@ -95,7 +95,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
-        self.undo_stack.iterateStates(cm)
         # initialize vars
         self.createdObjects = []
         self.createdCollections = []
