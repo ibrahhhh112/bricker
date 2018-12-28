@@ -113,14 +113,14 @@ class paintbrushTools:
             # draw split bricks
             drawUpdatedBricks(cm, self.bricksDict, brickKeys, action="splitting bricks", selectCreated=True, tempBrick=True)
         else:
-            brick.select = True
+            select(brick)
 
     def mergeBrick(self, cm, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
             self.parentKeysToMergeOnRelease.append(curKey)
             self.addedBricks.append(self.bricksDict[curKey]["name"])
-            self.obj.select = True
+            select(self.obj)
         elif state == "RELEASE":
             # assemble keysToMergeOnRelease
             for pk in self.parentKeysToMergeOnRelease:

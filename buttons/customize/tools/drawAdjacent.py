@@ -242,7 +242,7 @@ class BRICKER_OT_draw_adjacent(Operator):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = BRICKER_OT_draw_adjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
-        n = cm.source_name
+        n = getSourceName(cm)
         dirBool = None
 
         adjacent_key, adjBrickD = BRICKER_OT_draw_adjacent.getBrickD(bricksDict, adjacent_loc)
