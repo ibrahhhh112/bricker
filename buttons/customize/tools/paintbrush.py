@@ -43,7 +43,7 @@ from ....functions import *
 from ....operators.delete import OBJECT_OT_delete_override
 
 
-class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawing):
+class BRICKER_OT_paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawing):
     """Paint additional bricks onto the Bricker model"""
     bl_idname = "bricker.paintbrush"
     bl_label = "Bricker Paintbrush"
@@ -170,7 +170,7 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
     #     default=None)
 
     # define props for popup
-    mode = bpy.props.EnumProperty(
+    mode: bpy.props.EnumProperty(
         items=[("DRAW", "DRAW", ""),
                ("PAINT", "PAINT", ""),
                ("MERGE/SPLIT", "MERGE/SPLIT", ""),

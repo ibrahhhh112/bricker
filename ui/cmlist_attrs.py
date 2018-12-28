@@ -277,7 +277,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         name="Auto Update on Delete",
         description="Draw newly exposed bricks when existing bricks are deleted",
         default=True)
-    paintbrushMat = StringProperty(default="")
+    paintbrushMat: StringProperty(default="")
 
     # MATERIAL & COLOR SETTINGS
     materialType: EnumProperty(

@@ -498,7 +498,7 @@ class BRICKER_PT_customize_model(Panel):
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
             return
-        if not Caches.cacheExists(cm):
+        if not BRICKER_OT_caches.cacheExists(cm):
             layout.label(text="Matrix not cached!")
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
@@ -529,7 +529,7 @@ class BRICKER_PT_customize_model(Panel):
         row.active = brickSculptInstalled
         row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "PAINT"
         row.prop_search(cm, "paintbrushMat", bpy.data, "materials", text="")
-        if not paintbrush.BrickSculptInstalled:
+        if not BRICKER_OT_paintbrush.BrickSculptInstalled:
             row = col.row(align=True)
             row.scale_y = 0.7
             row.label(text="BrickSculpt available for purchase")
@@ -544,7 +544,7 @@ class BRICKER_PT_customize_model(Panel):
 
         col1 = layout.column(align=True)
         col1.label(text="Selection:")
-        split = col1.split(align=True, percentage=0.5)
+        split = col1.split(align=True, factor=0.5)
         # set top exposed
         col = split.column(align=True)
         col.operator("bricker.select_bricks_by_type", text="By Type")
@@ -554,7 +554,7 @@ class BRICKER_PT_customize_model(Panel):
 
         col1 = layout.column(align=True)
         col1.label(text="Toggle Exposure:")
-        split = col1.split(align=True, percentage=0.5)
+        split = col1.split(align=True, factor=0.5)
         # set top exposed
         col = split.column(align=True)
         col.operator("bricker.set_exposure", text="Top").side = "TOP"
@@ -564,7 +564,7 @@ class BRICKER_PT_customize_model(Panel):
 
         col1 = layout.column(align=True)
         col1.label(text="Brick Operations:")
-        split = col1.split(align=True, percentage=0.5)
+        split = col1.split(align=True, factor=0.5)
         # split brick into 1x1s
         col = split.column(align=True)
         col.operator("bricker.split_bricks", text="Split")
