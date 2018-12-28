@@ -106,7 +106,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
     ###################################################
     # class variables
 
-    splitBeforeUpdate = BoolProperty(default=False)
+    splitBeforeUpdate: BoolProperty(default=False)
 
     #############################################
     # class methods
