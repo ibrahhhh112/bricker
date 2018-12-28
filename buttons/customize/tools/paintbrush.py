@@ -81,6 +81,8 @@ class BRICKER_OT_paintbrush(Operator, paintbrushFramework, paintbrushTools, pain
                 self.ui_start()
                 bpy.props.running_bricksculpt_tool = True
                 scn, cm, _ = getActiveContextInfo()
+                self.undo_stack.iterateStates(cm)
+                cm.customized = True
                 # get fresh copy of self.bricksDict
                 self.bricksDict, _ = getBricksDict(cm=cm)
                 # create modal handler
@@ -105,9 +107,6 @@ class BRICKER_OT_paintbrush(Operator, paintbrushFramework, paintbrushTools, pain
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('brick_paintbrush', affected_ids=[cm.id])
-        self.undo_stack.iterateStates(cm)
-        # mark model as customized
-        cm.customized = True
         # initialize vars
         self.addedBricks = []
         self.addedBricksFromDelete = []

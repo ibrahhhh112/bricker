@@ -48,18 +48,15 @@ class paintbrushDrawing:
     # from CG Cookie's retopoflow plugin
 
     def ui_start(self):
-        # # report something useful to user
-        # bpy.context.area.header_text_set("Click & drag to add bricks (+'ALT' to remove). Press 'RETURN' to commit changes")
         # update dpi
-        ui_scale = bpy.context.user_preferences.view.ui_scale
-        pixel_size = bpy.context.user_preferences.system.pixel_size
+        ui_scale = bpy.context.preferences.view.ui_scale
+        pixel_size = bpy.context.preferences.system.pixel_size
         self.dpi = int(72 * ui_scale * pixel_size)
 
-
         # add callback handlers
-        self.cb_pr_handle = SpaceView3D.draw_handler_add(self.draw_callback_preview,   (bpy.context, ), 'WINDOW', 'PRE_VIEW')
+        # self.cb_pr_handle = SpaceView3D.draw_handler_add(self.draw_callback_preview,   (bpy.context, ), 'WINDOW', 'PRE_VIEW')
         # self.cb_pv_handle = SpaceView3D.draw_handler_add(self.draw_callback_postview,  (bpy.context, ), 'WINDOW', 'POST_VIEW')
-        self.cb_pp_handle = SpaceView3D.draw_handler_add(self.draw_callback_postpixel, (bpy.context, ), 'WINDOW', 'POST_PIXEL')
+        # self.cb_pp_handle = SpaceView3D.draw_handler_add(self.draw_callback_postpixel, (bpy.context, ), 'WINDOW', 'POST_PIXEL')
         # darken other spaces
         self.spaces = [
             bpy.types.SpaceClipEditor,
@@ -69,30 +66,28 @@ class paintbrushDrawing:
             bpy.types.SpaceGraphEditor,
             bpy.types.SpaceImageEditor,
             bpy.types.SpaceInfo,
-            bpy.types.SpaceLogicEditor,
             bpy.types.SpaceNLA,
             bpy.types.SpaceNodeEditor,
             bpy.types.SpaceOutliner,
+            bpy.types.SpacePreferences,
             bpy.types.SpaceProperties,
             bpy.types.SpaceSequenceEditor,
             bpy.types.SpaceTextEditor,
-            bpy.types.SpaceTimeline,
-            #bpy.types.SpaceUVEditor,       # <- does not exist?
-            bpy.types.SpaceUserPreferences,
+            bpy.types.SpaceUVEditor,
             #'SpaceView3D',                 # <- specially handled
             ]
-        self.areas = [ 'WINDOW', 'HEADER' ]
         # ('WINDOW', 'HEADER', 'CHANNELS', 'TEMPORARY', 'UI', 'TOOLS', 'TOOL_PROPS', 'PREVIEW')
-        self.cb_pp_tools   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'TOOLS',      'POST_PIXEL')
-        self.cb_pp_props   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'TOOL_PROPS', 'POST_PIXEL')
-        self.cb_pp_ui      = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'UI',         'POST_PIXEL')
-        self.cb_pp_header  = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'HEADER',     'POST_PIXEL')
-        self.cb_pp_all = [
-            (s, a, s.draw_handler_add(self.draw_callback_cover, (bpy.context,), a, 'POST_PIXEL'))
-            for s in self.spaces
-            for a in self.areas
-            ]
-        self.draw_preview()
+        self.areas = ('WINDOW', 'HEADER')
+        # self.cb_pp_tools   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'TOOLS',      'POST_PIXEL')
+        # self.cb_pp_props   = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'TOOL_PROPS', 'POST_PIXEL')
+        # self.cb_pp_ui      = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'UI',         'POST_PIXEL')
+        # self.cb_pp_header  = SpaceView3D.draw_handler_add(self.draw_callback_cover, (bpy.context, ), 'HEADER',     'POST_PIXEL')
+        # self.cb_pp_all = [
+        #     (s, a, s.draw_handler_add(self.draw_callback_cover, (bpy.context,), a, 'POST_PIXEL'))
+        #     for s in self.spaces
+        #     for a in self.areas
+        #     ]
+        # self.draw_preview()
         tag_redraw_areas()
 
     def ui_end(self):
@@ -316,20 +311,20 @@ class paintbrushDrawing:
     # @staticmethod
     # @blender_version('<','2.79')
     # def update_dpi():
-    #     paintbrush._dpi = bpy.context.user_preferences.system.dpi
-    #     if bpy.context.user_preferences.system.virtual_pixel_mode == 'DOUBLE':
+    #     paintbrush._dpi = bpy.context.preferences.system.dpi
+    #     if bpy.context.preferences.system.virtual_pixel_mode == 'DOUBLE':
     #         paintbrush._dpi *= 2
-    #     paintbrush._dpi *= bpy.context.user_preferences.system.pixel_size
+    #     paintbrush._dpi *= bpy.context.preferences.system.pixel_size
     #     paintbrush._dpi = int(paintbrush._dpi)
     #     paintbrush._dpi_mult = paintbrush._dpi / 72
     #
     # @staticmethod
     # @blender_version('>=','2.79')
     # def update_dpi():
-    #     paintbrush._ui_scale = bpy.context.user_preferences.view.ui_scale
-    #     paintbrush._sysdpi = bpy.context.user_preferences.system.dpi
-    #     paintbrush._pixel_size = bpy.context.user_preferences.system.pixel_size
-    #     paintbrush._dpi = 72 # bpy.context.user_preferences.system.dpi
+    #     paintbrush._ui_scale = bpy.context.preferences.view.ui_scale
+    #     paintbrush._sysdpi = bpy.context.preferences.system.dpi
+    #     paintbrush._pixel_size = bpy.context.preferences.system.pixel_size
+    #     paintbrush._dpi = 72 # bpy.context.preferences.system.dpi
     #     paintbrush._dpi *= paintbrush._ui_scale
     #     paintbrush._dpi *= paintbrush._pixel_size
     #     paintbrush._dpi = int(paintbrush._dpi)
