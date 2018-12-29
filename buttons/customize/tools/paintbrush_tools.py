@@ -130,9 +130,8 @@ class paintbrushTools:
             self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
             # merge those keys
             if len(self.keysToMergeOnRelease) > 1:
-                # delete outdated brick
-                for obj_name in self.addedBricks:
-                    delete(bpy.data.objects.get(obj_name))
+                # delete outdated bricks
+                delete(bpy.data.objects.get("Bricker_%(source_name)s_brick__%(key)s" % locals() for key in self.keysToMergeOnRelease))
                 # split up bricks
                 Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnRelease)
                 # merge bricks after they've been split
