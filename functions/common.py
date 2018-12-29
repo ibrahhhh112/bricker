@@ -561,13 +561,15 @@ def print_exception(txtName, showError=False):
 
     print(errormsg)
 
-    if txtName not in bpy.data.texts:
-        # create a log file for error writing
-        bpy.ops.text.new()
-        bpy.data.texts[-1].name = txtName
+    # create a log file for error writing
+    txt = bpy.data.texts.get(txtName)
+    if txt is None:
+        txt = bpy.data.texts.new(txtName)
+    else:
+        txt.clear()
 
     # write error to log text object
-    bpy.data.texts[txtName].write(errormsg + '\n')
+    txt.write(errormsg + '\n')
 
     if showError:
         showErrorMessage(errormsg, wrap=240)
