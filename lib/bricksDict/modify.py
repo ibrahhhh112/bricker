@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -129,7 +125,7 @@ def updateBrickSizes(bricksDict, key, availableKeys, loc, brickSizes, zStep, max
                     newSize = [i+1, j+1, k+zStep]
                     if newSize in brickSizes:
                         continue
-                    if not (newSize[2] == 1 and height3Only) and (not legalBricksOnly or legalBrickSize(s=newSize, t=tallType if newSize[2] == 3 else shortType)):
+                    if not (newSize[2] == 1 and height3Only) and (not legalBricksOnly or legalBrickSize(size=newSize, type=tallType if newSize[2] == 3 else shortType)):
                         brickSizes.append(newSize)
             if breakOuter1: break
         breakOuter1 = False
@@ -242,9 +238,9 @@ def getMostCommonDir(i_s, i_e, norms):
 def setBrickTypeForSlope(bricksDict, key, keysInBrick):
     norms = [bricksDict[k]["near_normal"] for k in keysInBrick if bricksDict[k]["near_normal"] is not None]
     dir0 = getMostCommonDir(0, 1, norms) if len(norms) != 0 else ""
-    if (dir0 == "^" and legalBrickSize(s=bricksDict[key]["size"], t="SLOPE") and bricksDict[key]["top_exposed"]):
+    if (dir0 == "^" and legalBrickSize(size=bricksDict[key]["size"], type="SLOPE") and bricksDict[key]["top_exposed"]):
         typ = "SLOPE"
-    elif (dir0 == "v" and legalBrickSize(s=bricksDict[key]["size"], t="SLOPE_INVERTED") and bricksDict[key]["bot_exposed"]):
+    elif (dir0 == "v" and legalBrickSize(size=bricksDict[key]["size"], type="SLOPE_INVERTED") and bricksDict[key]["bot_exposed"]):
         typ = "SLOPE_INVERTED"
     else:
         typ = "BRICK"

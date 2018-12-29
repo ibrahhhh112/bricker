@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import collections
@@ -45,8 +41,11 @@ def getSafeScn():
 def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
-    n = cm.source_name
-    return scn, cm, n
+    return scn, cm, getSourceName(cm)
+
+
+def getSourceName(cm):
+    return cm.source_obj.name if cm.source_obj is not None else ""
 
 
 def centerMeshOrigin(m, dimensions, size):
@@ -266,7 +265,7 @@ def brick_materials_loaded():
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
-    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
+    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
     smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
     return listToStr(regularSettings + smokeSettings)
 
@@ -441,8 +440,8 @@ def getFlipRot(dir):
     return flip, rot
 
 
-def legalBrickSize(s, t):
-     return s[:2] in bpy.props.Bricker_legal_brick_sizes[s[2]][t]
+def legalBrickSize(size, type):
+     return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
 
 
 def get_override(area_type, region_type):
@@ -530,25 +529,19 @@ def is_adaptive(ob):
     return False
 
 def customValidObject(cm, targetType="Custom 0", idx=None):
-    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObjectName1], [cm.hasCustomObj2, cm.customObjectName2], [cm.hasCustomObj3, cm.customObjectName3]]):
-        hasCustomObj = customInfo[0]
+    for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObject1], [cm.hasCustomObj2, cm.customObject2], [cm.hasCustomObj3, cm.customObject3]]):
+        hasCustomObj, customObj = customInfo
         if idx is not None and idx != i:
             continue
         elif not hasCustomObj and not (i == 0 and cm.brickType == "CUSTOM") and int(targetType.split(" ")[-1]) != i + 1:
             continue
-        customObjName = customInfo[1]
-        if customObjName == "":
-            warningMsg = "Custom object {} not specified.".format(i + 1)
-            return warningMsg
-        customObj = bpy.data.objects.get(customObjName)
         if customObj is None:
-            n = customObjName
-            warningMsg = "Custom brick type object '%(n)s' could not be found" % locals()
+            warningMsg = "Custom brick type object {} could not be found".format(i + 1)
             return warningMsg
-        if customObjName == cm.source_name and (not (cm.animated or cm.modelCreated) or customObj.protected):
+        elif customObj.name == getSourceName(cm) and (not (cm.animated or cm.modelCreated) or customObj.protected):
             warningMsg = "Source object cannot be its own custom brick."
             return warningMsg
-        if customObj.type != "MESH":
+        elif customObj.type != "MESH":
             warningMsg = "Custom object {} is not of type 'MESH'. Please select another object (or press 'ALT-C to convert object to mesh).".format(i + 1)
             return warningMsg
         custom_details = bounds(customObj)

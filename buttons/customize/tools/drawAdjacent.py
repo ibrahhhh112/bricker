@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import copy
@@ -68,7 +64,7 @@ class drawAdjacent(Operator):
             # if no sides were and are selected, don't execute (i.e. if only brick type changed)
             if [False]*6 == [createAdjBricks[i] or self.adjBricksCreated[i][0] for i in range(6)]:
                 return {"CANCELLED"}
-            scn, cm, _ = getActiveContextInfo()
+            scn, cm, n = getActiveContextInfo()
             # revert to last bricksDict
             self.undo_stack.matchPythonToBlenderState()
             # push to undo stack
@@ -105,7 +101,7 @@ class drawAdjacent(Operator):
                         if decriment != 0:
                             adjDictLoc = adjDictLoc.copy()
                             adjDictLoc[2] -= decriment
-                        status = self.toggleBrick(cm, self.bricksDict, self.adjDKLs, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, dictLoc, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
+                        status = self.toggleBrick(cm, n, self.bricksDict, self.adjDKLs, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, dictLoc, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
                         if not status["val"]:
                             self.report({status["report_type"]}, status["msg"])
                         if status["dirBool"] is not None:
@@ -242,11 +238,10 @@ class drawAdjacent(Operator):
                     not any(adjBricksCreated[side])) # evaluates True if all values in this list are False
 
     @staticmethod
-    def toggleBrick(cm, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, temporaryBrick=False, addBrick=True):
+    def toggleBrick(cm, n, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, temporaryBrick=False, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = drawAdjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
-        n = cm.source_name
         dirBool = None
 
         adjacent_key, adjBrickD = drawAdjacent.getBrickD(bricksDict, adjacent_loc)

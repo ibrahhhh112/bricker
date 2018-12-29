@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -52,7 +48,7 @@ def handle_animation(scene):
     for i, cm in enumerate(scn.cmlist):
         if not cm.animated:
             continue
-        n = cm.source_name
+        n = getSourceName(cm)
         for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1):
             curBricks = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
             if curBricks is None:
@@ -83,7 +79,7 @@ def isObjVisible(scn, cm, n):
         else:
             obj = None
     else:
-        obj = bpy.data.objects.get(cm.source_name)
+        obj = cm.source_obj
     if obj:
         objVisible = False
         for i in range(20):
@@ -103,13 +99,13 @@ def handle_selections(scene):
         scn.Bricker_last_layers = curLayers
         curObjVisible = False
         if scn.cmlist_index != -1:
-            cm0 = scn.cmlist[scn.cmlist_index]
-            curObjVisible, _ = isObjVisible(scn, cm0, cm0.source_name)
+            cm0, n0 = getActiveContextInfo()[1:]
+            curObjVisible, _ = isObjVisible(scn, cm0, n0)
         if not curObjVisible or scn.cmlist_index == -1:
             setIndex = False
             for i, cm in enumerate(scn.cmlist):
                 if i != scn.cmlist_index:
-                    nextObjVisible, obj = isObjVisible(scn, cm, cm.source_name)
+                    nextObjVisible, obj = isObjVisible(scn, cm, getSourceName(cm))
                     if nextObjVisible and bpy.context.active_object == obj:
                         scn.cmlist_index = i
                         setIndex = True
@@ -120,16 +116,15 @@ def handle_selections(scene):
     elif scn.Bricker_last_cmlist_index != scn.cmlist_index and scn.cmlist_index != -1:
         scn.Bricker_last_cmlist_index = scn.cmlist_index
         cm = scn.cmlist[scn.cmlist_index]
-        source = bpy.data.objects.get(cm.source_name)
+        cm, n = getActiveContextInfo()[1:]
+        source = cm.source_obj
         if source and cm.version[:3] != "1_0":
             if cm.modelCreated:
-                n = cm.source_name
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
                     scn.Bricker_last_active_object_name = scn.objects.active.name
             elif cm.animated:
-                n = cm.source_name
                 cf = scn.frame_current
                 if cf > cm.stopFrame:
                     cf = cm.stopFrame
@@ -143,12 +138,12 @@ def handle_selections(scene):
                 select(source, active=True, only=True)
             scn.Bricker_last_active_object_name = source.name
         else:
-            for i,cm in enumerate(scn.cmlist):
-                if cm.source_name == scn.Bricker_active_object_name:
+            for i,cm0 in enumerate(scn.cmlist):
+                if getSourceName(cm0) == scn.Bricker_active_object_name:
                     deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
-    elif scn.objects.active and scn.Bricker_last_active_object_name != scn.objects.active.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_name != "") and scn.objects.active.type == "MESH":
+    elif scn.objects.active and scn.Bricker_last_active_object_name != scn.objects.active.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and scn.objects.active.type == "MESH":
         scn.Bricker_last_active_object_name = scn.objects.active.name
         beginningString = "Bricker_"
         if scn.objects.active.name.startswith(beginningString):
@@ -164,7 +159,7 @@ def handle_selections(scene):
             usingSource = True
             scn.Bricker_active_object_name = scn.objects.active.name
         for i,cm in enumerate(scn.cmlist):
-            if createdWithUnsupportedVersion(cm) or cm.source_name != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
+            if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
             scn.Bricker_last_cmlist_index = scn.cmlist_index
@@ -274,7 +269,7 @@ def safe_link_parent(scene):
         return
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
-            n = cm.source_name
+            n = getSourceName(cm)
             Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
             p = bpy.data.objects.get(Bricker_parent_on)
             if (cm.modelCreated or cm.animated) and not cm.exposeParent:
@@ -291,7 +286,7 @@ def safe_unlink_parent(scene):
         return
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
-            n = cm.source_name
+            n = getSourceName(cm)
             Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
             p = bpy.data.objects.get(Bricker_parent_on)
             if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
@@ -336,7 +331,7 @@ def handle_upconversion(scene):
             # convert from v1_3 to v1_4
             if int(cm.version[2]) < 4:
                 # update "_frame_" to "_f_" in brick and group names
-                n = cm.source_name
+                n = getSourceName(cm)
                 Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
                 if cm.animated:
                     for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
@@ -375,9 +370,9 @@ def handle_upconversion(scene):
                         matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
                         sto_scn_new.objects.link(matObj)
                 # update names of Bricker source objects
-                old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
+                old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
                 if old_source is not None:
-                    old_source.name = cm.source_name
+                    old_source = cm.source_obj
                 # transfer dist offset values to new prop locations
                 if cm.distOffsetX != -1:
                     cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
@@ -390,5 +385,6 @@ def handle_upconversion(scene):
             if int(cm.version[2]) < 6:
                 for cm in scn.cmlist:
                     cm.zStep = getZStep(cm)
+                cm.source_obj = bpy.data.objects.get(cm.source_name)
 
 bpy.app.handlers.load_post.append(handle_upconversion)

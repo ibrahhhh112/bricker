@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import bmesh
@@ -158,9 +154,9 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize,
 def useEdgeSplitMod(cm, brickD):
     typ = brickD["type"]
     if ("CUSTOM" not in brickD["type"] or
-        (typ == "CUSTOM 1" and cm.customObjectName1.startswith("Bricker_")) or
-        (typ == "CUSTOM 2" and cm.customObjectName2.startswith("Bricker_")) or
-        (typ == "CUSTOM 3" and cm.customObjectName3.startswith("Bricker_"))):
+        (typ == "CUSTOM 1" and cm.customObject1 and cm.customObject1.name.startswith("Bricker_")) or
+        (typ == "CUSTOM 2" and cm.customObject2 and cm.customObject2.name.startswith("Bricker_")) or
+        (typ == "CUSTOM 3" and cm.customObject3 and cm.customObject3.name.startswith("Bricker_"))):
         return True
     else:
         return False

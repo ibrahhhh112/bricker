@@ -1,23 +1,19 @@
-"""
-Copyright (C) 2018 Bricks Brought to Life
-http://bblanimation.com/
-chris@bblanimation.com
-
-Created by Christopher Gearhart
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 # NONE!
@@ -105,14 +101,14 @@ class cmlist_actions(bpy.types.Operator):
         # NOTE: active object may have been removed, so we need to re-check if none
         if active_object:
             for cm in scn.cmlist:
-                if cm.source_name == active_object.name:
+                if cm.source_obj is active_object:
                     active_object = None
                     break
         item = scn.cmlist.add()
         last_index = scn.cmlist_index
         scn.cmlist_index = len(scn.cmlist)-1
         if active_object and active_object.type == "MESH" and not active_object.name.startswith("Bricker_"):
-            item.source_name = active_object.name
+            item.source_obj = active_object
             item.name = active_object.name
             item.version = bpy.props.bricker_version
             # get Bricker preferences
@@ -122,14 +118,14 @@ class cmlist_actions(bpy.types.Operator):
                 item.brickHeight = prefs.absoluteBrickHeight
             else:
                 # set brick height based on model height
-                source = bpy.data.objects.get(item.source_name)
+                source = item.source_obj
                 if source:
                     source_details = bounds(source, use_adaptive_domain=False)
                     h = max(source_details.dist)
                     item.brickHeight = h / prefs.relativeBrickHeight
 
         else:
-            item.source_name = ""
+            item.source_obj = None
             item.name = "<New Model>"
         # get all existing IDs
         existingIDs = [cm.id for cm in scn.cmlist]

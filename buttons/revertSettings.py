@@ -1,23 +1,19 @@
-"""
-    Copyright (C) 2018 Bricks Brought to Life
-    http://bblanimation.com/
-    chris@bblanimation.com
-
-    Created by Christopher Gearhart
-
-        This program is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
-
-        This program is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
-
-        You should have received a copy of the GNU General Public License
-        along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    """
+# Copyright (C) 2018 Christopher Gearhart
+# chris@bblanimation.com
+# http://bblanimation.com/
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
 import time
@@ -72,9 +68,9 @@ class BrickerRevertSettings(Operator):
         cm.distOffset[1] = float(settings[4])
         cm.distOffset[2] = float(settings[5])
         cm.includeTransparency = str_to_bool(settings[6])
-        cm.customObjectName1 = settings[7]
-        cm.customObjectName2 = settings[8]
-        cm.customObjectName3 = settings[9]
+        cm.customObject1 = settings[7]
+        cm.customObject2 = settings[8]
+        cm.customObject3 = settings[9]
         cm.useNormals = str_to_bool(settings[10])
         cm.verifyExposure = str_to_bool(settings[11])
         cm.insidenessRayCastDir = settings[12]
