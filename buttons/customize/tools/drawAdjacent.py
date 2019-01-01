@@ -101,7 +101,7 @@ class BRICKER_OT_draw_adjacent(Operator):
                         if decriment != 0:
                             adjDictLoc = adjDictLoc.copy()
                             adjDictLoc[2] -= decriment
-                        status = self.toggleBrick(cm, self.bricksDict, self.adjDKLs, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, dictLoc, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
+                        status = self.toggleBrick(cm, n, self.bricksDict, self.adjDKLs, self.adjBricksCreated, self.dimensions, adjDictLoc, dictKey, dictLoc, objSize, targetType, i, j, keysToMerge, addBrick=createAdjBricks[i])
                         if not status["val"]:
                             self.report({status["report_type"]}, status["msg"])
                         if status["dirBool"] is not None:
@@ -238,11 +238,10 @@ class BRICKER_OT_draw_adjacent(Operator):
                     not any(adjBricksCreated[side])) # evaluates True if all values in this list are False
 
     @staticmethod
-    def toggleBrick(cm, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, temporaryBrick=False, addBrick=True):
+    def toggleBrick(cm, n, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, temporaryBrick=False, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
         newBrickHeight = BRICKER_OT_draw_adjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
-        n = getSourceName(cm)
         dirBool = None
 
         adjacent_key, adjBrickD = BRICKER_OT_draw_adjacent.getBrickD(bricksDict, adjacent_loc)

@@ -44,7 +44,7 @@ class paintbrushTools:
 
     #############################################
 
-    def addBrick(self, cm, curKey, curLoc, objSize):
+    def addBrick(self, cm, n, curKey, curLoc, objSize):
         # get difference between intersection loc and object loc
         locDiff = self.loc - transformToWorld(Vector(self.bricksDict[curKey]["co"]), self.parent.matrix_world, self.junk_bme)
         locDiff = transformToLocal(locDiff, self.parent.matrix_world)
@@ -54,7 +54,7 @@ class paintbrushTools:
         if not adjBrickD or self.bricksDict[nextKey]["val"] == 0:
             self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
             # add brick at nextKey location
-            status = BRICKER_OT_draw_adjacent.toggleBrick(cm, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMergeOnCommit, temporaryBrick=True)
+            status = BRICKER_OT_draw_adjacent.toggleBrick(cm, n, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMergeOnCommit, temporaryBrick=True)
             if not status["val"]:
                 self.report({status["report_type"]}, status["msg"])
             self.addedBricks.append(self.bricksDict[nextKey]["name"])
@@ -115,7 +115,7 @@ class paintbrushTools:
         else:
             select(brick)
 
-    def mergeBrick(self, cm, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
+    def mergeBrick(self, cm, source_name, curKey=None, curLoc=None, objSize=None, mode="DRAW", state="DRAG"):
         if state == "DRAG":
             # TODO: Light up bricks as they are selected to be merged
             self.parentKeysToMergeOnRelease.append(curKey)
@@ -130,9 +130,10 @@ class paintbrushTools:
             self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
             # merge those keys
             if len(self.keysToMergeOnRelease) > 1:
-                # delete outdated brick
-                for obj_name in self.addedBricks:
-                    delete(bpy.data.objects.get(obj_name))
+                # delete outdated bricks
+                for key in self.keysToMergeOnRelease:
+                    brickName = "Bricker_%(source_name)s_brick__%(key)s" % locals()
+                    delete(bpy.data.objects.get(brickName))
                 # split up bricks
                 Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnRelease)
                 # merge bricks after they've been split
