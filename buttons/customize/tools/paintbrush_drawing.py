@@ -28,7 +28,7 @@ import bpy
 import bgl
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d, region_2d_to_origin_3d, region_2d_to_vector_3d
-from bpy.types import Operator, SpaceView3D, bpy_struct
+from bpy.types import Operator, SpaceView3D
 from bpy.props import *
 
 # Addon imports
@@ -38,7 +38,6 @@ from ..functions import *
 from ...brickify import *
 from ....lib.Brick import *
 from ....functions import *
-from ....operators.delete import OBJECT_OT_delete_override
 
 
 class paintbrushDrawing:
