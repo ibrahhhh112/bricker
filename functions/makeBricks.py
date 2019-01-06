@@ -133,7 +133,8 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     # if merging unnecessary, simply update bricksDict values
     if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
         size = [1, 1, zStep]
-        updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
+        if len(keys) > 0:
+            updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
         availableKeys = keys
         for key in keys:
             bricksDict[key]["parent"] = "self"
