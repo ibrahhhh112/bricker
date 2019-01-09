@@ -145,7 +145,7 @@ def remove_item(ls, item):
 
 
 def tag_redraw_areas(areaTypes=["ALL"]):
-    areaTypes = confirmIter(areaTypes)
+    areaTypes = confirmList(areaTypes)
     for area in bpy.context.screen.areas:
         for areaType in areaTypes:
             if areaType == "ALL" or area.type == areaType:
@@ -301,7 +301,7 @@ def confirmList(itemList):
     return itemList
 
 
-def confirmIter(object):
+def confirmIter(object, accept_strings=False):
     """ if single item passed, convert to list """
     try:
         iter(object)
