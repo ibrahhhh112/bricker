@@ -301,7 +301,7 @@ def confirmList(itemList):
     return itemList
 
 
-def confirmIter(object):
+def confirmIter(object, accept_strings=False):
     """ if single item passed, convert to list """
     try:
         iter(object)

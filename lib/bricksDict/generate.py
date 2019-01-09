@@ -618,13 +618,12 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     # set calculationAxes
     calculationAxes = cm.calculationAxes if cm.brickShell != "INSIDE" else "XYZ"
     # set up faceIdxMatrix and brickFreqMatrix
-    faceIdxMatrix = np.zeros((len(coordMatrix), len(coordMatrix[0]), len(coordMatrix[0][0]))).tolist()
+    faceIdxMatrix = np.zeros((len(coordMatrix), len(coordMatrix[0]), len(coordMatrix[0][0])), dtype=int).tolist()
     if cm.isSmoke:
         brickFreqMatrix, smokeColors = getBrickMatrixSmoke(origSource, faceIdxMatrix, cm.brickShell, source_details, cursorStatus=cursorStatus)
     else:
         brickFreqMatrix = getBrickMatrix(source, faceIdxMatrix, coordMatrix, cm.brickShell, axes=calculationAxes, cursorStatus=cursorStatus)
         smokeColors = None
-
     # initialize active keys
     cm.activeKey = (-1, -1, -1)
 
