@@ -7,3 +7,4 @@ textures/
 bricksDict_dump.py
 *.ldr
 buttons/customize/tools/paintbrush_framework.py
+buttons/customize/tools/.paintbrush_framework.py
