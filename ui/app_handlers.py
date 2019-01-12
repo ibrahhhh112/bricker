@@ -30,10 +30,6 @@ from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.tools import *
 
 
-def brickerIsActive():
-    return hasattr(bpy.props, "bricker_module_name") and bpy.props.bricker_module_name in bpy.context.user_preferences.addons.keys()
-
-
 def brickerRunningBlockingOp():
     scn = bpy.context.scene
     return hasattr(scn, "Bricker_runningBlockingOperation") and scn.Bricker_runningBlockingOperation
@@ -42,8 +38,6 @@ def brickerRunningBlockingOp():
 @persistent
 def handle_animation(scene):
     scn = scene
-    if not brickerIsActive():
-        return
     for i, cm in enumerate(scn.cmlist):
         if not cm.animated:
             continue
@@ -64,9 +58,6 @@ def handle_animation(scene):
                 # prevent bricks from being selected on frame change
                 elif brick.select:
                     brick.select = False
-
-
-bpy.app.handlers.frame_change_pre.append(handle_animation)
 
 
 def isObjVisible(scn, cm, n):
@@ -90,7 +81,7 @@ def isObjVisible(scn, cm, n):
 @persistent
 def handle_selections(scene):
     scn = bpy.context.scene
-    if not brickerIsActive() or brickerRunningBlockingOp():
+    if brickerRunningBlockingOp():
         return
     curLayers = str(list(scn.layers))
     # if scn.layers changes and active object is no longer visible, set scn.cmlist_index to -1
@@ -172,13 +163,10 @@ def handle_selections(scene):
         scn.cmlist_index = -1
 
 
-bpy.app.handlers.scene_update_pre.append(handle_selections)
-
-
 @persistent
 def prevent_user_from_viewing_storage_scene(scene):
     scn = bpy.context.scene
-    if not brickerIsActive() or brickerRunningBlockingOp() or bpy.props.Bricker_developer_mode != 0:
+    if brickerRunningBlockingOp() or bpy.props.Bricker_developer_mode != 0:
         return
     if scn.name == "Bricker_storage (DO NOT MODIFY)":
         i = 0
@@ -186,9 +174,6 @@ def prevent_user_from_viewing_storage_scene(scene):
             i += 1
         bpy.context.screen.scene = bpy.data.scenes[i]
         showErrorMessage("This scene is for Bricker internal use only")
-
-
-bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
 
 
 def find_3dview_space():
@@ -210,20 +195,13 @@ def find_3dview_space():
 # clear light cache before file load
 @persistent
 def clear_bfm_cache(dummy):
-    if not brickerIsActive():
-        return
     for key in bricker_bfm_cache.keys():
         bricker_bfm_cache[key] = None
-
-
-bpy.app.handlers.load_pre.append(clear_bfm_cache)
 
 
 # pull dicts from deep cache to light cache on load
 @persistent
 def handle_loading_to_light_cache(scene):
-    if not brickerIsActive():
-        return
     deepToLightCache(bricker_bfm_cache)
     # verify caches loaded properly
     for cm in bpy.context.scene.cmlist:
@@ -235,25 +213,15 @@ def handle_loading_to_light_cache(scene):
             cm.matrixIsDirty = True
 
 
-bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
-
-
 # push dicts from light cache to deep cache on save
 @persistent
 def handle_storing_to_deep_cache(scene):
-    if not brickerIsActive():
-        return
     lightToDeepCache(bricker_bfm_cache)
-
-
-bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
 
 
 # send parent object to scene for linking scene in other file
 @persistent
 def safe_link_parent(scene):
-    if not brickerIsActive():
-        return
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
             n = getSourceName(cm)
@@ -263,14 +231,9 @@ def safe_link_parent(scene):
                 safeLink(p)
 
 
-bpy.app.handlers.save_pre.append(safe_link_parent)
-
-
 # send parent object to scene for linking scene in other file
 @persistent
 def safe_unlink_parent(scene):
-    if not brickerIsActive():
-        return
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
             n = getSourceName(cm)
@@ -283,15 +246,9 @@ def safe_unlink_parent(scene):
                     pass
 
 
-bpy.app.handlers.save_post.append(safe_unlink_parent)
-bpy.app.handlers.load_post.append(safe_unlink_parent)
-
-
 @persistent
 def handle_upconversion(scene):
     scn = bpy.context.scene
-    if not brickerIsActive():
-        return
     # update storage scene name
     for cm in scn.cmlist:
         if createdWithUnsupportedVersion(cm):
@@ -371,5 +328,3 @@ def handle_upconversion(scene):
             # convert from v1_5 to v1_6
             if int(cm.version[2]) < 6:
                 cm.source_obj = bpy.data.objects.get(cm.source_name)
-
-bpy.app.handlers.load_post.append(handle_upconversion)
