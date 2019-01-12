@@ -78,9 +78,8 @@ class BrickerBrickify(bpy.types.Operator):
             for job in self.jobs:
                 frame = int(job.split("__")[-1][:-3])
                 self.JobManager.process_job(job, use_blend_file=True, frame=frame)
-                job_name = self.JobManager.get_job_name(job)
                 if self.JobManager.job_complete(job):
-                    self.report({"INFO"}, "Background process '" + job_name + "' was finished")
+                    self.report({"INFO"}, "Completed frame %(frame)s")
                     scn, cm, _ = getActiveContextInfo()
                     bricker_bricks = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_bricks_f_" + str(frame))
                     bricker_parent = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_parent_f_" + str(frame))
@@ -141,6 +140,7 @@ class BrickerBrickify(bpy.types.Operator):
         self.createdGroups = []
         self.setAction(cm)
         self.source = cm.source_obj
+        self.origFrame = scn.frame_current
         # initialize important vars
         self.safe_scn = getSafeScn()
         self.JobManager = SCENE_OT_job_manager.get_instance()
@@ -236,7 +236,6 @@ class BrickerBrickify(bpy.types.Operator):
     def brickifyModel(self, scn, cm, n, matrixDirty, skipTransAndAnimData):
         """ create brick model """
         # set up variables
-        origFrame = None
         source = None
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
 
@@ -244,8 +243,7 @@ class BrickerBrickify(bpy.types.Operator):
             # set modelCreatedOnFrame
             cm.modelCreatedOnFrame = scn.frame_current
         else:
-            origFrame = scn.frame_current
-            if origFrame != cm.modelCreatedOnFrame:
+            if self.origFrame != cm.modelCreatedOnFrame:
                 scn.frame_set(cm.modelCreatedOnFrame)
 
         # if there are no changes to apply, simply return "FINISHED"
@@ -343,8 +341,8 @@ class BrickerBrickify(bpy.types.Operator):
             BrickerBevel.runBevelAction(bricks, cm)
 
         # set active frame to original active frame
-        if origFrame and scn.frame_current != origFrame:
-            scn.frame_set(origFrame)
+        if self.action != "CREATE" and scn.frame_current != self.origFrame:
+            scn.frame_set(self.origFrame)
 
         cm.lastSourceMid = vecToStr(parentLoc)
 
@@ -402,22 +400,26 @@ class BrickerBrickify(bpy.types.Operator):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
                 continue
-            # TODO: PULL TEMPLATE FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
+            # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
             curJob = "/tmp/background_processing/%(filename)s__%(curFrame)s.py" % locals()
             f1 = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "brickifyExecution.py"), "r")
-            f2 = open(curJob, "w")
             rl = f1.readlines()
             f1.close()
             rl[2] = "frame = %(curFrame)s  # DO NOT DELETE THIS LINE\n" % locals()
+            f2 = open(curJob, "w")
             for line in rl:
                 f2.write(line)
             f2.close()
 
             jobAdded = self.JobManager.add_job(curJob)
-            self.jobs.append(curJob)
             if not jobAdded:
                 self.report({"WARNING"}, "Job for frame '" + curFrame + "' already added")
                 return {"CANCELLED"}
+            self.jobs.append(curJob)
+
+        cm.lastStartFrame = cm.startFrame
+        cm.lastStopFrame = cm.stopFrame
+        scn.frame_set(self.origFrame)
 
         # create timer for modal
         wm = bpy.context.window_manager
@@ -429,8 +431,6 @@ class BrickerBrickify(bpy.types.Operator):
         wm = bpy.context.window_manager
         scn, cm, n = getActiveContextInfo()
         wm.progress_end()
-        cm.lastStartFrame = cm.startFrame
-        cm.lastStopFrame = cm.stopFrame
 
         # add bevel if it was previously added
         if cm.bevelAdded:
