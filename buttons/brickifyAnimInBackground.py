@@ -54,7 +54,8 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
         scn.frame_set(curFrame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_" + self.source.name + "_f_" + str(curFrame))
-        source.data.update()
+        scn.objects.link(source)
+        scn.update()
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)

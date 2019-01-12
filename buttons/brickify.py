@@ -18,6 +18,7 @@ import bmesh
 import os
 import sys
 import math
+import shutil
 import json
 
 # Blender imports
@@ -75,11 +76,11 @@ class BrickerBrickify(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == "TIMER":
-            for job in self.jobs:
+            for job in self.jobs.copy():
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job, use_blend_file=True, frame=frame)
+                self.JobManager.process_job(job)
                 if self.JobManager.job_complete(job):
-                    self.report({"INFO"}, "Completed frame %(frame)s")
+                    self.report({"INFO"}, "Completed frame %(frame)s" % locals())
                     scn, cm, _ = getActiveContextInfo()
                     bricker_bricks = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_bricks_f_" + str(frame))
                     bricker_parent = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_parent_f_" + str(frame))
@@ -87,15 +88,14 @@ class BrickerBrickify(bpy.types.Operator):
                     self.safe_scn.objects.link(bricker_parent)
                     bricker_bricks.parent = bricker_parent
                     self.jobs.remove(job)
-                    break
                 if self.JobManager.job_dropped(job):
-                    self.report({"WARNING"}, "Background process '" + job_name + "' was dropped")
+                    self.report({"WARNING"}, "Dropped frame %(frame)s" % locals())
                     self.jobs.remove(job)
-                    break
         if self.JobManager.jobs_complete():
             self.finishAnimation()
+            self.running_job_manager = False
             self.report({"INFO"}, "Brickify Animation complete")
-            # return {"FINISHED"}
+            return {"FINISHED"}
         return {"PASS_THROUGH"}
 
     def execute(self, context):
@@ -121,11 +121,19 @@ class BrickerBrickify(bpy.types.Operator):
                 cm.animated = previously_animated
                 cm.modelCreated = previously_model_created
             print()
+            self.running_job_manager = False
             self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
         except:
             handle_exception()
         scn.Bricker_runningBlockingOperation = False
-        return{"FINISHED"}
+        return {"RUNNING_MODAL" if self.running_job_manager else "FINISHED"}
+
+    def cancel(self, context):
+        if self.JobManager.num_running_jobs() + self.JobManager.num_pending_jobs() > 0:
+            self.running_job_manager = False
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+            self.JobManager.kill_all()
 
     ################################################
     # initialization method
@@ -136,8 +144,8 @@ class BrickerBrickify(bpy.types.Operator):
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
         # initialize vars
-        self.createdObjects = []
-        self.createdGroups = []
+        self.createdObjects = list()
+        self.createdGroups = list()
         self.setAction(cm)
         self.source = cm.source_obj
         self.origFrame = scn.frame_current
@@ -145,9 +153,10 @@ class BrickerBrickify(bpy.types.Operator):
         self.safe_scn = getSafeScn()
         self.JobManager = SCENE_OT_job_manager.get_instance()
         self.JobManager.timeout = 0
-        self.JobManager.max_workers = 5
-        brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons").replace(" ", "\ "), bpy.props.bricker_module_name)
-        self.jobs = []
+        self.JobManager.max_workers = 10
+        self.running_job_manager = False
+        self.brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons"), bpy.props.bricker_module_name)
+        self.jobs = list()
 
     #############################################
     # class methods
@@ -364,7 +373,7 @@ class BrickerBrickify(bpy.types.Operator):
             if cm.animIsDirty:
                 self.updatedFramesOnly = True
             else:
-                return "FINISHED"
+                return {"FINISHED"}
 
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
             Caches.clearCache(cm, brick_mesh=False)
@@ -394,7 +403,8 @@ class BrickerBrickify(bpy.types.Operator):
         # prepare duplicate objects for animation
         duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
-        filename = bpy.path.basename(bpy.context.blend_data.filepath)[:-6]
+        filename = bpy.path.basename(bpy.data.filepath)[:-6]
+        self.running_job_manager = True
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
@@ -402,18 +412,11 @@ class BrickerBrickify(bpy.types.Operator):
                 continue
             # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
             curJob = "/tmp/background_processing/%(filename)s__%(curFrame)s.py" % locals()
-            f1 = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "brickifyExecution.py"), "r")
-            rl = f1.readlines()
-            f1.close()
-            rl[2] = "frame = %(curFrame)s  # DO NOT DELETE THIS LINE\n" % locals()
-            f2 = open(curJob, "w")
-            for line in rl:
-                f2.write(line)
-            f2.close()
-
-            jobAdded = self.JobManager.add_job(curJob)
+            script = os.path.join(self.brickerAddonPath, "lib/brickify_frame_in_background.py")
+            shutil.copyfile(script, curJob)
+            jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
             if not jobAdded:
-                self.report({"WARNING"}, "Job for frame '" + curFrame + "' already added")
+                self.report({"WARNING"}, "Job for frame '%(curFrame)s' already added" % locals())
                 return {"CANCELLED"}
             self.jobs.append(curJob)
 
@@ -425,7 +428,7 @@ class BrickerBrickify(bpy.types.Operator):
         wm = bpy.context.window_manager
         self._timer = wm.event_timer_add(0.5, bpy.context.window)
         wm.modal_handler_add(self)
-        return{"RUNNING_MODAL"}
+        return {"RUNNING_MODAL"}
 
     def finishAnimation(self):
         wm = bpy.context.window_manager
@@ -645,9 +648,6 @@ class BrickerBrickify(bpy.types.Operator):
             elif mod.type == "SMOKE":
                 smoke = True
                 point_cache = mod.domain_settings.point_cache
-        # if self.source.rigid_body is not None:
-        #     cm.rigid_body = True
-        #     storeRigidBodySettings(self.source)
 
         # step through uncached frames to run simulation
         if soft_body or smoke:
