@@ -76,20 +76,27 @@ class BrickerBrickify(bpy.types.Operator):
     def modal(self, context, event):
         if event.type == "TIMER":
             for job in self.jobs:
-                self.JobManager.process_job(job, use_blend_file=True, frame=int(job.split("__")[-1][:-3]))
+                frame = int(job.split("__")[-1][:-3])
+                self.JobManager.process_job(job, use_blend_file=True, frame=frame)
                 job_name = self.JobManager.get_job_name(job)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Background process '" + job_name + "' was finished")
                     scn, cm, _ = getActiveContextInfo()
-                    bricker_bricks = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_bricks")
-                    bricker_parent = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_parent")
+                    bricker_bricks = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_bricks_f_" + str(frame))
+                    bricker_parent = bpy.data.objects.get("Bricker_" + cm.source_obj.name + "_parent_f_" + str(frame))
                     scn.objects.link(bricker_bricks)
                     self.safe_scn.objects.link(bricker_parent)
                     bricker_bricks.parent = bricker_parent
-                    return {"FINISHED"}
+                    self.jobs.remove(job)
+                    break
                 if self.JobManager.job_dropped(job):
                     self.report({"WARNING"}, "Background process '" + job_name + "' was dropped")
-                    return {"CANCELLED"}
+                    self.jobs.remove(job)
+                    break
+        if self.JobManager.jobs_complete():
+            self.finishAnimation()
+            self.report({"INFO"}, "Brickify Animation complete")
+            # return {"FINISHED"}
         return {"PASS_THROUGH"}
 
     def execute(self, context):
@@ -138,6 +145,7 @@ class BrickerBrickify(bpy.types.Operator):
         self.safe_scn = getSafeScn()
         self.JobManager = SCENE_OT_job_manager.get_instance()
         self.JobManager.timeout = 0
+        self.JobManager.max_workers = 5
         brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons").replace(" ", "\ "), bpy.props.bricker_module_name)
         self.jobs = []
 
@@ -388,7 +396,7 @@ class BrickerBrickify(bpy.types.Operator):
         # prepare duplicate objects for animation
         duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
-        filename = bpy.path.basename(bpy.context.blend_data.filepath)
+        filename = bpy.path.basename(bpy.context.blend_data.filepath)[:-6]
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
@@ -417,16 +425,17 @@ class BrickerBrickify(bpy.types.Operator):
         wm.modal_handler_add(self)
         return{"RUNNING_MODAL"}
 
-        # TODO: execute the following code when background processes completed
-        # wm.progress_end()
-        # cm.lastStartFrame = cm.startFrame
-        # cm.lastStopFrame = cm.stopFrame
-        # scn.frame_set(sceneCurFrame)
-        #
-        # # add bevel if it was previously added
-        # if cm.bevelAdded:
-        #     bricks = getBricks(cm, typ="ANIM")
-        #     BrickerBevel.runBevelAction(bricks, cm)
+    def finishAnimation(self):
+        wm = bpy.context.window_manager
+        scn, cm, n = getActiveContextInfo()
+        wm.progress_end()
+        cm.lastStartFrame = cm.startFrame
+        cm.lastStopFrame = cm.stopFrame
+
+        # add bevel if it was previously added
+        if cm.bevelAdded:
+            bricks = getBricks(cm, typ="ANIM")
+            BrickerBevel.runBevelAction(bricks, cm)
 
     @classmethod
     def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False, origSource=None):

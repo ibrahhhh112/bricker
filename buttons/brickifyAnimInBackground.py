@@ -54,7 +54,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
         scn.frame_set(curFrame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_" + self.source.name + "_f_" + str(curFrame))
-        print(source.users_scene)
+        source.data.update()
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
@@ -85,7 +85,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
                 cm.lastStopFrame = curFrame - 1
                 scn.frame_set(sceneCurFrame)
                 cm.animated = True
-            return
+            return {"CANCELLED"}
 
         # get object with created bricks
         obj = bpy.data.groups[group_name].objects[0]
@@ -103,6 +103,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
         # print('-'*100)
         # print("completed frame " + str(curFrame))
         # print('-'*100)
+        return {"FINISHED"}
 
     ################################################
     # initialization method
@@ -112,6 +113,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
         # initialize vars
         self.action = "UPDATE_ANIM" if cm.animated else "ANIMATE"
         self.source = cm.source_obj
+        self.safe_scn = getSafeScn()
 
     #############################################
     # class variables
