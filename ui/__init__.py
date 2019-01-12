@@ -295,6 +295,13 @@ class AnimationPanel(Panel):
                 col.label("Watch the progress in")
                 col.label("the command line.")
                 col.separator()
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.label(text="Background Processing:")
+            row = col.row(align=True)
+            row.prop(cm, "maxWorkers")
+            row = col.row(align=True)
+            row.prop(cm, "backProcTimeout")
 
 
 class ModelTransformPanel(Panel):

@@ -46,74 +46,20 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
     # Blender Operator methods
 
     def execute(self, context):
+        # update data in safe_scn
         scn, cm, n = getActiveContextInfo()
-        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
-        parent0 = bpy.data.objects.get(Bricker_parent_on)
-        sceneCurFrame = scn.frame_current
-        curFrame = self.frame
-        scn.frame_set(curFrame)
-        # get duplicated source
-        source = bpy.data.objects.get("Bricker_" + self.source.name + "_f_" + str(curFrame))
-        scn.objects.link(source)
-        scn.update()
-
-        # get source_details and dimensions
-        source_details, dimensions = getDetailsAndBounds(source)
-
-        # update refLogo
-        logo_details, refLogo = BrickerBrickify.getLogo(scn, cm, dimensions)
-
-        # set up parent for this layer
-        # TODO: Remove these from memory in the delete function, or don't use them at all
-        p_name = "%(Bricker_parent_on)s_f_%(curFrame)s" % locals()
-        parent = bpy.data.objects.get(p_name)
-        if parent is None:
-            m = bpy.data.meshes.new("%(p_name)s_mesh" % locals())
-            parent = bpy.data.objects.new(p_name, m)
-            parent.location = source_details.mid - parent0.location
-            parent.parent = parent0
-            safeUnlink(parent)
-            getSafeScn().update()
-
-        # create new bricks
-        try:
-            group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
-        except KeyboardInterrupt:
-            self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
-            if curFrame != cm.startFrame:
-                wm.progress_end()
-                cm.lastStartFrame = cm.startFrame
-                cm.lastStopFrame = curFrame - 1
-                scn.frame_set(sceneCurFrame)
-                cm.animated = True
-            return {"CANCELLED"}
-
-        # get object with created bricks
-        obj = bpy.data.groups[group_name].objects[0]
-        # hide obj unless on scene current frame
-        showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
-        if not showCurObj:
-            obj.hide = True
-            obj.hide_render = True
-        # lock location, rotation, and scale of created bricks
-        obj.lock_location = (True, True, True)
-        obj.lock_rotation = (True, True, True)
-        obj.lock_scale    = (True, True, True)
-
-        # wm.progress_update(curFrame-cm.startFrame)
-        # print('-'*100)
-        # print("completed frame " + str(curFrame))
-        # print('-'*100)
+        context.screen.scene = self.safe_scn
+        self.safe_scn.update()
+        context.screen.scene = scn
+        # run brickify for current frame
+        BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj)
         return {"FINISHED"}
 
     ################################################
     # initialization method
 
     def __init__(self):
-        scn, cm, _ = getActiveContextInfo()
         # initialize vars
-        self.action = "UPDATE_ANIM" if cm.animated else "ANIMATE"
-        self.source = cm.source_obj
         self.safe_scn = getSafeScn()
 
     #############################################
