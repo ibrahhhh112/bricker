@@ -287,14 +287,11 @@ class AnimationPanel(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            if (cm.stopFrame - cm.startFrame > 10 and not cm.animated) or self.appliedMods:
-                col = layout.column(align=True)
-                col.scale_y = 0.7
-                col.label("WARNING: May take a while.")
-                col.separator()
-                col.label("Watch the progress in")
-                col.label("the command line.")
-                col.separator()
+            col = layout.column(align=True)
+            col.scale_y = 0.7
+            col.label("Watch the progress in")
+            col.label("the command line.")
+            col.separator()
             col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Background Processing:")

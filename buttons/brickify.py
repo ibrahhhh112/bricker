@@ -423,7 +423,9 @@ class BrickerBrickify(bpy.types.Operator):
                     return {"CANCELLED"}
                 self.jobs.append(curJob)
             else:
-                self.brickifyCurrentFrame(curFrame, sceneCurFrame, self.action, self.source)
+                completed = self.brickifyCurrentFrame(curFrame, sceneCurFrame, self.action, self.source)
+                if not completed:
+                    return {"CANCELLED"}
 
         cm.lastStartFrame = cm.startFrame
         cm.lastStopFrame = cm.stopFrame
@@ -467,12 +469,13 @@ class BrickerBrickify(bpy.types.Operator):
             group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=source, selectCreated=False)
         except KeyboardInterrupt:
             if curFrame != cm.startFrame:
+                wm = bpy.context.window_manager
                 wm.progress_end()
                 cm.lastStartFrame = cm.startFrame
                 cm.lastStopFrame = curFrame - 1
                 scn.frame_set(sceneCurFrame)
                 cm.animated = True
-            return {"CANCELLED"}
+            return False
 
         # get object with created bricks
         obj = bpy.data.groups[group_name].objects[0]
@@ -491,10 +494,11 @@ class BrickerBrickify(bpy.types.Operator):
         print('-'*100)
         print("completed frame " + str(curFrame))
         print('-'*100)
+        return True
 
     def finishAnimation(self):
-        wm = bpy.context.window_manager
         scn, cm, n = getActiveContextInfo()
+        wm = bpy.context.window_manager
         wm.progress_end()
 
         # add bevel if it was previously added
