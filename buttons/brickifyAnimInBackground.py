@@ -52,7 +52,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
         self.safe_scn.update()
         context.screen.scene = scn
         # run brickify for current frame
-        BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj)
+        BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
         return {"FINISHED"}
 
     ################################################

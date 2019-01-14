@@ -447,10 +447,16 @@ class BrickerBrickify(bpy.types.Operator):
             self.finishAnimation()
 
     @staticmethod
-    def brickifyCurrentFrame(curFrame, sceneCurFrame, action, origSource):
+    def brickifyCurrentFrame(curFrame, sceneCurFrame, action, origSource, inBackground=False):
         scn, cm, n = getActiveContextInfo()
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(Bricker_parent_on)
+        if inBackground and cm.isSmoke:
+            smokeMod = [mod for mod in cm.source_obj.modifiers if mod.type == "SMOKE"][0]
+            point_cache = smokeMod.domain_settings.point_cache
+            point_cache.name = str(curFrame)
+            for frame in range(point_cache.frame_start, curFrame):
+                scn.frame_set(frame)
         scn.frame_set(curFrame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
