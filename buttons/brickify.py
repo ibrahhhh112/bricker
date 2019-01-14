@@ -146,7 +146,6 @@ class BrickerBrickify(bpy.types.Operator):
 
     def cancel(self, context):
         if self.JobManager.num_running_jobs() + self.JobManager.num_pending_jobs() > 0:
-            print("HERE")
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
             self.JobManager.kill_all()
@@ -448,7 +447,7 @@ class BrickerBrickify(bpy.types.Operator):
             self.finishAnimation()
 
     @staticmethod
-    def brickifyCurrentFrame(curFrame, sceneCurFrame, action, source):
+    def brickifyCurrentFrame(curFrame, sceneCurFrame, action, origSource):
         scn, cm, n = getActiveContextInfo()
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(Bricker_parent_on)
@@ -476,7 +475,7 @@ class BrickerBrickify(bpy.types.Operator):
 
         # create new bricks
         try:
-            group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=source, selectCreated=False)
+            group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
         except KeyboardInterrupt:
             if curFrame != cm.startFrame:
                 wm = bpy.context.window_manager
