@@ -626,6 +626,8 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
 
     # Internal Model Properties
     modelCreated = BoolProperty(default=False)
+    animating = BoolProperty(default=False)
+    numAnimatedFrames = IntProperty(default=0)
     animated = BoolProperty(default=False)
     materialApplied = BoolProperty(default=False)
     armature = BoolProperty(default=False)

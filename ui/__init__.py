@@ -156,7 +156,14 @@ class BrickModelsPanel(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                    if cm.animating:
+                        col.scale_y = 0.75
+                        row.label(text="Animating in background...")
+                        row = col.row(align=True)
+                        percentage = round(cm.numAnimatedFrames / (cm.lastStopFrame - cm.lastStartFrame + 1), 3) * 100
+                        row.label(text=str(percentage) + "% completed")
+                    else:
+                        row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)

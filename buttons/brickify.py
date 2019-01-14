@@ -75,29 +75,34 @@ class BrickerBrickify(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == "TIMER":
+            scn, cm, n = getActiveContextInfo(cm=self.cm)
             for job in self.jobs.copy():
+                if not cm.animated:
+                    break
                 frame = int(job.split("__")[-1][:-3])
                 self.JobManager.process_job(job)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s" % locals())
-                    scn, cm, n = getActiveContextInfo()
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
                     scn.objects.link(bricker_bricks)
                     self.safe_scn.objects.link(bricker_parent)
                     bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0
+                    cm.numAnimatedFrames += 1
                     if frame == scn.frame_current:
                         bricker_bricks.hide = False
                     self.jobs.remove(job)
                 if self.JobManager.job_dropped(job):
                     self.report({"WARNING"}, "Dropped frame %(frame)s" % locals())
                     self.jobs.remove(job)
-        if self.JobManager.jobs_complete():
-            self.finishAnimation()
-            self.running_job_manager = False
-            self.report({"INFO"}, "Brickify Animation complete")
-            return {"FINISHED"}
+            if not cm.animated:
+                return {"CANCELLED"}
+            elif self.JobManager.jobs_complete():
+                self.finishAnimation()
+                self.report({"INFO"}, "Brickify Animation complete")
+                stopWatch("Total Time Elapsed", self.start_time, 2)
+                return {"FINISHED"}
         return {"PASS_THROUGH"}
 
     def execute(self, context):
@@ -123,16 +128,25 @@ class BrickerBrickify(bpy.types.Operator):
                 cm.animated = previously_animated
                 cm.modelCreated = previously_model_created
             print()
-            self.running_job_manager = False
             self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
         except:
             handle_exception()
         scn.Bricker_runningBlockingOperation = False
-        return {"RUNNING_MODAL" if self.running_job_manager else "FINISHED"}
+        if cm.animated and cm.maxWorkers > 0:
+            cm.animating = True
+            cm.numAnimatedFrames = 0
+            # create timer for modal
+            wm = bpy.context.window_manager
+            self._timer = wm.event_timer_add(0.5, bpy.context.window)
+            wm.modal_handler_add(self)
+            return {"RUNNING_MODAL"}
+        else:
+            stopWatch("Total Time Elapsed", self.start_time, 2)
+            return {"FINISHED"}
 
     def cancel(self, context):
         if self.JobManager.num_running_jobs() + self.JobManager.num_pending_jobs() > 0:
-            self.running_job_manager = False
+            print("HERE")
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
             self.JobManager.kill_all()
@@ -151,19 +165,19 @@ class BrickerBrickify(bpy.types.Operator):
         self.setAction(cm)
         self.source = cm.source_obj
         self.origFrame = scn.frame_current
+        self.start_time = time.time()
         # initialize important vars
         self.safe_scn = getSafeScn()
-        self.JobManager = SCENE_OT_job_manager.get_instance()
+        self.JobManager = SCENE_OT_job_manager.get_instance(cm.id)
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
-        self.running_job_manager = False
         self.brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons"), bpy.props.bricker_module_name)
         self.jobs = list()
+        self.cm = cm
 
     #############################################
     # class methods
 
-    @timed_call('Total Time Elapsed')
     def runBrickify(self, context):
         # set up variables
         scn, cm, n = getActiveContextInfo()
@@ -406,7 +420,6 @@ class BrickerBrickify(bpy.types.Operator):
         duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
         filename = bpy.path.basename(bpy.data.filepath)[:-6]
-        self.running_job_manager = True
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
@@ -420,22 +433,19 @@ class BrickerBrickify(bpy.types.Operator):
                 jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
                 if not jobAdded:
                     self.report({"WARNING"}, "Job for frame '%(curFrame)s' already added" % locals())
-                    return {"CANCELLED"}
+                    break
                 self.jobs.append(curJob)
             else:
                 completed = self.brickifyCurrentFrame(curFrame, sceneCurFrame, self.action, self.source)
                 if not completed:
-                    return {"CANCELLED"}
+                    break
 
         cm.lastStartFrame = cm.startFrame
         cm.lastStopFrame = cm.stopFrame
         scn.frame_set(self.origFrame)
 
-        # create timer for modal
-        wm = bpy.context.window_manager
-        self._timer = wm.event_timer_add(0.5, bpy.context.window)
-        wm.modal_handler_add(self)
-        return {"RUNNING_MODAL"}
+        if cm.maxWorkers == 0:
+            self.finishAnimation()
 
     @staticmethod
     def brickifyCurrentFrame(curFrame, sceneCurFrame, action, source):
@@ -497,9 +507,10 @@ class BrickerBrickify(bpy.types.Operator):
         return True
 
     def finishAnimation(self):
-        scn, cm, n = getActiveContextInfo()
+        scn, cm, n = getActiveContextInfo(cm=self.cm)
         wm = bpy.context.window_manager
         wm.progress_end()
+        cm.animating = False
 
         # add bevel if it was previously added
         if cm.bevelAdded:
