@@ -26,8 +26,13 @@ from .general import *
 def getSmokeInfo(smoke_obj):
     smoke_data = None
     # Search smoke domain target for smoke modifiers
+    print("HERE-1")
+    print(smoke_obj)
+    print(len(smoke_obj.modifiers))
     for mod in smoke_obj.modifiers:
+        print("Here0")
         if hasattr(mod, "smoke_type") and mod.smoke_type == 'DOMAIN':
+            print("Here1")
             smoke_data = mod.domain_settings
             break
 

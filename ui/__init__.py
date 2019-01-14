@@ -295,11 +295,6 @@ class AnimationPanel(Panel):
                             row = col1.row(align=True)
                             row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
             col = layout.column(align=True)
-            col.scale_y = 0.7
-            col.label("Watch the progress in")
-            col.label("the command line.")
-            col.separator()
-            col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Background Processing:")
             row = col.row(align=True)

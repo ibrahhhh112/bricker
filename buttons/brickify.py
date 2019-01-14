@@ -80,7 +80,7 @@ class BrickerBrickify(bpy.types.Operator):
                 if not cm.animated:
                     break
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job)
+                self.JobManager.process_job(job, verbose=True)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
