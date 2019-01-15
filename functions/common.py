@@ -521,8 +521,7 @@ def handle_exception(plugin_name="Bricker", report_button_loc="Brick Models"):
     showErrorMessage(errorStr, wrap=240)
 
 
-# http://stackoverflow.com/questions/14519177/python-exception-handling-line-number
-def print_exception(txtName, showError=False):
+def getExceptionMessage():
     exc_type, exc_obj, tb = sys.exc_info()
 
     errormsg = 'EXCEPTION (%s): %s\n' % (exc_type, exc_obj)
@@ -534,6 +533,13 @@ def print_exception(txtName, showError=False):
             pfilename = filename
             errormsg += '         %s\n' % (filename)
         errormsg += '%03d %04d:%s() %s\n' % (i, lineno, funcname, line.strip())
+
+    return errormsg
+
+
+# http://stackoverflow.com/questions/14519177/python-exception-handling-line-number
+def print_exception(txtName, showError=False, errormsg=None):
+    errormsg = getExceptionMessage() if errormsg is None else errormsg
 
     print(errormsg)
 

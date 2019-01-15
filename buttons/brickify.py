@@ -80,7 +80,7 @@ class BrickerBrickify(bpy.types.Operator):
                 if not cm.animated:
                     break
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job, verbose=True)
+                self.JobManager.process_job(job, debug=False)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
@@ -93,8 +93,15 @@ class BrickerBrickify(bpy.types.Operator):
                     if frame == scn.frame_current:
                         bricker_bricks.hide = False
                     self.jobs.remove(job)
-                if self.JobManager.job_dropped(job):
+                elif self.JobManager.job_dropped(job):
+                    # print(self.JobManager.get_job_status(job)["stderr"])
+                    errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
+                    for line in self.JobManager.get_job_status(job)["stderr"]:
+                        errormsg += line + "\n"
+                    print_exception("Bricker_log", errormsg=errormsg)
                     self.report({"WARNING"}, "Dropped frame %(frame)s" % locals())
+                    tag_redraw_areas("VIEW_3D")
+                    cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
             if not cm.animated:
                 return {"CANCELLED"}
@@ -170,6 +177,7 @@ class BrickerBrickify(bpy.types.Operator):
         self.JobManager = SCENE_OT_job_manager.get_instance(cm.id)
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
+        self.JobManager.max_attempts = 1
         self.brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons"), bpy.props.bricker_module_name)
         self.jobs = list()
         self.cm = cm
