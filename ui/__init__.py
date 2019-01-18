@@ -160,7 +160,7 @@ class BrickModelsPanel(Panel):
                         col.scale_y = 0.75
                         row.label(text="Animating in background...")
                         row = col.row(align=True)
-                        percentage = round(cm.numAnimatedFrames / (cm.lastStopFrame - cm.lastStartFrame + 1), 3) * 100
+                        percentage = round(cm.numAnimatedFrames * 100 / (cm.lastStopFrame - cm.lastStartFrame + 1), 3)
                         row.label(text=str(percentage) + "% completed")
                     else:
                         row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
@@ -848,7 +848,7 @@ class MaterialsPanel(Panel):
                     nodeNamesStr = "'Matte Material' node"
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
-                col.label(nodeNames)
+                col.label(nodeNamesStr)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
                 if scn.render.engine in ["CYCLES", "octane"]:
                     col = layout.column(align=True)

@@ -82,7 +82,7 @@ class BrickerBrickify(bpy.types.Operator):
                 frame = int(job.split("__")[-1][:-3])
                 self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
-                    self.report({"INFO"}, "Completed frame %(frame)s" % locals())
+                    self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
                     scn.objects.link(bricker_bricks)
@@ -90,8 +90,7 @@ class BrickerBrickify(bpy.types.Operator):
                     bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0
                     cm.numAnimatedFrames += 1
-                    if frame == scn.frame_current:
-                        bricker_bricks.hide = False
+                    bricker_bricks.hide = frame != scn.frame_current
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
                     # print(self.JobManager.get_job_status(job)["stderr"])
@@ -99,7 +98,7 @@ class BrickerBrickify(bpy.types.Operator):
                     for line in self.JobManager.get_job_status(job)["stderr"]:
                         errormsg += line + "\n"
                     print_exception("Bricker_log", errormsg=errormsg)
-                    self.report({"WARNING"}, "Dropped frame %(frame)s" % locals())
+                    self.report({"WARNING"}, "Dropped frame %(frame)s of model '%(n)s'" % locals())
                     tag_redraw_areas("VIEW_3D")
                     cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
