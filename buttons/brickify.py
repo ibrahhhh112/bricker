@@ -33,8 +33,8 @@ from .delete import BrickerDelete
 from .bevel import BrickerBevel
 from .cache import *
 from ..lib.bricksDict import *
+from ..lib.JobManager import *
 from ..functions import *
-from ..background_processing.classes.JobManager import *
 
 
 def updateCanRun(type):
@@ -80,7 +80,7 @@ class BrickerBrickify(bpy.types.Operator):
                 if not cm.animated:
                     break
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job, debug=False)
+                self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
@@ -114,7 +114,8 @@ class BrickerBrickify(bpy.types.Operator):
 
     def execute(self, context):
         scn, cm, _ = getActiveContextInfo()
-        scn.Bricker_runningBlockingOperation = True
+        wm = bpy.context.window_manager
+        wm.Bricker_runningBlockingOperation = True
         try:
             previously_animated = cm.animated
             previously_model_created = cm.modelCreated
@@ -138,12 +139,11 @@ class BrickerBrickify(bpy.types.Operator):
             self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
         except:
             handle_exception()
-        scn.Bricker_runningBlockingOperation = False
+        wm.Bricker_runningBlockingOperation = False
         if cm.animated and cm.maxWorkers > 0:
             cm.animating = True
             cm.numAnimatedFrames = 0
             # create timer for modal
-            wm = bpy.context.window_manager
             self._timer = wm.event_timer_add(0.5, bpy.context.window)
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
@@ -434,10 +434,10 @@ class BrickerBrickify(bpy.types.Operator):
                 continue
             if cm.maxWorkers > 0:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
-                curJob = "/tmp/background_processing/%(filename)s__%(curFrame)s.py" % locals()
+                curJob = "/tmp/background_processing/%(filename)s__%(n)s__%(curFrame)s.py" % locals()
                 script = os.path.join(self.brickerAddonPath, "lib/brickify_frame_in_background.py")
                 shutil.copyfile(script, curJob)
-                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
+                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
                 if not jobAdded:
                     self.report({"WARNING"}, "Job for frame '%(curFrame)s' already added" % locals())
                     break
@@ -457,6 +457,7 @@ class BrickerBrickify(bpy.types.Operator):
     @staticmethod
     def brickifyCurrentFrame(curFrame, sceneCurFrame, action, origSource, inBackground=False):
         scn, cm, n = getActiveContextInfo()
+        wm = bpy.context.window_manager
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
         parent0 = bpy.data.objects.get(Bricker_parent_on)
         if inBackground and cm.isSmoke:
@@ -468,6 +469,10 @@ class BrickerBrickify(bpy.types.Operator):
         scn.frame_set(curFrame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
+        # get source info to update
+        if inBackground:
+            scn.objects.link(source)
+            scn.objects.unlink(source)
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
@@ -492,7 +497,6 @@ class BrickerBrickify(bpy.types.Operator):
             group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
         except KeyboardInterrupt:
             if curFrame != cm.startFrame:
-                wm = bpy.context.window_manager
                 wm.progress_end()
                 cm.lastStartFrame = cm.startFrame
                 cm.lastStopFrame = curFrame - 1
@@ -512,7 +516,6 @@ class BrickerBrickify(bpy.types.Operator):
         obj.lock_rotation = (True, True, True)
         obj.lock_scale    = (True, True, True)
 
-        wm = bpy.context.window_manager
         wm.progress_update(curFrame-cm.startFrame)
         print('-'*100)
         print("completed frame " + str(curFrame))

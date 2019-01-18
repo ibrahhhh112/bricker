@@ -31,8 +31,8 @@ from ..buttons.customize.tools import *
 
 
 def brickerRunningBlockingOp():
-    scn = bpy.context.scene
-    return hasattr(scn, "Bricker_runningBlockingOperation") and scn.Bricker_runningBlockingOperation
+    wm = bpy.context.window_manager
+    return hasattr(wm, "Bricker_runningBlockingOperation") and wm.Bricker_runningBlockingOperation
 
 
 @persistent
@@ -120,13 +120,17 @@ def handle_selections(scene):
                     cf = cm.stopFrame
                 elif cf < cm.startFrame:
                     cf = cm.startFrame
-                gn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
-                if len(bpy.data.groups[gn].objects) > 0:
-                    select(list(bpy.data.groups[gn].objects), active=True, only=True)
+                g = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+                if g is not None and len(g.objects) > 0:
+                    select(list(g.objects), active=True, only=True)
                     scn.Bricker_last_active_object_name = scn.objects.active.name
+                else:
+                    scn.objects.active = None
+                    deselectAll()
+                    scn.Bricker_last_active_object_name = ""
             else:
                 select(source, active=True, only=True)
-            scn.Bricker_last_active_object_name = source.name
+                scn.Bricker_last_active_object_name = source.name
         else:
             for i,cm0 in enumerate(scn.cmlist):
                 if getSourceName(cm0) == scn.Bricker_active_object_name:
