@@ -27,7 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from .cache import *
-# from ..lib.rigid_body_props import *
+from ..lib.JobManager import *
 
 
 def getModelType(cm):
@@ -59,14 +59,15 @@ class BrickerDelete(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        scn, cm, _ = getActiveContextInfo()
-        scn.Bricker_runningBlockingOperation = True
+        wm = bpy.context.window_manager
+        wm.Bricker_runningBlockingOperation = True
         try:
+            cm = getActiveContextInfo()[1]
             self.undo_stack.iterateStates(cm)
             self.runFullDelete()
         except:
             handle_exception()
-        scn.Bricker_runningBlockingOperation = False
+        wm.Bricker_runningBlockingOperation = False
 
         return{"FINISHED"}
 
@@ -142,6 +143,10 @@ class BrickerDelete(bpy.types.Operator):
         else:
             bricks = getBricks()
             pivot_point = bricks[0].matrix_world.to_translation()
+
+        if cm.animating:
+            JobManager = SCENE_OT_job_manager.get_instance(cm.id)
+            JobManager.kill_all()
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
 

@@ -37,6 +37,7 @@ developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and a
 # Blender imports
 import bpy
 from bpy.props import *
+from bpy.types import WindowManager, Object, Scene, Material
 
 # Addon imports
 from .ui import *
@@ -66,36 +67,36 @@ def register():
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
 
-    bpy.types.Object.protected = BoolProperty(name='protected', default=False)
-    bpy.types.Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
-    bpy.types.Object.isBrick = BoolProperty(name='Is Brick', default=False)
-    bpy.types.Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
-    bpy.types.Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
+    Object.protected = BoolProperty(name='protected', default=False)
+    Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
+    Object.isBrick = BoolProperty(name='Is Brick', default=False)
+    Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
+    Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
 
     # # backup rigid body settings
     # bpy.types.Object.rigid_body_settings = PointerProperty(type=Bricker_RigidBodySettings)
 
-    bpy.types.Scene.Bricker_runningBlockingOperation = BoolProperty(default=False)
+    WindowManager.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
-    bpy.types.Scene.Bricker_last_layers = StringProperty(default="")
-    bpy.types.Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
-    bpy.types.Scene.Bricker_active_object_name = StringProperty(default="")
-    bpy.types.Scene.Bricker_last_active_object_name = StringProperty(default="")
+    Scene.Bricker_last_layers = StringProperty(default="")
+    Scene.Bricker_last_cmlist_index = IntProperty(default=-2)
+    Scene.Bricker_active_object_name = StringProperty(default="")
+    Scene.Bricker_last_active_object_name = StringProperty(default="")
 
-    bpy.types.Scene.Bricker_copy_from_id = IntProperty(default=-1)
+    Scene.Bricker_copy_from_id = IntProperty(default=-1)
 
     # define legal brick sizes (key:height, val:[width,depth])
     bpy.props.Bricker_legal_brick_sizes = getLegalBrickSizes()
 
     # Add attribute for Bricker Instructions addon
-    bpy.types.Scene.isBrickerInstalled = BoolProperty(default=True)
+    Scene.isBrickerInstalled = BoolProperty(default=True)
 
     if not hasattr(bpy.types.Scene, "include_transparent"):
-        bpy.types.Scene.include_transparent = False
+        Scene.include_transparent = False
     if not hasattr(bpy.types.Scene, "include_uncommon"):
-        bpy.types.Scene.include_uncommon = False
+        Scene.include_uncommon = False
 
-    # bpy.types.Scene.Bricker_snapping = BoolProperty(
+    # Scene.Bricker_snapping = BoolProperty(
     #     name="Bricker Snap",
     #     description="Snap to brick dimensions",
     #     default=False)
@@ -111,8 +112,20 @@ def register():
         addon_keymaps.append(km)
 
     # other things (UI List)
-    bpy.types.Scene.cmlist = CollectionProperty(type=Bricker_CreatedModels)
-    bpy.types.Scene.cmlist_index = IntProperty(default=-1)
+    Scene.cmlist = CollectionProperty(type=Bricker_CreatedModels)
+    Scene.cmlist_index = IntProperty(default=-1)
+
+    # register app handlers
+    bpy.app.handlers.frame_change_pre.append(handle_animation)
+    bpy.app.handlers.scene_update_pre.append(handle_selections)
+    bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
+    bpy.app.handlers.load_pre.append(clear_bfm_cache)
+    bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
+    bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
+    bpy.app.handlers.save_pre.append(safe_link_parent)
+    bpy.app.handlers.save_post.append(safe_unlink_parent)
+    bpy.app.handlers.load_post.append(safe_unlink_parent)
+    bpy.app.handlers.load_post.append(handle_upconversion)
 
     # register app handlers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
@@ -131,39 +144,37 @@ def register():
 
 
 def unregister():
-    Scn = bpy.types.Scene
-
     # addon updater unregister
     addon_updater_ops.unregister()
 
     # unregister app handlers
-    bpy.app.handlers.load_post.append(handle_upconversion)
-    bpy.app.handlers.load_post.append(safe_unlink_parent)
-    bpy.app.handlers.save_post.append(safe_unlink_parent)
-    bpy.app.handlers.save_pre.append(safe_link_parent)
-    bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
-    bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
-    bpy.app.handlers.load_pre.append(clear_bfm_cache)
-    bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
-    bpy.app.handlers.scene_update_pre.append(handle_selections)
-    bpy.app.handlers.frame_change_pre.append(handle_animation)
+    bpy.app.handlers.load_post.remove(handle_upconversion)
+    bpy.app.handlers.load_post.remove(safe_unlink_parent)
+    bpy.app.handlers.save_post.remove(safe_unlink_parent)
+    bpy.app.handlers.save_pre.remove(safe_link_parent)
+    bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
+    bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)
+    bpy.app.handlers.load_pre.remove(clear_bfm_cache)
+    bpy.app.handlers.scene_update_pre.remove(prevent_user_from_viewing_storage_scene)
+    bpy.app.handlers.scene_update_pre.remove(handle_selections)
+    bpy.app.handlers.frame_change_pre.remove(handle_animation)
 
-    del Scn.cmlist_index
-    del Scn.cmlist
+    del Scene.cmlist_index
+    del Scene.cmlist
     # bpy.types.VIEW3D_HT_header.remove(Bricker_snap_button)
-    # del Scn.Bricker_snapping
-    del Scn.isBrickerInstalled
-    del Scn.Bricker_copy_from_id
-    del Scn.Bricker_last_active_object_name
-    del Scn.Bricker_active_object_name
-    del Scn.Bricker_last_cmlist_index
-    del Scn.Bricker_last_layers
-    del Scn.Bricker_runningBlockingOperation
-    del bpy.types.Material.num_averaged
-    del bpy.types.Object.cmlist_id
-    del bpy.types.Object.isBrick
-    del bpy.types.Object.isBrickifiedObject
-    del bpy.types.Object.protected
+    # del Scene.Bricker_snapping
+    del Scene.isBrickerInstalled
+    del Scene.Bricker_copy_from_id
+    del Scene.Bricker_last_active_object_name
+    del Scene.Bricker_active_object_name
+    del Scene.Bricker_last_cmlist_index
+    del Scene.Bricker_last_layers
+    del WindowManager.Bricker_runningBlockingOperation
+    del Material.num_averaged
+    del Object.cmlist_id
+    del Object.isBrick
+    del Object.isBrickifiedObject
+    del Object.protected
     del bpy.props.Bricker_developer_mode
     del bpy.props.bricker_undoUpdating
     del bpy.props.bricker_initialized

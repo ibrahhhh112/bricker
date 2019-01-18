@@ -64,6 +64,10 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         default=False)
 
     # ANIMATION SETTINGS
+    useAnimation = BoolProperty(
+        name="Use Animation",
+        description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
+        default=False)
     startFrame = IntProperty(
         name="Start Frame",
         description="Start frame of Brick animation",
@@ -76,10 +80,16 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         update=dirtyAnim,
         min=0, max=500000,
         default=10)
-    useAnimation = BoolProperty(
-        name="Use Animation",
-        description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
-        default=False)
+    maxWorkers = IntProperty(
+        name="Max Worker Instances",
+        description="Maximum number of Blender instances allowed to run in background for Bricker calculations (larger numbers are faster at a higher CPU load; 0 for local calculation)",
+        min=0, max=24,
+        default=5)
+    backProcTimeout = FloatProperty(
+        name="Timeout",
+        description="Max seconds allowed for each frame's model to calculate (0 for infinite; cancels process if time exceeded)",
+        precision=0, min=0,
+        default=0)
 
     # BASIC MODEL SETTINGS
     brickHeight = FloatProperty(
@@ -604,7 +614,6 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     objEdges = IntProperty(default=0)
     isWaterTight = BoolProperty(default=False)
 
-
     # Deep Cache of bricksDict
     BFMCache = StringProperty(default="")
 
@@ -617,6 +626,8 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
 
     # Internal Model Properties
     modelCreated = BoolProperty(default=False)
+    animating = BoolProperty(default=False)
+    numAnimatedFrames = IntProperty(default=0)
     animated = BoolProperty(default=False)
     materialApplied = BoolProperty(default=False)
     armature = BoolProperty(default=False)

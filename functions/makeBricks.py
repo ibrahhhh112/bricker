@@ -288,7 +288,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         m = bpy.data.meshes.new("newMesh")
         allMeshes.to_mesh(m)
         name = 'Bricker_%(n)s_bricks' % locals()
-        if frameNum:
+        if frameNum is not None:
             name = "%(name)s_f_%(frameNum)s" % locals()
         allBricksObj = bpy.data.objects.get(name)
         if allBricksObj:

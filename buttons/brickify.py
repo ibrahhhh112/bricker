@@ -1,7 +1,3 @@
-# Copyright (C) 2018 Christopher Gearhart
-# chris@bblanimation.com
-# http://bblanimation.com/
-#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +18,7 @@ import bmesh
 import os
 import sys
 import math
+import shutil
 import json
 
 # Blender imports
@@ -36,7 +33,7 @@ from .delete import BrickerDelete
 from .bevel import BrickerBevel
 from .cache import *
 from ..lib.bricksDict import *
-# from ..lib.rigid_body_props import *
+from ..lib.JobManager import *
 from ..functions import *
 
 
@@ -76,9 +73,48 @@ class BrickerBrickify(bpy.types.Operator):
             return False
         return True
 
+    def modal(self, context, event):
+        if event.type == "TIMER":
+            scn, cm, n = getActiveContextInfo(cm=self.cm)
+            for job in self.jobs.copy():
+                if not cm.animated:
+                    break
+                frame = int(job.split("__")[-1][:-3])
+                self.JobManager.process_job(job, debug_level=0)
+                if self.JobManager.job_complete(job):
+                    self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
+                    bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+                    bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
+                    scn.objects.link(bricker_bricks)
+                    self.safe_scn.objects.link(bricker_parent)
+                    bricker_bricks.parent = bricker_parent
+                    bricker_parent.parent = self.parent0
+                    cm.numAnimatedFrames += 1
+                    bricker_bricks.hide = frame != scn.frame_current
+                    self.jobs.remove(job)
+                elif self.JobManager.job_dropped(job):
+                    # print(self.JobManager.get_job_status(job)["stderr"])
+                    errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
+                    for line in self.JobManager.get_job_status(job)["stderr"]:
+                        errormsg += line + "\n"
+                    print_exception("Bricker_log", errormsg=errormsg)
+                    self.report({"WARNING"}, "Dropped frame %(frame)s of model '%(n)s'" % locals())
+                    tag_redraw_areas("VIEW_3D")
+                    cm.numAnimatedFrames += 1
+                    self.jobs.remove(job)
+            if not cm.animated:
+                return {"CANCELLED"}
+            elif self.JobManager.jobs_complete():
+                self.finishAnimation()
+                self.report({"INFO"}, "Brickify Animation complete")
+                stopWatch("Total Time Elapsed", self.start_time, 2)
+                return {"FINISHED"}
+        return {"PASS_THROUGH"}
+
     def execute(self, context):
         scn, cm, _ = getActiveContextInfo()
-        scn.Bricker_runningBlockingOperation = True
+        wm = bpy.context.window_manager
+        wm.Bricker_runningBlockingOperation = True
         try:
             previously_animated = cm.animated
             previously_model_created = cm.modelCreated
@@ -102,8 +138,23 @@ class BrickerBrickify(bpy.types.Operator):
             self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
         except:
             handle_exception()
-        scn.Bricker_runningBlockingOperation = False
-        return{"FINISHED"}
+        wm.Bricker_runningBlockingOperation = False
+        if cm.animated and cm.maxWorkers > 0:
+            cm.animating = True
+            cm.numAnimatedFrames = 0
+            # create timer for modal
+            self._timer = wm.event_timer_add(0.5, bpy.context.window)
+            wm.modal_handler_add(self)
+            return {"RUNNING_MODAL"}
+        else:
+            stopWatch("Total Time Elapsed", self.start_time, 2)
+            return {"FINISHED"}
+
+    def cancel(self, context):
+        if self.JobManager.num_running_jobs() + self.JobManager.num_pending_jobs() > 0:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
+            self.JobManager.kill_all()
 
     ################################################
     # initialization method
@@ -114,15 +165,25 @@ class BrickerBrickify(bpy.types.Operator):
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
         # initialize vars
-        self.createdObjects = []
-        self.createdGroups = []
+        self.createdObjects = list()
+        self.createdGroups = list()
         self.setAction(cm)
         self.source = cm.source_obj
+        self.origFrame = scn.frame_current
+        self.start_time = time.time()
+        # initialize important vars
+        self.safe_scn = getSafeScn()
+        self.JobManager = SCENE_OT_job_manager.get_instance(cm.id)
+        self.JobManager.timeout = cm.backProcTimeout
+        self.JobManager.max_workers = cm.maxWorkers
+        self.JobManager.max_attempts = 1
+        self.brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons"), bpy.props.bricker_module_name)
+        self.jobs = list()
+        self.cm = cm
 
     #############################################
     # class methods
 
-    @timed_call('Total Time Elapsed')
     def runBrickify(self, context):
         # set up variables
         scn, cm, n = getActiveContextInfo()
@@ -206,7 +267,6 @@ class BrickerBrickify(bpy.types.Operator):
     def brickifyModel(self, scn, cm, n, matrixDirty, skipTransAndAnimData):
         """ create brick model """
         # set up variables
-        origFrame = None
         source = None
         Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
 
@@ -214,8 +274,7 @@ class BrickerBrickify(bpy.types.Operator):
             # set modelCreatedOnFrame
             cm.modelCreatedOnFrame = scn.frame_current
         else:
-            origFrame = scn.frame_current
-            if origFrame != cm.modelCreatedOnFrame:
+            if self.origFrame != cm.modelCreatedOnFrame:
                 scn.frame_set(cm.modelCreatedOnFrame)
 
         # if there are no changes to apply, simply return "FINISHED"
@@ -313,8 +372,8 @@ class BrickerBrickify(bpy.types.Operator):
             BrickerBevel.runBevelAction(bricks, cm)
 
         # set active frame to original active frame
-        if origFrame and scn.frame_current != origFrame:
-            scn.frame_set(origFrame)
+        if self.action != "CREATE" and scn.frame_current != self.origFrame:
+            scn.frame_set(self.origFrame)
 
         cm.lastSourceMid = vecToStr(parentLoc)
 
@@ -336,7 +395,7 @@ class BrickerBrickify(bpy.types.Operator):
             if cm.animIsDirty:
                 self.updatedFramesOnly = True
             else:
-                return "FINISHED"
+                return {"FINISHED"}
 
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
             Caches.clearCache(cm, brick_mesh=False)
@@ -353,11 +412,11 @@ class BrickerBrickify(bpy.types.Operator):
             BrickerDelete.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
 
         # get parent object
-        parent0 = bpy.data.objects.get(Bricker_parent_on)
-        if parent0 is None:
-            parent0 = self.getNewParent(Bricker_parent_on, self.source.location)
-            cm.parent_name = parent0.name
-        self.createdObjects.append(parent0.name)
+        self.parent0 = bpy.data.objects.get(Bricker_parent_on)
+        if self.parent0 is None:
+            self.parent0 = self.getNewParent(Bricker_parent_on, self.source.location)
+            cm.parent_name = self.parent0.name
+        self.createdObjects.append(self.parent0.name)
 
         # begin drawing status to cursor
         wm = bpy.context.window_manager
@@ -366,70 +425,107 @@ class BrickerBrickify(bpy.types.Operator):
         # prepare duplicate objects for animation
         duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
+        filename = bpy.path.basename(bpy.data.filepath)[:-6]
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
-
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
                 continue
-            scn.frame_set(curFrame)
-            # get duplicated source
-            source = duplicates[curFrame]
+            if cm.maxWorkers > 0:
+                # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
+                curJob = "/tmp/background_processing/%(filename)s__%(n)s__%(curFrame)s.py" % locals()
+                script = os.path.join(self.brickerAddonPath, "lib/brickify_frame_in_background.py")
+                shutil.copyfile(script, curJob)
+                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
+                if not jobAdded:
+                    self.report({"WARNING"}, "Job for frame '%(curFrame)s' already added" % locals())
+                    break
+                self.jobs.append(curJob)
+            else:
+                completed = self.brickifyCurrentFrame(curFrame, sceneCurFrame, self.action, self.source)
+                if not completed:
+                    break
 
-            # get source_details and dimensions
-            source_details, dimensions = getDetailsAndBounds(source)
-
-            # update refLogo
-            logo_details, refLogo = self.getLogo(scn, cm, dimensions)
-
-            # set up parent for this layer
-            # TODO: Remove these from memory in the delete function, or don't use them at all
-            p_name = "%(Bricker_parent_on)s_f_%(curFrame)s" % locals()
-            parent = bpy.data.objects.get(p_name)
-            if parent is None:
-                m = bpy.data.meshes.new("%(p_name)s_mesh" % locals())
-                parent = bpy.data.objects.new(p_name, m)
-                parent.location = source_details.mid - parent0.location
-                parent.parent = parent0
-                safeUnlink(parent)
-                getSafeScn().update()
-                self.createdObjects.append(parent.name)
-
-            # create new bricks
-            try:
-                group_name = self.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, self.action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=self.source, selectCreated=False)
-                self.createdGroups.append(group_name)
-            except KeyboardInterrupt:
-                self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
-                if curFrame != cm.startFrame:
-                    wm.progress_end()
-                    cm.lastStartFrame = cm.startFrame
-                    cm.lastStopFrame = curFrame - 1
-                    scn.frame_set(sceneCurFrame)
-                    cm.animated = True
-                return
-
-            # get object with created bricks
-            obj = bpy.data.groups[group_name].objects[0]
-            # hide obj unless on scene current frame
-            showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
-            if not showCurObj:
-                obj.hide = True
-                obj.hide_render = True
-            # lock location, rotation, and scale of created bricks
-            obj.lock_location = (True, True, True)
-            obj.lock_rotation = (True, True, True)
-            obj.lock_scale    = (True, True, True)
-
-            wm.progress_update(curFrame-cm.startFrame)
-            print('-'*100)
-            print("completed frame " + str(curFrame))
-            print('-'*100)
-
-        wm.progress_end()
         cm.lastStartFrame = cm.startFrame
         cm.lastStopFrame = cm.stopFrame
-        scn.frame_set(sceneCurFrame)
+        scn.frame_set(self.origFrame)
+
+        if cm.maxWorkers == 0:
+            self.finishAnimation()
+
+    @staticmethod
+    def brickifyCurrentFrame(curFrame, sceneCurFrame, action, origSource, inBackground=False):
+        scn, cm, n = getActiveContextInfo()
+        wm = bpy.context.window_manager
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
+        parent0 = bpy.data.objects.get(Bricker_parent_on)
+        if inBackground and cm.isSmoke:
+            smokeMod = [mod for mod in cm.source_obj.modifiers if mod.type == "SMOKE"][0]
+            point_cache = smokeMod.domain_settings.point_cache
+            point_cache.name = str(curFrame)
+            for frame in range(point_cache.frame_start, curFrame):
+                scn.frame_set(frame)
+        scn.frame_set(curFrame)
+        # get duplicated source
+        source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
+        # get source info to update
+        if inBackground:
+            scn.objects.link(source)
+            scn.objects.unlink(source)
+
+        # get source_details and dimensions
+        source_details, dimensions = getDetailsAndBounds(source)
+
+        # update refLogo
+        logo_details, refLogo = BrickerBrickify.getLogo(scn, cm, dimensions)
+
+        # set up parent for this layer
+        # TODO: Remove these from memory in the delete function, or don't use them at all
+        p_name = "%(Bricker_parent_on)s_f_%(curFrame)s" % locals()
+        parent = bpy.data.objects.get(p_name)
+        if parent is None:
+            m = bpy.data.meshes.new("%(p_name)s_mesh" % locals())
+            parent = bpy.data.objects.new(p_name, m)
+            parent.location = source_details.mid - parent0.location
+            parent.parent = parent0
+            safeUnlink(parent)
+            getSafeScn().update()
+
+        # create new bricks
+        try:
+            group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
+        except KeyboardInterrupt:
+            if curFrame != cm.startFrame:
+                wm.progress_end()
+                cm.lastStartFrame = cm.startFrame
+                cm.lastStopFrame = curFrame - 1
+                scn.frame_set(sceneCurFrame)
+                cm.animated = True
+            return False
+
+        # get object with created bricks
+        obj = bpy.data.groups[group_name].objects[0]
+        # hide obj unless on scene current frame
+        showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
+        if not showCurObj:
+            obj.hide = True
+            obj.hide_render = True
+        # lock location, rotation, and scale of created bricks
+        obj.lock_location = (True, True, True)
+        obj.lock_rotation = (True, True, True)
+        obj.lock_scale    = (True, True, True)
+
+        wm.progress_update(curFrame-cm.startFrame)
+        print('-'*100)
+        print("completed frame " + str(curFrame))
+        print('-'*100)
+        return True
+
+    def finishAnimation(self):
+        scn, cm, n = getActiveContextInfo(cm=self.cm)
+        wm = bpy.context.window_manager
+        wm.progress_end()
+        cm.animating = False
 
         # add bevel if it was previously added
         if cm.bevelAdded:
@@ -644,9 +740,6 @@ class BrickerBrickify(bpy.types.Operator):
             elif mod.type == "SMOKE":
                 smoke = True
                 point_cache = mod.domain_settings.point_cache
-        # if self.source.rigid_body is not None:
-        #     cm.rigid_body = True
-        #     storeRigidBodySettings(self.source)
 
         # step through uncached frames to run simulation
         if soft_body or smoke:

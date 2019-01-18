@@ -156,7 +156,14 @@ class BrickModelsPanel(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                    if cm.animating:
+                        col.scale_y = 0.75
+                        row.label(text="Animating in background...")
+                        row = col.row(align=True)
+                        percentage = round(cm.numAnimatedFrames * 100 / (cm.lastStopFrame - cm.lastStartFrame + 1), 3)
+                        row.label(text=str(percentage) + "% completed")
+                    else:
+                        row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -287,14 +294,13 @@ class AnimationPanel(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            if (cm.stopFrame - cm.startFrame > 10 and not cm.animated) or self.appliedMods:
-                col = layout.column(align=True)
-                col.scale_y = 0.7
-                col.label("WARNING: May take a while.")
-                col.separator()
-                col.label("Watch the progress in")
-                col.label("the command line.")
-                col.separator()
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.label(text="Background Processing:")
+            row = col.row(align=True)
+            row.prop(cm, "maxWorkers")
+            row = col.row(align=True)
+            row.prop(cm, "backProcTimeout")
 
 
 class ModelTransformPanel(Panel):
@@ -842,7 +848,7 @@ class MaterialsPanel(Panel):
                     nodeNamesStr = "'Matte Material' node"
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
-                col.label(nodeNames)
+                col.label(nodeNamesStr)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
                 if scn.render.engine in ["CYCLES", "octane"]:
                     col = layout.column(align=True)
