@@ -32,8 +32,8 @@ def clearExistingMaterials(obj, from_idx=0, from_data=False):
             # remove material slots
             bpy.ops.object.material_slot_remove()
 
-def setMaterial(obj, mat, to_data=False):
-    if len(obj.data.materials) == 1:
+def setMaterial(obj, mat, to_data=False, overwrite=True):
+    if len(obj.data.materials) == 1 and overwrite:
         obj.data.materials[0] = mat
     else:
         obj.data.materials.append(mat)

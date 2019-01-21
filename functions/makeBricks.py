@@ -312,7 +312,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             setMaterial(allBricksObj, mat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
             for mat in mats:
-                setMaterial(allBricksObj, mat)
+                setMaterial(allBricksObj, mat, overwrite=False)
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated
