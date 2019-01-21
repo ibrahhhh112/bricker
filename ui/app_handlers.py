@@ -229,7 +229,7 @@ def safe_link_parent(dummy):
             n = getSourceName(cm)
             Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
             p = bpy.data.objects.get(Bricker_parent_on)
-            if (cm.modelCreated or cm.animated) and not cm.exposeParent:
+            if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
                 safeLink(p)
 
 
@@ -242,10 +242,7 @@ def safe_unlink_parent(dummy):
             Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
             p = bpy.data.objects.get(Bricker_parent_on)
             if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
-                try:
-                    safeUnlink(p)
-                except RuntimeError:
-                    pass
+                safeUnlink(p)
 
 
 @persistent
@@ -290,11 +287,10 @@ def handle_upconversion(dummy):
                                 obj.name = rreplace(obj.name, "frame", "f")
                     elif cm.modelCreated:
                         bGroup = bpy.data.groups.get(Bricker_bricks_gn)
-                        if bGroup is None:
-                            continue
-                        bGroup.name = rreplace(bGroup.name, "frame", "f")
-                        for obj in bGroup.objects:
-                            obj.name = rreplace(obj.name, "frame", "f")
+                        if bGroup is not None:
+                            bGroup.name = rreplace(bGroup.name, "frame", "f")
+                            for obj in bGroup.objects:
+                                obj.name = rreplace(obj.name, "frame", "f")
                     # rename storage scene
                     sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
                     sto_scn_new = getSafeScn()

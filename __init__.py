@@ -127,18 +127,6 @@ def register():
     bpy.app.handlers.load_post.append(safe_unlink_parent)
     bpy.app.handlers.load_post.append(handle_upconversion)
 
-    # register app handlers
-    bpy.app.handlers.frame_change_pre.append(handle_animation)
-    bpy.app.handlers.scene_update_pre.append(handle_selections)
-    bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
-    bpy.app.handlers.load_pre.append(clear_bfm_cache)
-    bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
-    bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
-    bpy.app.handlers.save_pre.append(safe_link_parent)
-    bpy.app.handlers.save_post.append(safe_unlink_parent)
-    bpy.app.handlers.load_post.append(safe_unlink_parent)
-    bpy.app.handlers.load_post.append(handle_upconversion)
-
     # addon updater code and configurations
     addon_updater_ops.register(bl_info)
 

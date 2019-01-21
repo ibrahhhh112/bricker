@@ -152,6 +152,8 @@ class cmlist_actions(bpy.types.Operator):
         scn, cm, sn = getActiveContextInfo()
         n = cm.name
         if not cm.modelCreated and not cm.animated:
+            for idx0 in range(idx + 1, len(scn.cmlist)):
+                scn.cmlist[idx0].idx -= 1
             if len(scn.cmlist) - 1 == scn.cmlist_index:
                 scn.cmlist_index -= 1
             # remove matObj for current cmlist id
