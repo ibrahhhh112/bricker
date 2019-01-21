@@ -32,7 +32,7 @@ from ....functions import *
 
 
 class setExposure(Operator):
-    """Set exposure of bricks"""
+    """Set exposure of bricks to correct insideness calculation (consider setting ‘Advanced > Insideness Ray Cast Direction’ to ‘XYZ’ instead)"""
     bl_idname = "bricker.set_exposure"
     bl_label = "Set Exposure"
     bl_options = {"REGISTER", "UNDO"}

@@ -41,7 +41,7 @@ from ..functions import *
 
 
 class BrickerBrickify(bpy.types.Operator):
-    """ Create brick sculpture from source object mesh """
+    """Create brick sculpture from source object mesh"""
     bl_idname = "bricker.brickify"
     bl_label = "Create/Update Brick Model from Source Object"
     bl_options = {"REGISTER", "UNDO"}

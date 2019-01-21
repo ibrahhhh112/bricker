@@ -33,7 +33,7 @@ from ....functions import *
 
 
 class mergeBricks(Operator):
-    """Merge selected bricks (converts brickType to either 'BRICK' or 'PLATE')"""
+    """Merge selected bricks (auto-converts brick type to 'BRICK' or 'PLATE')"""
     bl_idname = "bricker.merge_bricks"
     bl_label = "Merge Bricks"
     bl_options = {"REGISTER", "UNDO"}

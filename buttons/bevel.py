@@ -31,7 +31,7 @@ from ..functions import *
 
 
 class BrickerBevel(bpy.types.Operator):
-    """Execute bevel modifier to all bricks with above settings"""
+    """Bevel brick edges and corners for added realism"""
     bl_idname = "bricker.bevel"
     bl_label = "Bevel Bricks"
     bl_options = {"REGISTER", "UNDO"}

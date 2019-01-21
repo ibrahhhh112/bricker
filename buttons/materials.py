@@ -34,7 +34,7 @@ from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
 class BrickerApplyMaterial(bpy.types.Operator):
-    """Apply specified material to all bricks """
+    """Apply specified material to all bricks"""
     bl_idname = "bricker.apply_material"
     bl_label = "Apply Material"
     bl_options = {"REGISTER", "UNDO"}

@@ -42,7 +42,7 @@ def getModelType(cm):
 
 
 class BrickerDelete(bpy.types.Operator):
-    """ Delete Brickified model """
+    """Delete brickified model (restores original source object)"""
     bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
     bl_options = {"REGISTER", "UNDO"}
