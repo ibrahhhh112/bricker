@@ -31,9 +31,9 @@ from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
 # Addon imports
-from .paintbrush_framework import *
-from .paintbrush_tools import *
-from .paintbrush_drawing import *
+from .bricksculpt_framework import *
+from .bricksculpt_tools import *
+from .bricksculpt_drawing import *
 from .drawAdjacent import *
 from ..undo_stack import *
 from ..functions import *
@@ -43,10 +43,10 @@ from ....functions import *
 from ....operators.delete import OBJECT_OT_delete_override
 
 
-class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawing):
-    """Paint additional bricks onto the Bricker model"""
-    bl_idname = "bricker.paintbrush"
-    bl_label = "Bricker Paintbrush"
+class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools, bricksculpt_drawing):
+    """Run the BrickSculpt editing tool suite"""
+    bl_idname = "bricker.bricksculpt"
+    bl_label = "BrickSculpt Tools"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -104,7 +104,7 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         scn, cm, n = getActiveContextInfo()
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
-        self.undo_stack.undo_push('brick_paintbrush', affected_ids=[cm.id])
+        self.undo_stack.undo_push('bricksculpt_mode', affected_ids=[cm.id])
         self.undo_stack.iterateStates(cm)
         # mark model as customized
         cm.customized = True
@@ -116,10 +116,11 @@ class paintbrush(Operator, paintbrushFramework, paintbrushTools, paintbrushDrawi
         self.allUpdatedKeys = []
         self.dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
         self.obj = None
+        self.cm_idx = cm.idx
         self.keysToMergeOnCommit = []
         self.targettedBrickKeys = []
         self.brickType = getBrickType(cm.brickType)
-        self.matName = cm.paintbrushMat  # bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
+        self.matName = cm.paintbrushMat.name if cm.paintbrushMat is not None else ""  # bpy.data.materials[-1].name if len(bpy.data.materials) > 0 else ""
         self.hiddenBricks = []
         self.releaseTime = 0
         self.vertical = False

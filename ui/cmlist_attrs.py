@@ -277,7 +277,10 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         name="Auto Update on Delete",
         description="Draw newly exposed bricks when existing bricks are deleted",
         default=True)
-    paintbrushMat = StringProperty(default="")
+    paintbrushMat = PointerProperty(
+        type=bpy.types.Material,
+        name="Paintbrush Material",
+        description="Material for the BrickSculpt paintbrush tool")
 
     # MATERIAL & COLOR SETTINGS
     materialType = EnumProperty(

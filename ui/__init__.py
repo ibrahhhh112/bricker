@@ -36,7 +36,7 @@ from ..lib.Brick.test_brick_generators import *
 from ..buttons.delete import BrickerDelete
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
-from ..buttons.customize.tools.paintbrush_tools import paintbrushTools
+from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
 
 # updater import
@@ -210,7 +210,7 @@ class BrickModelsPanel(Panel):
                         col.label("run 'Update Model' so")
                         col.label("it is compatible with")
                         col.label("your current version.")
-                    elif matrixReallyIsDirty(cm) and cm.customized:
+                    elif matrixReallyIsDirty(cm, include_lost_matrix=False) and cm.customized:
                         row = col.row(align=True)
                         row.label("Customizations will be lost")
                         row = col.row(align=True)
@@ -473,13 +473,12 @@ class CustomizeModel(Panel):
         scn, cm, _ = getActiveContextInfo()
 
         if matrixReallyIsDirty(cm):
-            layout.label("Matrix is dirty!")
             col = layout.column(align=True)
             col.label("Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
-            if cm.customized:
+            if cm.customized and not cm.matrixLost:
                 row = col.row(align=True)
-                row.label("Customizations will be lost")
+                row.label("Prior customizations will be lost")
                 row = col.row(align=True)
                 row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
             return
@@ -519,15 +518,15 @@ class CustomizeModel(Panel):
         row.label("BrickSculpt Tools:")
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
+        row.operator("bricker.bricksculpt", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
+        row.operator("bricker.bricksculpt", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "PAINT"
+        row.operator("bricker.bricksculpt", text="Paintbrush Tool", icon="MOD_DYNAMICPAINT").mode = "PAINT"
         row.prop_search(cm, "paintbrushMat", bpy.data, "materials", text="")
-        if not paintbrush.BrickSculptInstalled:
+        if not BRICKER_OT_bricksculpt.BrickSculptInstalled:
             row = col.row(align=True)
             row.scale_y = 0.7
             row.label("BrickSculpt available for purchase")

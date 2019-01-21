@@ -31,7 +31,6 @@ from bpy.types import Operator, SpaceView3D, bpy_struct
 from bpy.props import *
 
 # Addon imports
-from .paintbrush_tools import *
 from .drawAdjacent import *
 from ..functions import *
 from ...brickify import *
@@ -40,7 +39,7 @@ from ....functions import *
 from ....operators.delete import OBJECT_OT_delete_override
 
 
-class paintbrushTools:
+class bricksculpt_tools:
 
     #############################################
 

@@ -334,10 +334,10 @@ def installBrickSculpt():
     addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
     Bricker = bpy.props.bricker_module_name
     BrickSculpt = bpy.props.bricksculpt_module_name
-    paintbrushPathOld = "%(addonsPath)s/%(BrickSculpt)s/paintbrush_framework.py" % locals()
-    paintbrushPathNew = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/paintbrush_framework.py" % locals()
-    fOld = open(paintbrushPathOld, "r")
-    fNew = open(paintbrushPathNew, "w")
+    bricksculptPathOld = "%(addonsPath)s/%(BrickSculpt)s/bricksculpt_framework.py" % locals()
+    bricksculptPathNew = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/bricksculpt_framework.py" % locals()
+    fOld = open(bricksculptPathOld, "r")
+    fNew = open(bricksculptPathNew, "w")
     # write META commands
     lines = fOld.readlines()
     fNew.truncate(0)

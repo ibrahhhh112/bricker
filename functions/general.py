@@ -264,14 +264,36 @@ def brick_materials_loaded():
 
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
-    # TODO: Maybe remove custom object names from this?
-    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
-    smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
+    # TODO: Maybe remove custom objects from this?
+    regularSettings = [round(cm.brickHeight, 6),
+                       round(cm.gap, 6),
+                       cm.brickType,
+                       cm.distOffset[0],
+                       cm.distOffset[1],
+                       cm.distOffset[2],
+                       cm.includeTransparency,
+                       cm.customObject1.name if cm.customObject1 is not None else "",
+                       cm.customObject2.name if cm.customObject2 is not None else "",
+                       cm.customObject3.name if cm.customObject3 is not None else "",
+                       cm.useNormals,
+                       cm.verifyExposure,
+                       cm.insidenessRayCastDir,
+                       cm.castDoubleCheckRays,
+                       cm.brickShell,
+                       cm.calculationAxes]
+    smokeSettings = [round(cm.smokeDensity, 6),
+                     round(cm.smokeQuality, 6),
+                     round(cm.smokeBrightness, 6),
+                     round(cm.smokeSaturation, 6),
+                     round(cm.flameColor[0], 6),
+                     round(cm.flameColor[1], 6),
+                     round(cm.flameColor[2], 6),
+                     round(cm.flameIntensity, 6)] if cm.lastIsSmoke else []
     return listToStr(regularSettings + smokeSettings)
 
 
-def matrixReallyIsDirty(cm):
-    return (cm.matrixIsDirty and cm.lastMatrixSettings != getMatrixSettings()) or cm.matrixLost
+def matrixReallyIsDirty(cm, include_lost_matrix=True):
+    return (cm.matrixIsDirty and cm.lastMatrixSettings != getMatrixSettings()) or (cm.matrixLost and include_lost_matrix)
 
 
 def vecToStr(vec, separate_by=","):

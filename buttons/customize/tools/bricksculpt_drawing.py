@@ -32,7 +32,7 @@ from bpy.types import Operator, SpaceView3D
 from bpy.props import *
 
 # Addon imports
-from .paintbrush_tools import *
+from .bricksculpt_tools import *
 from .drawAdjacent import *
 from ..functions import *
 from ...brickify import *
@@ -40,7 +40,7 @@ from ....lib.Brick import *
 from ....functions import *
 
 
-class paintbrushDrawing:
+class bricksculpt_drawing:
 
     ##############################################
     # Draw handler function
@@ -196,8 +196,8 @@ class paintbrushDrawing:
 
     def draw_postpixel(self):
         dtext = "  'D' for Draw/Cut Tool"
-        mtext = "  'S' for Merge/Split Tool"
-        ptext = "  'M' for Material Paintbrush Tool"
+        mtext = "  'M' for Merge/Split Tool"
+        ptext = "  'P' for Paintbrush Tool"
         # draw instructions text
         if self.mode == "DRAW":
             text = "Click & drag to add bricks"
@@ -212,10 +212,14 @@ class paintbrushDrawing:
             self.draw_text_2d(text, position=(50, 250))
             text = "+'ALT' to split horizontally"
             self.draw_text_2d(text, position=(50, 220))
-            text = "+'SHIFT' to split vertically"
+            text = "+'SHIFT' to split vertically (only works if brick type is 'Bricks and Plates')"
             self.draw_text_2d(text, position=(50, 190))
             mtext = "*" + mtext[1:]
         elif self.mode == "PAINT":
+            scn = bpy.context.scene
+            mat = scn.cmlist[self.cm_idx].paintbrushMat
+            text = "Painting with Material: " + (mat.name if mat is not None else "None")
+            self.draw_text_2d(text, position=(50, 220))
             text = "Click & drag to paint bricks with target material"
             self.draw_text_2d(text, position=(50, 190))
             ptext = "*" + ptext[1:]

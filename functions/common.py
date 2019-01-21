@@ -374,6 +374,8 @@ def unhide(objs):
 
 
 def setActiveObj(obj, scene=None):
+    if obj is None:
+        return
     assert type(obj) == Object
     scene = scene or bpy.context.scene
     scene.objects.active = obj
