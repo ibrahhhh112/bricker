@@ -635,6 +635,10 @@ class BrickerBrickify(bpy.types.Operator):
                     return False
 
         if self.action in ("ANIMATE", "UPDATE_ANIM"):
+            # verify Blender file is saved
+            if cm.maxWorkers > 0 and bpy.data.filepath == "":
+                self.report({"WARNING"}, "Please save the file first")
+                return False
             # verify start frame is less than stop frame
             if cm.startFrame > cm.stopFrame:
                 self.report({"ERROR"}, "Start frame must be less than or equal to stop frame (see animation tab below).")
