@@ -433,7 +433,7 @@ class BrickerBrickify(bpy.types.Operator):
                 continue
             if cm.maxWorkers > 0:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
-                curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s__%(curFrame)s.py" % locals()][0 if platform in ("linux", "linux2", "darwin") else 1:])
+                curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s__%(curFrame)s.py" % locals()][0 if sys.platform in ("linux", "linux2", "darwin") else 1:])
                 script = os.path.join(self.brickerAddonPath, "lib", "brickify_frame_in_background.py")
                 shutil.copyfile(script, curJob)
                 jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
