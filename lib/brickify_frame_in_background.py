@@ -9,8 +9,8 @@ if bpy.data.filepath == "":
         obj.name = "background_removed"
     for mesh in bpy.data.meshes:
         mesh.name = "background_removed"
-objDirectory = "%(sourceBlendFile)s/Object/" % locals()
-meshDirectory = "%(sourceBlendFile)s/Mesh/" % locals()
+objDirectory = os.path.join(sourceBlendFile, "Object")
+meshDirectory = os.path.join(sourceBlendFile, "Mesh")
 data_blocks = []
 
 ### WRITE YOUR PYTHON CODE HERE ###

@@ -16,6 +16,7 @@ import random
 import time
 import bmesh
 import os
+from os.path import dirname, abspath
 import sys
 import math
 import shutil
@@ -80,7 +81,7 @@ class BrickerBrickify(bpy.types.Operator):
                 if not cm.animated:
                     break
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job, debug_level=0)
+                self.JobManager.process_job(job, debug_level=1)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
@@ -134,7 +135,6 @@ class BrickerBrickify(bpy.types.Operator):
                     select(self.source, active=True)
                 cm.animated = previously_animated
                 cm.modelCreated = previously_model_created
-            print()
             self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
         except:
             handle_exception()
@@ -177,7 +177,7 @@ class BrickerBrickify(bpy.types.Operator):
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
         self.JobManager.max_attempts = 1
-        self.brickerAddonPath = os.path.join(bpy.utils.user_resource('SCRIPTS', "addons"), bpy.props.bricker_module_name)
+        self.brickerAddonPath = dirname(dirname(abspath(__file__)))
         self.jobs = list()
         self.cm = cm
 
@@ -433,8 +433,8 @@ class BrickerBrickify(bpy.types.Operator):
                 continue
             if cm.maxWorkers > 0:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
-                curJob = "/tmp/background_processing/%(filename)s__%(n)s__%(curFrame)s.py" % locals()
-                script = os.path.join(self.brickerAddonPath, "lib/brickify_frame_in_background.py")
+                curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s__%(curFrame)s.py" % locals()][0 if platform in ("linux", "linux2", "darwin") else 1:])
+                script = os.path.join(self.brickerAddonPath, "lib", "brickify_frame_in_background.py")
                 shutil.copyfile(script, curJob)
                 jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
                 if not jobAdded:

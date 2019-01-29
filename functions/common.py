@@ -637,3 +637,19 @@ def writeErrorToFile(errorReportPath, txtName, addonVersion):
         f.write("\n" + bpy.data.texts[txtName].as_string())
     except KeyError:
         f.write(" No exception found")
+
+        
+def root_path():
+    return os.path.abspath(os.sep)
+
+
+def splitpath(path):
+    folders = []
+    while 1:
+        path, folder = os.path.split(path)
+        if folder != "":
+            folders.append(folder)
+        else:
+            if path != "": folders.append(path)
+            break
+    return folders[::-1]

@@ -439,19 +439,18 @@ def getSpace():
 
 
 def getExportPath(fn, ext, basePath, frame=-1, subfolder=False):
-    path = basePath
-    lastSlash = path.rfind("/")
-    path = path[:len(path) if lastSlash == -1 else lastSlash + 1]
-    blendPath = bpy.path.abspath("//") or "/tmp/"
-    blendPathSplit = blendPath[:-1].split("/")
+    # TODO: support PC with os.path.join instead of strings and support backslashes
+    path = os.path.dirname(basePath)
+    blendPath = bpy.path.abspath("//")[:-1] or os.path.join(root_path(), "tmp")
+    blendPathSplit = splitpath(blendPath)
     # if relative path, construct path from user input
     if path.startswith("//"):
-        splitPath = path[2:].split("/")
+        splitPath = splitpath(path[2:])
         while len(splitPath) > 0 and splitPath[0] == "..":
             splitPath.pop(0)
             blendPathSplit.pop()
-        newPath = "/".join(splitPath)
-        fullBlendPath = "/".join(blendPathSplit) if len(blendPathSplit) > 1 else "/"
+        newPath = os.path.join(*splitPath)
+        fullBlendPath = os.path.join(*blendPathSplit) if len(blendPathSplit) > 1 else root_path()
         path = os.path.join(fullBlendPath, newPath)
     # if path is blank at this point, use default render location
     if path == "":
