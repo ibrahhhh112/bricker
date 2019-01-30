@@ -108,7 +108,7 @@ class exportLdraw(Operator):
                     # get coordinate for brick in Ldraw units
                     co = self.blendToLdrawUnits(cm, bricksDict, zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
+                    mat = getMaterial(bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0

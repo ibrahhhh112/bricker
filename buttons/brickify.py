@@ -78,7 +78,8 @@ class BrickerBrickify(bpy.types.Operator):
         if event.type == "TIMER":
             scn, cm, n = getActiveContextInfo(cm=self.cm)
             for job in self.jobs.copy():
-                if not cm.animated and not cm.modelCreated:
+                # cancel if model was deleted before process completed
+                if scn in self.source.users_scene:
                     break
                 frame = int(job.split("__")[-1][:-3]) if cm.animated else None
                 self.JobManager.process_job(job, debug_level=1)
@@ -104,11 +105,10 @@ class BrickerBrickify(bpy.types.Operator):
                     tag_redraw_areas("VIEW_3D")
                     cm.numAnimatedFrames += 1 if cm.animated else 0
                     self.jobs.remove(job)
-            if not cm.animated and not cm.modelCreated:
+            # cancel if model was deleted before process completed
+            if scn in self.source.users_scene:
                 return {"CANCELLED"}
             elif self.JobManager.jobs_complete():
-                self.finishAnimation()
-                self.finishModel
                 self.finishBrickify()
                 self.report({"INFO"}, "Brickify Animation complete" if cm.animated else "Brickify Model complete")
                 stopWatch("Total Time Elapsed", self.start_time, 2)
@@ -225,7 +225,7 @@ class BrickerBrickify(bpy.types.Operator):
             setLayers(sourceLayers)
 
         if "ANIM" not in self.action:
-            if self.setupBrickifyModel(scn, cm, n) == "SUCCESS":
+            if self.setupBrickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData) == "SUCCESS":
                 if cm.brickifyInBackground:
                     # PULL TEMPLATE SCRIPT FROM 'brickify_in_background', write to new file with frame specified, store path to file in 'curJob'
                     filename = bpy.path.basename(bpy.data.filepath).split(".")[0]
@@ -238,7 +238,7 @@ class BrickerBrickify(bpy.types.Operator):
                         # TODO: Handle this issue gracefully
                     self.jobs.append(curJob)
                 else:
-                    self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData, self.source, self.action, self.origFrame, self.createdObjects, self.createdGroups)
+                    self.brickifyModel(scn, cm, n, self.source, self.action, self.origFrame, self.createdObjects, self.createdGroups)
         else:
             self.brickifyAnimation(scn, cm, n, matrixDirty)
             cm.animIsDirty = False
@@ -253,39 +253,46 @@ class BrickerBrickify(bpy.types.Operator):
         if self.source.name in scn.objects.keys():
             safeUnlink(self.source, hide=False)
 
+        cm.materialIsDirty = False
+        cm.modelIsDirty = False
+        cm.buildIsDirty = False
+        cm.bricksAreDirty = False
+        cm.matrixIsDirty = False
+        cm.matrixLost = False
+        cm.internalIsDirty = False
+        cm.modelCreated = "ANIM" not in self.action
+        cm.animated = "ANIM" in self.action
+        cm.version = bpy.props.bricker_version
+        cm.exposeParent = False
+
+        if not cm.brickifyInBackground:
+            self.finishBrickify()
+
         disableRelationshipLines()
 
-    @staticmethod
-    def setupBrickifyModel(scn, cm, n):
-        if action == "CREATE":
+    def setupBrickifyModel(self, scn, cm, n, matrixDirty, skipTransAndAnimData):
+        if self.action == "CREATE":
             # set modelCreatedOnFrame
             cm.modelCreatedOnFrame = scn.frame_current
         else:
             # move to frame model was created on
-            if origFrame != cm.modelCreatedOnFrame:
+            if self.origFrame != cm.modelCreatedOnFrame:
                 scn.frame_set(cm.modelCreatedOnFrame)
 
         # if there are no changes to apply, simply return None
-        if action == "UPDATE_MODEL" and not updateCanRun("MODEL"):
+        if self.action == "UPDATE_MODEL" and not updateCanRun("MODEL"):
             return None
 
-        if (matrixDirty or action != "UPDATE_MODEL") and cm.customized:
+        if (matrixDirty or self.action != "UPDATE_MODEL") and cm.customized:
             cm.customized = False
 
         # delete old bricks if present
-        if action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
+        if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
             # skip source, dupes, and parents
             trans_and_anim_data = BrickerDelete.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
         else:
             storeTransformData(cm, None)
             trans_and_anim_data = []
-        return "SUCCESS"
-
-    @staticmethod
-    def brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData, source, action, origFrame, createdObjects=[], createdGroups=[]):
-        """ create brick model """
-        # set up variables
-        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
 
         if action == "CREATE":
             # duplicate source
@@ -310,11 +317,16 @@ class BrickerBrickify(bpy.types.Operator):
             # apply transformation data
             apply_transform(sourceDup)
             scn.update()
-        else:
-            # get previously created source duplicate
-            sourceDup = bpy.data.objects.get(n + "_duplicate")
+        return "SUCCESS"
+
+    @staticmethod
+    def brickifyModel(scn, cm, n, source, action, origFrame, createdObjects=[], createdGroups=[]):
+        """ create brick model """
+        # set up variables
+        Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
+
         # if duplicate not created, sourceDup is just original source
-        sourceDup = sourceDup or source
+        sourceDup = bpy.data.objects.get(n + "_duplicate") or source
 
         # link sourceDup if it isn't in scene
         if sourceDup.name not in scn.objects.keys():
@@ -444,9 +456,6 @@ class BrickerBrickify(bpy.types.Operator):
         cm.lastStopFrame = cm.stopFrame
         scn.frame_set(self.origFrame)
 
-        if not cm.brickifyInBackground:
-            self.finishAnimation()
-
     @staticmethod
     def brickifyCurrentFrame(curFrame, sceneCurFrame, action, origSource, inBackground=False):
         scn, cm, n = getActiveContextInfo()
@@ -516,7 +525,7 @@ class BrickerBrickify(bpy.types.Operator):
         return True
 
     def finishBrickify(self):
-        scn, cm, n = getActiveContextInfo()
+        scn, cm, n = getActiveContextInfo(cm=self.cm)
         wm = bpy.context.window_manager
         wm.progress_end()
         cm.brickifyingInBackground = False
@@ -530,33 +539,13 @@ class BrickerBrickify(bpy.types.Operator):
         cm.lastMatShellDepth = cm.matShellDepth
         cm.lastMatrixSettings = getMatrixSettings()
         cm.lastIsSmoke = cm.isSmoke
-        cm.materialIsDirty = False
-        cm.modelIsDirty = False
-        cm.buildIsDirty = False
-        cm.bricksAreDirty = False
-        cm.matrixIsDirty = False
-        cm.matrixLost = False
-        cm.internalIsDirty = False
-        cm.modelCreated = "ANIM" not in self.action
-        cm.animated = "ANIM" in self.action
-        cm.version = bpy.props.bricker_version
-        cm.exposeParent = False
 
         # reset layers
         if oldLayers != sourceLayers:
             setLayers(oldLayers)
 
-        if "ANIM" in self.action:
-            self.finishAnimation()
-        else:
-            self.finishModel()
-
-
-    def finishModel(self):
-    def finishAnimation(self):
-        scn, cm, n = getActiveContextInfo(cm=self.cm)
         # add bevel if it was previously added
-        if cm.bevelAdded:
+        if "ANIM" in self.action and cm.bevelAdded:
             bricks = getBricks(cm, typ="ANIM")
             BrickerBevel.runBevelAction(bricks, cm)
 
@@ -598,7 +587,7 @@ class BrickerBrickify(bpy.types.Operator):
         if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, origSource, curFrame)
         # make bricks
         group_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=group_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated, active=True, only=True)
         # store current bricksDict to cache

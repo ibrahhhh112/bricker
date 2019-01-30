@@ -50,9 +50,10 @@ class BrickerBrickifyInBackground(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo()
         # run brickify for current frame
         if self.frame == -1:
-            matrixDirty = matrixReallyIsDirty(cm)
-            skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
-            BrickerBrickify.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData, source, action, origFrame)
+            source = cm.source_obj
+            action =
+            origFrame = scn.frame_current
+            BrickerBrickify.brickifyModel(scn, cm, n, source, action, origFrame)
         else:
             BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
         return {"FINISHED"}
