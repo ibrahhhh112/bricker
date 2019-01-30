@@ -36,9 +36,9 @@ from ..lib.bricksDict import *
 from ..functions import *
 
 
-class BrickerBrickifyAnimInBackground(bpy.types.Operator):
+class BrickerBrickifyInBackground(bpy.types.Operator):
     """ Create brick sculpture from source object mesh """
-    bl_idname = "bricker.brickify_anim_in_background"
+    bl_idname = "bricker.brickify_in_background"
     bl_label = "Create/Update Brick Model from Source Object"
     bl_options = {"REGISTER"}
 
@@ -49,7 +49,12 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
         # update data in safe_scn
         scn, cm, n = getActiveContextInfo()
         # run brickify for current frame
-        BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
+        if self.frame == -1:
+            matrixDirty = matrixReallyIsDirty(cm)
+            skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
+            BrickerBrickify.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData, source, action, origFrame)
+        else:
+            BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
         return {"FINISHED"}
 
     ################################################

@@ -123,7 +123,7 @@ class BrickModelsPanel(Panel):
                 # first, draw source object text
                 source_name = " %(n)s" % locals() if cm.animated or cm.modelCreated else ""
                 col1 = layout.column(align=True)
-                col1.label("Source Object:%(source_name)s" % locals())
+                col1.label(text="Source Object:%(source_name)s" % locals())
                 if not (cm.animated or cm.modelCreated):
                     col2 = layout.column(align=True)
                     col2.prop_search(cm, "source_obj", scn, "objects", text='')
@@ -136,11 +136,11 @@ class BrickModelsPanel(Panel):
             if createdWithNewerVersion(cm):
                 col = layout.column(align=True)
                 col.scale_y = 0.7
-                col.label("Model was created with")
-                col.label("Bricker v%(v_str)s. Please" % locals())
-                col.label("update Bricker in your")
-                col.label("addon preferences to edit")
-                col.label("this model.")
+                col.label(text="Model was created with")
+                col.label(text="Bricker v%(v_str)s. Please" % locals())
+                col.label(text="update Bricker in your")
+                col.label(text="addon preferences to edit")
+                col.label(text="this model.")
             # if undo stack not initialized, draw initialize button
             elif not bpy.props.bricker_initialized:
                 row = col1.row(align=True)
@@ -156,9 +156,9 @@ class BrickModelsPanel(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    if cm.animating:
+                    if cm.brickifyingInBackground:
                         col.scale_y = 0.75
-                        row.label(text="Animating in background...")
+                        row.label(text="brickifyingInBackground in background...")
                         row = col.row(align=True)
                         percentage = round(cm.numAnimatedFrames * 100 / (cm.lastStopFrame - cm.lastStartFrame + 1), 3)
                         row.label(text=str(percentage) + "% completed")
@@ -168,11 +168,11 @@ class BrickModelsPanel(Panel):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
                         col.scale_y = 0.7
-                        col.label("Model was created with")
-                        col.label("Bricker v%(v_str)s. Please" % locals())
-                        col.label("run 'Update Model' so")
-                        col.label("it is compatible with")
-                        col.label("your current version.")
+                        col.label(text="Model was created with")
+                        col.label(text="Bricker v%(v_str)s. Please" % locals())
+                        col.label(text="run 'Update Model' so")
+                        col.label(text="it is compatible with")
+                        col.label(text="your current version.")
                 else:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
@@ -181,12 +181,12 @@ class BrickModelsPanel(Panel):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
                         if obj.rigid_body.type == "ACTIVE":
-                            col.label("Bake rigid body transforms")
-                            col.label("to keyframes (SPACEBAR >")
-                            col.label("Bake To Keyframes).")
+                            col.label(text="Bake rigid body transforms")
+                            col.label(text="to keyframes (SPACEBAR >")
+                            col.label(text="Bake To Keyframes).")
                         else:
-                            col.label("Rigid body settings will")
-                            col.label("be lost.")
+                            col.label(text="Rigid body settings will")
+                            col.label(text="be lost.")
             # if use animation is not selected, draw modeling options
             else:
                 if not cm.animated and not cm.modelCreated:
@@ -197,12 +197,12 @@ class BrickModelsPanel(Panel):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
                         if obj.rigid_body.type == "ACTIVE":
-                            col.label("Bake rigid body transforms")
-                            col.label("to keyframes (SPACEBAR >")
-                            col.label("Bake To Keyframes).")
+                            col.label(text="Bake rigid body transforms")
+                            col.label(text="to keyframes (SPACEBAR >")
+                            col.label(text="Bake To Keyframes).")
                         else:
-                            col.label("Rigid body settings will")
-                            col.label("be lost.")
+                            col.label(text="Rigid body settings will")
+                            col.label(text="be lost.")
                 else:
                     row = col1.row(align=True)
                     row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
@@ -211,14 +211,14 @@ class BrickModelsPanel(Panel):
                     if createdWithUnsupportedVersion(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
-                        col.label("Model was created with")
-                        col.label("Bricker v%(v_str)s. Please" % locals())
-                        col.label("run 'Update Model' so")
-                        col.label("it is compatible with")
-                        col.label("your current version.")
+                        col.label(text="Model was created with")
+                        col.label(text="Bricker v%(v_str)s. Please" % locals())
+                        col.label(text="run 'Update Model' so")
+                        col.label(text="it is compatible with")
+                        col.label(text="your current version.")
                     elif matrixReallyIsDirty(cm) and cm.customized:
                         row = col.row(align=True)
-                        row.label("Customizations will be lost")
+                        row.label(text="Customizations will be lost")
                         row = col.row(align=True)
                         row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
 
@@ -293,7 +293,7 @@ class AnimationPanel(Panel):
                         totalSkipped = int(e) - int(s) + 1
                         if totalSkipped > 0:
                             row = col1.row(align=True)
-                            row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
+                            row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
             col = layout.column(align=True)
             row = col.row(align=True)
             row.label(text="Background Processing:")
@@ -330,9 +330,9 @@ class ModelTransformPanel(Panel):
 
         if not (cm.animated or cm.lastSplitModel):
             col.scale_y = 0.7
-            row.label("Use Blender's built-in")
+            row.label(text="Use Blender's built-in")
             row = col.row(align=True)
-            row.label("transformation manipulators")
+            row.label(text="transformation manipulators")
             col = layout.column(align=True)
             return
 
@@ -407,21 +407,21 @@ class ModelSettingsPanel(Panel):
                         r = vec_div(s, full_d)
                         customObjFound = True
             if cm.brickType == "CUSTOM" and not customObjFound:
-                col.label("[Custom object not found]")
+                col.label(text="[Custom object not found]")
             else:
                 split = col.split(align=True, percentage=0.5)
                 col1 = split.column(align=True)
-                col1.label("Dimensions:")
+                col1.label(text="Dimensions:")
                 col2 = split.column(align=True)
                 col2.alignment = "RIGHT"
-                col2.label("{}x{}x{}".format(int(r.x), int(r.y), int(r.z)))
+                col2.label(text="{}x{}x{}".format(int(r.x), int(r.y), int(r.z)))
         row = col.row(align=True)
         row.prop(cm, "brickHeight")
         row = col.row(align=True)
         row.prop(cm, "gap")
 
         row = col.row(align=True)
-        row.label("Randomize:")
+        row.label(text="Randomize:")
         row = col.row(align=True)
         split = row.split(align=True, percentage=0.5)
         col1 = split.column(align=True)
@@ -436,7 +436,7 @@ class ModelSettingsPanel(Panel):
             row.prop(cm, "splitModel")
 
         row = col.row(align=True)
-        row.label("Brick Shell:")
+        row.label(text="Brick Shell:")
         row = col.row(align=True)
         row.prop(cm, "brickShell", text="")
         if cm.brickShell != "INSIDE":
@@ -448,7 +448,7 @@ class ModelSettingsPanel(Panel):
         # if obj and not cm.isWaterTight:
         #     row = col.row(align=True)
         #     # row.scale_y = 0.7
-        #     row.label("(Source is NOT single closed mesh)")
+        #     row.label(text="(Source is NOT single closed mesh)")
         #     # row = col.row(align=True)
         #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh", icon="EDIT")
 
@@ -492,13 +492,13 @@ class SmokeSettingsPanel(Panel):
         if is_smoke(source):
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.label("Smoke Color:")
+            row.label(text="Smoke Color:")
             row = col.row(align=True)
             row.prop(cm, "smokeBrightness", text="Brightness")
             row = col.row(align=True)
             row.prop(cm, "smokeSaturation", text="Saturation")
             row = col.row(align=True)
-            row.label("Flame Color:")
+            row.label(text="Flame Color:")
             row = col.row(align=True)
             row.prop(cm, "flameColor", text="")
             row = col.row(align=True)
@@ -530,7 +530,7 @@ class BrickTypesPanel(Panel):
 
         if mergableBrickType(cm.brickType):
             col = layout.column(align=True)
-            col.label("Max Brick Size:")
+            col.label(text="Max Brick Size:")
             row = col.row(align=True)
             row.prop(cm, "maxWidth", text="Width")
             row.prop(cm, "maxDepth", text="Depth")
@@ -540,17 +540,17 @@ class BrickTypesPanel(Panel):
 
         if cm.brickType == "CUSTOM":
             col = layout.column(align=True)
-            col.label("Brick Type Object:")
+            col.label(text="Brick Type Object:")
         elif cm.lastSplitModel:
-            col.label("Custom Brick Objects:")
+            col.label(text="Custom Brick Objects:")
         if cm.brickType == "CUSTOM" or cm.lastSplitModel:
             for prop in ("customObject1", "customObject2", "customObject3"):
                 if prop[-1] == "2" and cm.brickType == "CUSTOM":
-                    col.label("Distance Offset:")
+                    col.label(text="Distance Offset:")
                     row = col.row(align=True)
                     row.prop(cm, "distOffset", text="")
                     col = layout.column(align=True)
-                    col.label("Other Objects:")
+                    col.label(text="Other Objects:")
                 split = col.split(align=True, percentage=0.825)
                 col1 = split.column(align=True)
                 col1.prop_search(cm, prop, scn, "objects", text="")
@@ -630,26 +630,26 @@ class CustomizeModel(Panel):
         scn, cm, _ = getActiveContextInfo()
 
         if matrixReallyIsDirty(cm):
-            layout.label("Matrix is dirty!")
+            layout.label(text="Matrix is dirty!")
             return
         if cm.animated:
-            layout.label("Not available for animations")
+            layout.label(text="Not available for animations")
             return
         if not cm.lastSplitModel:
-            layout.label("Split model to customize")
+            layout.label(text="Split model to customize")
             return
         if cm.buildIsDirty:
-            layout.label("Run 'Update Model' to customize")
+            layout.label(text="Run 'Update Model' to customize")
             return
         if not Caches.cacheExists(cm):
-            layout.label("Matrix not cached!")
+            layout.label(text="Matrix not cached!")
             return
         # if not bpy.props.bricker_initialized:
         #     layout.operator("bricker.initialize", icon="MODIFIER")
         #     return
 
         col1 = layout.column(align=True)
-        col1.label("Selection:")
+        col1.label(text="Selection:")
         split = col1.split(align=True, percentage=0.5)
         # set top exposed
         col = split.column(align=True)
@@ -659,7 +659,7 @@ class CustomizeModel(Panel):
         col.operator("bricker.select_bricks_by_size", text="By Size")
 
         col1 = layout.column(align=True)
-        col1.label("Toggle Exposure:")
+        col1.label(text="Toggle Exposure:")
         split = col1.split(align=True, percentage=0.5)
         # set top exposed
         col = split.column(align=True)
@@ -669,7 +669,7 @@ class CustomizeModel(Panel):
         col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
 
         col1 = layout.column(align=True)
-        col1.label("Brick Operations:")
+        col1.label(text="Brick Operations:")
         split = col1.split(align=True, percentage=0.5)
         # split brick into 1x1s
         col = split.column(align=True)
@@ -727,7 +727,7 @@ class MaterialsPanel(Panel):
             if brick_materials_installed():
                 if bpy.context.scene.render.engine != 'CYCLES':
                     row = col.row(align=True)
-                    row.label("Switch to 'Cycles' for Brick materials")
+                    row.label(text="Switch to 'Cycles' for Brick materials")
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
                     row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
@@ -750,7 +750,7 @@ class MaterialsPanel(Panel):
                 if cm.materialIsDirty and not cm.lastSplitModel:
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.label("Run 'Update Model' to apply changes")
+                    row.label(text="Run 'Update Model' to apply changes")
                 elif cm.lastMaterialType == cm.materialType or (not cm.useAnimation and cm.lastSplitModel):
                     col = layout.column(align=True)
                     row = col.row(align=True)
@@ -768,12 +768,12 @@ class MaterialsPanel(Panel):
             if len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
                 col.scale_y = 0.7
-                col.label("(Vertex colors not supported)")
+                col.label(text="(Vertex colors not supported)")
             if cm.shellThickness > 1 or cm.internalSupports != "NONE":
                 if len(obj.data.uv_layers) <= 0 or len(obj.data.vertex_colors) > 0:
                     col = layout.column(align=True)
                 row = col.row(align=True)
-                row.label("Internal Material:")
+                row.label(text="Internal Material:")
                 row = col.row(align=True)
                 row.prop_search(cm, "internalMatName", bpy.data, "materials", text="")
                 row = col.row(align=True)
@@ -783,11 +783,11 @@ class MaterialsPanel(Panel):
                     if cm.matShellDepth <= cm.lastMatShellDepth:
                         row.operator("bricker.apply_material", icon="FILE_TICK")
                     else:
-                        row.label("Run 'Update Model' to apply changes")
+                        row.label(text="Run 'Update Model' to apply changes")
 
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.label("Color Snapping:")
+            row.label(text="Color Snapping:")
             row = col.row(align=True)
             row.prop(cm, "colorSnap", text="")
             if cm.colorSnap == "RGB":
@@ -803,9 +803,9 @@ class MaterialsPanel(Panel):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
             if matObj is not None:
                 if not brick_materials_installed():
-                    col.label("'ABS Plastic Materials' not installed")
+                    col.label(text="'ABS Plastic Materials' not installed")
                 elif scn.render.engine != 'CYCLES':
-                    col.label("Switch to 'Cycles' for Brick Materials")
+                    col.label(text="Switch to 'Cycles' for Brick Materials")
                 else:
                     # draw materials UI list and list actions
                     numMats = len(matObj.data.materials)
@@ -831,7 +831,7 @@ class MaterialsPanel(Panel):
                     col = layout.column(align=True)
                     split = col.split(align=True, percentage=0.25)
                     col = split.column(align=True)
-                    col.label("Add:")
+                    col.label(text="Add:")
                     col = split.column(align=True)
                     col.prop_search(cm, "targetMaterial", bpy.data, "materials", text="")
 
@@ -840,7 +840,7 @@ class MaterialsPanel(Panel):
             if noUV:
                 col = layout.column(align=True)
                 col.scale_y = 0.5
-                col.label("Based on RGB value of first")
+                col.label(text="Based on RGB value of first")
                 col.separator()
                 if scn.render.engine == "octane":
                     nodeNamesStr = "'Octane Diffuse' node"
@@ -852,7 +852,7 @@ class MaterialsPanel(Panel):
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
                 if scn.render.engine in ["CYCLES", "octane"]:
                     col = layout.column(align=True)
-                    col.label("Material Properties:")
+                    col.label(text="Material Properties:")
                     row = col.row(align=True)
                     row.prop(cm, "colorSnapSpecular")
                     row = col.row(align=True)
@@ -900,17 +900,17 @@ class DetailingPanel(Panel):
             col = layout.column(align=True)
             col.scale_y = 0.7
             row = col.row(align=True)
-            row.label("(not applied to custom")
+            row.label(text="(not applied to custom")
             row = col.row(align=True)
-            row.label("brick types)")
+            row.label(text="brick types)")
             layout.separator()
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.label("Studs:")
+        row.label(text="Studs:")
         row = col.row(align=True)
         row.prop(cm, "studDetail", text="")
         row = col.row(align=True)
-        row.label("Logo:")
+        row.label(text="Logo:")
         row = col.row(align=True)
         row.prop(cm, "logoType", text="")
         if cm.logoType != "NONE":
@@ -927,12 +927,12 @@ class DetailingPanel(Panel):
             row.prop(cm, "logoInset", text="Inset")
             col = layout.column(align=True)
         row = col.row(align=True)
-        row.label("Underside:")
+        row.label(text="Underside:")
         row = col.row(align=True)
         row.prop(cm, "hiddenUndersideDetail", text="")
         row.prop(cm, "exposedUndersideDetail", text="")
         row = col.row(align=True)
-        row.label("Cylinders:")
+        row.label(text="Cylinders:")
         row = col.row(align=True)
         row.prop(cm, "circleVerts")
         row = col.row(align=True)
@@ -940,7 +940,7 @@ class DetailingPanel(Panel):
         row.active = not (cm.studDetail == "NONE" and cm.exposedUndersideDetail == "FLAT" and cm.hiddenUndersideDetail == "FLAT")
 
         row = col.row(align=True)
-        row.label("Bevel:")
+        row.label(text="Bevel:")
         row = col.row(align=True)
         if not (cm.modelCreated or cm.animated):
             row.prop(cm, "bevelAdded", text="Bevel Bricks")
@@ -998,7 +998,7 @@ class SupportsPanel(Panel):
         # if obj and not cm.isWaterTight:
         #     row = col.row(align=True)
         #     # row.scale_y = 0.7
-        #     row.label("(Source is NOT single closed mesh)")
+        #     row.label(text="(Source is NOT single closed mesh)")
 
 
 class AdvancedPanel(Panel):
@@ -1024,15 +1024,15 @@ class AdvancedPanel(Panel):
         if addon_updater_ops.updater.update_ready:
             col = layout.column(align=True)
             col.scale_y = 0.7
-            col.label("Bricker update available!", icon="INFO")
-            col.label("Install from Bricker addon prefs")
+            col.label(text="Bricker update available!", icon="INFO")
+            col.label(text="Install from Bricker addon prefs")
             layout.separator()
 
         col = layout.column(align=True)
         row = col.row(align=True)
         row.operator("bricker.clear_cache", text="Clear Cache")
         row = col.row(align=True)
-        row.label("Insideness:")
+        row.label(text="Insideness:")
         row = col.row(align=True)
         row.prop(cm, "insidenessRayCastDir", text="")
         row = col.row(align=True)
@@ -1043,9 +1043,13 @@ class AdvancedPanel(Panel):
         row.prop(cm, "verifyExposure")
         if not cm.useAnimation and not (cm.modelCreated or cm.animated):
             row = col.row(align=True)
-            row.label("Model Orientation:")
+            row.label(text="Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
+        row = col.row(align=True)
+        row.label(text="Other:")
+        row = col.row(align=True)
+        row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
         if testBrickGenerators.drawUIButton():
             col = layout.column(align=True)
@@ -1080,10 +1084,10 @@ class BrickDetailsPanel(Panel):
         scn, cm, _ = getActiveContextInfo()
 
         if matrixReallyIsDirty(cm):
-            layout.label("Matrix is dirty!")
+            layout.label(text="Matrix is dirty!")
             return
         if not Caches.cacheExists(cm):
-            layout.label("Matrix not cached!")
+            layout.label(text="Matrix not cached!")
             return
 
         col1 = layout.column(align=True)
@@ -1095,13 +1099,13 @@ class BrickDetailsPanel(Panel):
         elif cm.modelCreated:
             bricksDict, _ = getBricksDict(cm=cm)
         if bricksDict is None:
-            layout.label("Matrix not available")
+            layout.label(text="Matrix not available")
             return
         try:
             dictKey = listToStr(tuple(cm.activeKey))
             brickD = bricksDict[dictKey]
         except Exception as e:
-            layout.label("No brick details available")
+            layout.label(text="No brick details available")
             if len(bricksDict) == 0:
                 print("[Bricker] Skipped drawing Brick Details")
             elif str(e)[1:-1] == dictKey:
@@ -1121,7 +1125,7 @@ class BrickDetailsPanel(Panel):
         col = split.column(align=True)
         col.scale_y = 0.65
         row = col.row(align=True)
-        row.label("key:")
+        row.label(text="key:")
         for key in keys:
             row = col.row(align=True)
             row.label(key + ":")

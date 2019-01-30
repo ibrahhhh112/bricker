@@ -6,3 +6,6 @@
     * Add many more brick types
     * Improve brick topology for 3D printing
     * Use shader-based bevel as opposed to geometry-based bevel
+
+Add advanced option for brickifying in background, and limit min of max_workers to 1.
+This should run brickify model in background as well, not just anim
