@@ -156,7 +156,7 @@ class BrickModelsPanel(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    if cm.animating:
+                    if cm.brickifyingInBackground:
                         col.scale_y = 0.75
                         row.label(text="Animating in background...")
                         row = col.row(align=True)
@@ -1046,6 +1046,10 @@ class AdvancedPanel(Panel):
             row.label("Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
+        row = col.row(align=True)
+        row.label("Other:")
+        row = col.row(align=True)
+        row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
         if testBrickGenerators.drawUIButton():
             col = layout.column(align=True)

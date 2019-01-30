@@ -599,7 +599,10 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         name="Use Local Orient",
         description="Generate bricks based on local orientation of source object",
         default=False)
-
+    brickifyInBackground = BoolProperty(
+        name="Brickify in Background",
+        description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
+        default=True)
     # EXPORT SETTINGS
     exportPath = StringProperty(
         name="Export Path",
@@ -626,7 +629,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
 
     # Internal Model Properties
     modelCreated = BoolProperty(default=False)
-    animating = BoolProperty(default=False)
+    brickifyingInBackground = BoolProperty(default=False)
     numAnimatedFrames = IntProperty(default=0)
     animated = BoolProperty(default=False)
     materialApplied = BoolProperty(default=False)

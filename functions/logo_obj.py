@@ -32,7 +32,7 @@ def removeDoubles(obj):
     obj.data.update()
 
 
-def getLegoLogo(self, scn, typ, res, decimate, dimensions):
+def getLegoLogo(scn, typ, res, decimate, dimensions):
     # update refLogo
     if typ == "NONE":
         refLogo = None

@@ -144,7 +144,7 @@ class BrickerDelete(bpy.types.Operator):
             bricks = getBricks()
             pivot_point = bricks[0].matrix_world.to_translation()
 
-        if cm.animating:
+        if cm.brickifyingInBackground:
             JobManager = SCENE_OT_job_manager.get_instance(cm.id)
             JobManager.kill_all()
 

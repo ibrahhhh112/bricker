@@ -42,7 +42,7 @@ from .mat_utils import *
 
 
 @timed_call('Time Elapsed')
-def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
+def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
     zStep = getZStep(cm)
@@ -244,7 +244,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 continue
             loc = getDictLoc(bricksDict, k2)
             # create brick based on the current brick info
-            drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
+            drawBrick(cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, cm.customObject1, cm.customObject2, cm.customObject3, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
             i += 1
