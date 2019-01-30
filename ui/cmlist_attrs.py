@@ -384,7 +384,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Saturation of the subsurface scattering for the created materials (relative to base color value)",
         precision=3,
         min=0.0, max=10.0,
-        default=0.0,
+        default=1.0,
         update=dirtyMaterial)
     colorSnapIOR = FloatProperty(
         name="IOR",

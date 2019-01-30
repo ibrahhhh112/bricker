@@ -167,7 +167,7 @@ def getFirstNode(mat, types:list=None):
             return node
 
 
-def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
+def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -211,7 +211,6 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 # set values for Principled BSDF
                 principled.inputs[0].default_value = rgba
                 principled.inputs[1].default_value = sss
-                sat_mat = getSaturationMatrix(sssSat)
                 principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) * sat_mat).to_tuple()
                 principled.inputs[5].default_value = specular
                 principled.inputs[7].default_value = roughness
@@ -272,6 +271,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 rgba1 = first_node.inputs[0].default_value
                 newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 first_node.inputs[0].default_value = newRGBA
+                first_node.inputs[3].default_value[:3] = (Vector(newRGBA[:3]) * sat_mat).to_tuple()
     mat.num_averaged += 1
     return mat_name
 
