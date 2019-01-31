@@ -558,3 +558,6 @@ def getBrickMats(materialType, cm_id):
         matObj = getMatObject(cm_id, typ="RANDOM")
         brick_mats = list(matObj.data.materials.keys())
     return brick_mats
+
+def bricker_handle_exception():
+    handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")

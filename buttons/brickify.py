@@ -99,7 +99,7 @@ class BrickerBrickify(bpy.types.Operator):
                     errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
                     for line in self.JobManager.get_job_status(job)["stderr"]:
                         errormsg += line + "\n"
-                    print_exception("Bricker_log", errormsg=errormsg)
+                    print_exception("Bricker log", errormsg=errormsg)
                     self.report({"WARNING"}, "Dropped frame %(frame)s of model '%(n)s'" % locals())
                     tag_redraw_areas("VIEW_3D")
                     cm.numAnimatedFrames += 1
@@ -139,7 +139,7 @@ class BrickerBrickify(bpy.types.Operator):
                 cm.modelCreated = previously_model_created
             self.report({"WARNING"}, "Process forcably interrupted with 'KeyboardInterrupt'")
         except:
-            handle_exception()
+            bricker_handle_exception()
         wm.Bricker_runningBlockingOperation = False
         if cm.animated and cm.brickifyInBackground:
             cm.brickifyingInBackground = True

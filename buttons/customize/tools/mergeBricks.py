@@ -98,7 +98,7 @@ class mergeBricks(Operator):
             # select the new objects created
             select(objsToSelect)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ################################################

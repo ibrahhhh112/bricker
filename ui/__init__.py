@@ -225,14 +225,14 @@ class BrickModelsPanel(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
 
-        if bpy.data.texts.find('Bricker_log') >= 0:
+        if bpy.data.texts.find('Bricker log') >= 0:
             split = layout.split(align=True, percentage=0.9)
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("bricker.report_error", text="Report Error", icon="URL")
+            row.operator("scene.report_error", text="Report Error", icon="URL").addon_name = "Bricker"
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
+            row.operator("scene.close_report_error", text="", icon="PANEL_CLOSE").addon_name = "Bricker"
 
 
 def is_baked(mod):
@@ -730,7 +730,7 @@ class MaterialsPanel(Panel):
                     row.label("Switch to 'Cycles' for Brick materials")
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
-                    row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                    row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     # import settings
                     if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
@@ -817,7 +817,7 @@ class MaterialsPanel(Panel):
                     col1.operator("bricker.mat_list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
                     if not brick_materials_loaded():
-                        col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                        col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
                     # import settings

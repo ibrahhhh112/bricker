@@ -51,7 +51,7 @@ class Caches(bpy.types.Operator):
             self.undo_stack.iterateStates(cm)
             cm.matrixIsDirty = True
         except:
-            handle_exception()
+            bricker_handle_exception()
 
         return{"FINISHED"}
 

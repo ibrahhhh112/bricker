@@ -51,7 +51,7 @@ class BrickerRevertSettings(Operator):
         try:
             self.revertMatrixSettings()
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ################################################

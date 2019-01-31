@@ -67,7 +67,7 @@ class cmlist_actions(bpy.types.Operator):
             elif self.action == 'UP' and idx >= 1:
                 self.moveUp(item)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ###################################################
@@ -210,7 +210,7 @@ class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
                 if cm0 != cm1:
                     matchProperties(cm1, cm0, overrideIdx=cm1.idx)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 
@@ -233,7 +233,7 @@ class Bricker_Uilist_copySettings(bpy.types.Operator):
             scn, cm, _ = getActiveContextInfo()
             scn.Bricker_copy_from_id = cm.id
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 
@@ -259,7 +259,7 @@ class Bricker_Uilist_pasteSettings(bpy.types.Operator):
                     matchProperties(cm0, cm1)
                     break
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 
@@ -284,7 +284,7 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
         try:
             select(getBricks(), deselect=self.deselect)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 

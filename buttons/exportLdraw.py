@@ -49,7 +49,7 @@ class exportLdraw(Operator):
         try:
             self.writeLdrawFile()
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     #############################################

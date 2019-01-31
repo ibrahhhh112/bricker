@@ -129,7 +129,7 @@ class drawAdjacent(Operator):
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
             if orig_obj: select(orig_obj, active=True)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -180,7 +180,7 @@ class drawAdjacent(Operator):
             except TypeError:
                 pass
         except:
-            handle_exception()
+            bricker_handle_exception()
 
     ###################################################
     # class variables

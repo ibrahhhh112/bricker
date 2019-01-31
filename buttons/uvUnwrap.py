@@ -16,20 +16,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import time
+# NONE!
 
 # Blender imports
 import bpy
 
 # Addon imports
 from ..functions import *
-from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
-class addAbsToMatObj(bpy.types.Operator):
-    """Add all ABS Plastic Materials to the list of materials to use for Brickifying object"""
-    bl_idname = "bricker.add_abs_plastic_materials"
-    bl_label = "Add ABS Plastic Materials"
+class BrickerUVUnwrap(bpy.types.Operator):
+    """ Create Smart UV Project for bricks """
+    bl_idname = "bricker.delete_model"
+    bl_label = "Delete Brickified model from Blender"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -38,23 +37,22 @@ class addAbsToMatObj(bpy.types.Operator):
     @classmethod
     def poll(self, context):
         """ ensures operator can execute (if not, returns false) """
-        scn = bpy.context.scene
-        if scn.cmlist_index == -1:
-            return False
         return True
 
     def execute(self, context):
-        try:
-            scn, cm, _ = getActiveContextInfo()
-            matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-            cm.materialIsDirty = True
-            for mat_name in getMatNames():
-                mat = bpy.data.materials.get(mat_name)
-                if mat is not None and mat_name not in matObj.data.materials:
-                    matObj.data.materials.append(mat)
-
-        except:
-            bricker_handle_exception()
+        bricks = getBricks()
+        select(bricks, only=True, active=True)
+        bpy.ops.uv.smart_project()
         return{"FINISHED"}
 
     ################################################
+    # initialization method
+
+    def __init__(self):
+        pass
+
+    #############################################
+    # class methods
+
+
+    #############################################

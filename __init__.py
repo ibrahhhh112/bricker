@@ -45,6 +45,7 @@ from .buttons import *
 from .buttons.customize import *
 from .operators import *
 from .lib.preferences import *
+from .lib.reportError import *
 # from .lib.rigid_body_props import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 from .lib import keymaps

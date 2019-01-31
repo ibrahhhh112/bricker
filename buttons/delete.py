@@ -66,7 +66,7 @@ class BrickerDelete(bpy.types.Operator):
             self.undo_stack.iterateStates(cm)
             self.runFullDelete()
         except:
-            handle_exception()
+            bricker_handle_exception()
         wm.Bricker_runningBlockingOperation = False
 
         return{"FINISHED"}

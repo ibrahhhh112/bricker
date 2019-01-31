@@ -63,7 +63,7 @@ class changeBrickType(Operator):
         try:
             self.changeType()
         except:
-            handle_exception()
+            bricker_handle_exception()
         wm.Bricker_runningBlockingOperation = False
         return {"FINISHED"}
 
@@ -101,7 +101,7 @@ class changeBrickType(Operator):
                 break
             self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
         except:
-            handle_exception()
+            bricker_handle_exception()
 
     ###################################################
     # class variables
