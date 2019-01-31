@@ -49,8 +49,6 @@ from .lib.reportError import *
 # from .lib.rigid_body_props import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 from .lib import keymaps
-
-# updater import
 from . import addon_updater_ops
 
 # store keymaps here to access after registration

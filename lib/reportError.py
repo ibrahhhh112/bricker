@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-import time
 import os
 
 # Blender imports
