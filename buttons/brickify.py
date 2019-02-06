@@ -269,7 +269,7 @@ class BrickerBrickify(bpy.types.Operator):
                 bpy.ops.uv.smart_project()
                 obj.select = False
 
-        if False and cm.materialType == "SOURCE" and cm.colorSnap == "RGB" and brick_materials_loaded():
+        if bpy.props.Bricker_developer_mode > 0 and cm.materialType == "SOURCE" and cm.colorSnap == "RGB" and brick_materials_loaded():
             for mat in bpy.data.materials:
                 if mat.name.startswith("Bricker") and not mat.name.endswith("internal"):
                     nodes = mat.node_tree.nodes

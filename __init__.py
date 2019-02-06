@@ -16,18 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name"        : "Blocker",
+    "name"        : "Bricker",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 6, 0),
+    "version"     : (1, 6, 01),
     "blender"     : (2, 79, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
-    "location"    : "View3D > Tools > Blocker",
+    "location"    : "View3D > Tools > Bricker",
     "warning"     : "",  # used for warning icon and text in addons panel
     "wiki_url"    : "",
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 
