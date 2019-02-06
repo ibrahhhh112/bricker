@@ -68,6 +68,8 @@ class InitializeUndoStack(Operator):
         # add new scn.cmlist item
         if self.action == "ADD":
             cmlist_actions.addItem()
+        for cm in context.scene.cmlist:
+            cm.customObject1 = bpy.data.objects.get("Six-Sided Cube (high)")
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

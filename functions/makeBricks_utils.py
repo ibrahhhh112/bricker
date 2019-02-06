@@ -213,6 +213,15 @@ def getRandomRotMatrix(randomRot, rand, brickSize):
     x = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
     y = rand.uniform(-math.radians(11.25) * mult, math.radians(11.25) * mult)
     z = rand.uniform(-math.radians(45)    * mult, math.radians(45)    * mult)
+    rotChoices = ((math.radians(180), 0, 0),
+                  (math.radians(90), 0, math.radians(90)),
+                  (0, math.radians(90), math.radians(90)),
+                  (0, math.radians(-90), math.radians(90)),
+                  (math.radians(-90), 0, math.radians(90)))
+    randInt = rand.randint(0,5)
+    x += rotChoices[randInt][0]
+    y += rotChoices[randInt][1]
+    z += rotChoices[randInt][2]
     # get rotation matrix
     x_mat = Matrix.Rotation(x, 4, 'X')
     y_mat = Matrix.Rotation(y, 4, 'Y')

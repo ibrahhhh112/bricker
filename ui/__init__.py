@@ -294,13 +294,13 @@ class AnimationPanel(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            col = layout.column(align=True)
-            row = col.row(align=True)
-            row.label(text="Background Processing:")
-            row = col.row(align=True)
-            row.prop(cm, "maxWorkers")
-            row = col.row(align=True)
-            row.prop(cm, "backProcTimeout")
+            # col = layout.column(align=True)
+            # row = col.row(align=True)
+            # row.label(text="Background Processing:")
+            # row = col.row(align=True)
+            # row.prop(cm, "maxWorkers")
+            # row = col.row(align=True)
+            # row.prop(cm, "backProcTimeout")
 
 
 class ModelTransformPanel(Panel):
@@ -417,40 +417,40 @@ class ModelSettingsPanel(Panel):
                 col2.label("{}x{}x{}".format(int(r.x), int(r.y), int(r.z)))
         row = col.row(align=True)
         row.prop(cm, "brickHeight")
-        row = col.row(align=True)
-        row.prop(cm, "gap")
+        # row = col.row(align=True)
+        # row.prop(cm, "gap")
 
-        row = col.row(align=True)
-        row.label("Randomize:")
-        row = col.row(align=True)
-        split = row.split(align=True, percentage=0.5)
-        col1 = split.column(align=True)
-        col1.prop(cm, "randomLoc", text="Loc")
-        col2 = split.column(align=True)
-        col2.prop(cm, "randomRot", text="Rot")
+        # row = col.row(align=True)
+        # row.label("Randomize:")
+        # row = col.row(align=True)
+        # split = row.split(align=True, percentage=0.5)
+        # col1 = split.column(align=True)
+        # col1.prop(cm, "randomLoc", text="Loc")
+        # col2 = split.column(align=True)
+        # col2.prop(cm, "randomRot", text="Rot")
 
-        col = layout.column(align=True)
+        # row = col.row(align=True)
+        # row.label("Brick Shell:")
+        # row = col.row(align=True)
+        # row.prop(cm, "brickShell", text="")
+        # if cm.brickShell != "INSIDE":
+        #     row = col.row(align=True)
+        #     row.prop(cm, "calculationAxes", text="")
         row = col.row(align=True)
-        if not cm.useAnimation:
-            row = col.row(align=True)
-            row.prop(cm, "splitModel")
-
-        row = col.row(align=True)
-        row.label("Brick Shell:")
-        row = col.row(align=True)
-        row.prop(cm, "brickShell", text="")
-        if cm.brickShell != "INSIDE":
-            row = col.row(align=True)
-            row.prop(cm, "calculationAxes", text="")
-        row = col.row(align=True)
-        row.prop(cm, "shellThickness", text="Thickness")
-        obj = cm.source_obj
+        row.prop(cm, "shellThickness", text="Shell Thickness")
+        # obj = cm.source_obj
         # if obj and not cm.isWaterTight:
         #     row = col.row(align=True)
         #     # row.scale_y = 0.7
         #     row.label("(Source is NOT single closed mesh)")
         #     # row = col.row(align=True)
         #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh", icon="EDIT")
+
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        # if not cm.useAnimation:
+        #     row = col.row(align=True)
+        #     row.prop(cm, "splitModel")
 
 
 
@@ -516,9 +516,10 @@ class BrickTypesPanel(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
-            return False
-        return True
+        return False
+        # if not settingsCanBeDrawn():
+        #     return False
+        # return True
 
     def draw(self, context):
         layout = self.layout
@@ -569,13 +570,14 @@ class MergeSettingsPanel(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
-            return False
-        scn = bpy.context.scene
-        if scn.cmlist_index == -1:
-            return False
-        cm = scn.cmlist[scn.cmlist_index]
-        return mergableBrickType(cm.brickType)
+        return False
+        # if not settingsCanBeDrawn():
+        #     return False
+        # scn = bpy.context.scene
+        # if scn.cmlist_index == -1:
+        #     return False
+        # cm = scn.cmlist[scn.cmlist_index]
+        # return mergableBrickType(cm.brickType)
 
     def draw(self, context):
         layout = self.layout
@@ -849,31 +851,33 @@ class MaterialsPanel(Panel):
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
                 col.label(nodeNamesStr)
-            if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
-                if scn.render.engine in ["CYCLES", "octane"]:
-                    col = layout.column(align=True)
-                    col.label("Material Properties:")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapSpecular")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapRoughness")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapIOR")
-                if scn.render.engine == "CYCLES":
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapSubsurface")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapSubsurfaceSaturation")
-                    row = col.row(align=True)
-                    row.prop(cm, "colorSnapTransmission")
-                if scn.render.engine in ["CYCLES", "octane"]:
-                    row = col.row(align=True)
-                    row.prop(cm, "includeTransparency")
-                col = layout.column(align=False)
-                col.scale_y = 0.5
-                col.separator()
-            elif noUV:
-                col.separator()
+            if cm.colorSnap == "RGB" and not brick_materials_loaded():
+                col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
+            # if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
+            #     if scn.render.engine in ["CYCLES", "octane"]:
+            #         col = layout.column(align=True)
+            #         col.label("Material Properties:")
+            #         row = col.row(align=True)
+            #         row.prop(cm, "colorSnapSpecular")
+            #         row = col.row(align=True)
+            #         row.prop(cm, "colorSnapRoughness")
+            #         row = col.row(align=True)
+            #         row.prop(cm, "colorSnapIOR")
+            #     if scn.render.engine == "CYCLES":
+            #         row = col.row(align=True)
+            #         row.prop(cm, "colorSnapSubsurface")
+            #         row = col.row(align=True)
+            #         row.prop(cm, "colorSnapSubsurfaceSaturation")
+            #         row = col.row(align=True)
+            #         row.prop(cm, "colorSnapTransmission")
+            #     if scn.render.engine in ["CYCLES", "octane"]:
+            #         row = col.row(align=True)
+            #         row.prop(cm, "includeTransparency")
+            #     col = layout.column(align=False)
+            #     col.scale_y = 0.5
+            #     col.separator()
+            # elif noUV:
+            #     col.separator()
 
 
 
@@ -896,51 +900,60 @@ class DetailingPanel(Panel):
         layout = self.layout
         scn, cm, _ = getActiveContextInfo()
 
-        if cm.brickType == "CUSTOM":
-            col = layout.column(align=True)
-            col.scale_y = 0.7
-            row = col.row(align=True)
-            row.label("(not applied to custom")
-            row = col.row(align=True)
-            row.label("brick types)")
-            layout.separator()
+        # if cm.brickType == "CUSTOM":
+        #     col = layout.column(align=True)
+        #     col.scale_y = 0.7
+        #     row = col.row(align=True)
+        #     row.label("(not applied to custom")
+        #     row = col.row(align=True)
+        #     row.label("brick types)")
+        #     layout.separator()
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label("Studs:")
-        row = col.row(align=True)
-        row.prop(cm, "studDetail", text="")
-        row = col.row(align=True)
-        row.label("Logo:")
-        row = col.row(align=True)
-        row.prop(cm, "logoType", text="")
-        if cm.logoType != "NONE":
-            if cm.logoType == "LEGO":
-                row = col.row(align=True)
-                row.prop(cm, "logoResolution", text="Resolution")
-                row.prop(cm, "logoDecimate", text="Decimate")
-                row = col.row(align=True)
-            else:
-                row = col.row(align=True)
-                row.prop_search(cm, "logoObject", scn, "objects", text="")
-                row = col.row(align=True)
-                row.prop(cm, "logoScale", text="Scale")
-            row.prop(cm, "logoInset", text="Inset")
-            col = layout.column(align=True)
-        row = col.row(align=True)
-        row.label("Underside:")
-        row = col.row(align=True)
-        row.prop(cm, "hiddenUndersideDetail", text="")
-        row.prop(cm, "exposedUndersideDetail", text="")
-        row = col.row(align=True)
-        row.label("Cylinders:")
-        row = col.row(align=True)
-        row.prop(cm, "circleVerts")
-        row = col.row(align=True)
-        row.prop(cm, "loopCut")
-        row.active = not (cm.studDetail == "NONE" and cm.exposedUndersideDetail == "FLAT" and cm.hiddenUndersideDetail == "FLAT")
+        # row = col.row(align=True)
+        # row.label("Studs:")
+        # row = col.row(align=True)
+        # row.prop(cm, "studDetail", text="")
+        # row = col.row(align=True)
+        # row.label("Logo:")
+        # row = col.row(align=True)
+        # row.prop(cm, "logoType", text="")
+        # if cm.logoType != "NONE":
+        #     if cm.logoType == "LEGO":
+        #         row = col.row(align=True)
+        #         row.prop(cm, "logoResolution", text="Resolution")
+        #         row.prop(cm, "logoDecimate", text="Decimate")
+        #         row = col.row(align=True)
+        #     else:
+        #         row = col.row(align=True)
+        #         row.prop_search(cm, "logoObject", scn, "objects", text="")
+        #         row = col.row(align=True)
+        #         row.prop(cm, "logoScale", text="Scale")
+        #     row.prop(cm, "logoInset", text="Inset")
+        #     col = layout.column(align=True)
+        # row = col.row(align=True)
+        # row.label("Underside:")
+        # row = col.row(align=True)
+        # row.prop(cm, "hiddenUndersideDetail", text="")
+        # row.prop(cm, "exposedUndersideDetail", text="")
+        # row = col.row(align=True)
+        # row.label("Cylinders:")
+        # row = col.row(align=True)
+        # row.prop(cm, "circleVerts")
+        # row = col.row(align=True)
+        # row.prop(cm, "loopCut")
+        # row.active = not (cm.studDetail == "NONE" and cm.exposedUndersideDetail == "FLAT" and cm.hiddenUndersideDetail == "FLAT")
 
+        # if cm.modelCreated or cm.animated:
+        #     row = col.row(align=True)
+        #     row.operator("bricker.unwrap_model", text="UV Unwrap", icon="MOD_UVPROJECT")
+        if not cm.useAnimation:
+            row = col.row(align=True)
+            row.prop(cm, "uvUnwrap", text="UV Unwrap")
         row = col.row(align=True)
-        row.label("Bevel:")
+        row.prop(cm, "moldPattern")
+
+        # row = col.row(align=True)
+        # row.label("Bevel:")
         row = col.row(align=True)
         if not (cm.modelCreated or cm.animated):
             row.prop(cm, "bevelAdded", text="Bevel Bricks")
@@ -1046,10 +1059,10 @@ class AdvancedPanel(Panel):
             row.label("Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
-        row = col.row(align=True)
-        row.label("Other:")
-        row = col.row(align=True)
-        row.prop(cm, "brickifyInBackground")
+        # row = col.row(align=True)
+        # row.label("Other:")
+        # row = col.row(align=True)
+        # row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
         if testBrickGenerators.drawUIButton():
             col = layout.column(align=True)
@@ -1150,14 +1163,15 @@ class ExportPanel(Panel):
 
     @classmethod
     def poll(self, context):
-        if not settingsCanBeDrawn():
-            return False
-        scn, cm, _ = getActiveContextInfo()
-        if createdWithUnsupportedVersion(cm):
-            return False
-        if not (cm.modelCreated or cm.animated):
-            return False
-        return True
+        return False
+        # if not settingsCanBeDrawn():
+        #     return False
+        # scn, cm, _ = getActiveContextInfo()
+        # if createdWithUnsupportedVersion(cm):
+        #     return False
+        # if not (cm.modelCreated or cm.animated):
+        #     return False
+        # return True
 
     def draw(self, context):
         layout = self.layout

@@ -147,6 +147,11 @@ class cmlist_actions(bpy.types.Operator):
             if matObj is None:
                 matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
                 getSafeScn().objects.link(matObj)
+        obj = bpy.data.objects.get("Six-Sided Cube (high)")
+        if obj is None:
+            loadBlockModel()
+            obj = bpy.data.objects.get("Six-Sided Cube (high)")
+        item.customObject1 = obj
 
     def removeItem(cls, idx):
         scn, cm, sn = getActiveContextInfo()

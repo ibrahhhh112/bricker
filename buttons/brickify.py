@@ -25,6 +25,7 @@ import json
 # Blender imports
 import bpy
 from mathutils import Matrix, Vector, Euler
+from bpy.types import Object, Scene
 props = bpy.props
 
 # Addon imports
@@ -191,6 +192,7 @@ class BrickerBrickify(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo()
         self.undo_stack.iterateStates(cm)
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
+        cm.customObject1 = bpy.data.objects.get("Six-Sided Cube " + ("(high)" if cm.moldPattern else "(low)"))
 
         # ensure that Bricker can run successfully
         if not self.isValid(scn, cm, n, self.source, Bricker_bricks_gn):
@@ -257,8 +259,42 @@ class BrickerBrickify(bpy.types.Operator):
         cm.version = bpy.props.bricker_version
         cm.exposeParent = False
 
-        if not cm.brickifyInBackground:
-            self.finishBrickify()
+        if cm.animated and not cm.brickifyInBackground:
+            self.finishAnimation()
+
+        if cm.modelCreated and cm.lastSplitModel and cm.uvUnwrap:
+            obj = getBricks(cm)[0]
+            if len(obj.data.uv_layers) == 0:
+                select(obj, only=True, active=True)
+                bpy.ops.uv.smart_project()
+                obj.select = False
+
+        if False and cm.materialType == "SOURCE" and cm.colorSnap == "RGB" and brick_materials_loaded():
+            for mat in bpy.data.materials:
+                if mat.name.startswith("Bricker") and not mat.name.endswith("internal"):
+                    nodes = mat.node_tree.nodes
+                    # add nodes
+                    if nodes.get("Group") is None:
+                        rot = math.radians(90)
+                        n_bump = nodes.new("ShaderNodeGroup")
+                        n_bump.node_tree = bpy.data.node_groups.get("ABS_Bump")
+                        n_scale = nodes.new("ShaderNodeGroup")
+                        n_scale.node_tree = bpy.data.node_groups.get("ABS_Uniform Scale")
+                        n_uv = nodes.new("ShaderNodeUVMap")
+                        n_output = nodes.get("Material Output")
+
+                        links = mat.node_tree.links
+                        links.new(n_bump.outputs["Color"], n_output.inputs["Displacement"])
+                        links.new(n_scale.outputs["Vector"], n_bump.inputs["Vector"])
+                        links.new(n_uv.outputs["UV"], n_scale.inputs["Vector"])
+                    else:
+                        rot = math.radians(0)
+                        n_bump = nodes.get("Group")
+
+                    # adjust bump values
+                    n_bump.inputs[0].default_value = 0.015 # noise
+                    n_bump.inputs[1].default_value = 0.075 # waves
+                    n_bump.inputs[3].default_value = 0.025 # fingerprints
 
         # unlink source from scene and link to safe scene
         if self.source.name in scn.objects.keys():

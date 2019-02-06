@@ -27,8 +27,8 @@ from ..functions import *
 
 class BrickerUVUnwrap(bpy.types.Operator):
     """ Create Smart UV Project for bricks """
-    bl_idname = "bricker.delete_model"
-    bl_label = "Delete Brickified model from Blender"
+    bl_idname = "bricker.unwrap_model"
+    bl_label = "Create Smart UV Project for bricks"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################
@@ -40,9 +40,17 @@ class BrickerUVUnwrap(bpy.types.Operator):
         return True
 
     def execute(self, context):
+        act = context.object
+        selection = context.selected_objects
+        scn, cm, n = getActiveContextInfo()
         bricks = getBricks()
+        if cm.modelCreated and cm.lastSplitModel:
+            bricks = bricks[0]
         select(bricks, only=True, active=True)
         bpy.ops.uv.smart_project()
+        select(selection, only=True)
+        scn.objects.active = act
+        cm.uvUnwrap = True
         return{"FINISHED"}
 
     ################################################
