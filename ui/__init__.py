@@ -294,13 +294,14 @@ class AnimationPanel(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            col = layout.column(align=True)
-            row = col.row(align=True)
-            row.label(text="Background Processing:")
-            row = col.row(align=True)
-            row.prop(cm, "maxWorkers")
-            row = col.row(align=True)
-            row.prop(cm, "backProcTimeout")
+            if cm.brickifyInBackground:
+                col = layout.column(align=True)
+                row = col.row(align=True)
+                row.label(text="Background Processing:")
+                row = col.row(align=True)
+                row.prop(cm, "maxWorkers")
+                row = col.row(align=True)
+                row.prop(cm, "backProcTimeout")
 
 
 class ModelTransformPanel(Panel):

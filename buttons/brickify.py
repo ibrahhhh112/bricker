@@ -257,8 +257,8 @@ class BrickerBrickify(bpy.types.Operator):
         cm.version = bpy.props.bricker_version
         cm.exposeParent = False
 
-        if not cm.brickifyInBackground:
-            self.finishBrickify()
+        if cm.animated and not cm.brickifyInBackground:
+            self.finishAnimation()
 
         # unlink source from scene and link to safe scene
         if self.source.name in scn.objects.keys():
