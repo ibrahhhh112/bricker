@@ -650,41 +650,41 @@ class CustomizeModel(Panel):
         #     layout.operator("bricker.initialize", icon="MODIFIER")
         #     return
 
-        col1 = layout.column(align=True)
-        col1.label("Selection:")
-        split = col1.split(align=True, percentage=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_type", text="By Type")
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_size", text="By Size")
-
-        col1 = layout.column(align=True)
-        col1.label("Toggle Exposure:")
-        split = col1.split(align=True, percentage=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.set_exposure", text="Top").side = "TOP"
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
+        # col1 = layout.column(align=True)
+        # col1.label("Selection:")
+        # split = col1.split(align=True, percentage=0.5)
+        # # set top exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.select_bricks_by_type", text="By Type")
+        # # set bottom exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.select_bricks_by_size", text="By Size")
+        #
+        # col1 = layout.column(align=True)
+        # col1.label("Toggle Exposure:")
+        # split = col1.split(align=True, percentage=0.5)
+        # # set top exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.set_exposure", text="Top").side = "TOP"
+        # # set bottom exposed
+        # col = split.column(align=True)
+        # col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
 
         col1 = layout.column(align=True)
         col1.label("Brick Operations:")
         split = col1.split(align=True, percentage=0.5)
-        # split brick into 1x1s
-        col = split.column(align=True)
-        col.operator("bricker.split_bricks", text="Split")
-        # merge selected bricks
-        col = split.column(align=True)
-        col.operator("bricker.merge_bricks", text="Merge")
+        # # split brick into 1x1s
+        # col = split.column(align=True)
+        # col.operator("bricker.split_bricks", text="Split")
+        # # merge selected bricks
+        # col = split.column(align=True)
+        # col.operator("bricker.merge_bricks", text="Merge")
         # Add identical brick on +/- x/y/z
         row = col1.row(align=True)
         row.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
-        # change brick type
-        row = col1.row(align=True)
-        row.operator("bricker.change_brick_type", text="Change Type")
+        # # change brick type
+        # row = col1.row(align=True)
+        # row.operator("bricker.change_brick_type", text="Change Type")
         # change material type
         row = col1.row(align=True)
         row.operator("bricker.change_brick_material", text="Change Material")

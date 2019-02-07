@@ -191,7 +191,8 @@ class drawAdjacent(Operator):
 
     # get items for brickType prop
     def get_items(self, context):
-        items = getAvailableTypes(by="ACTIVE", includeSizes="ALL")
+        items = [("CUSTOM 1", "Sertan Block", "Sertan Block")]
+        # items = getAvailableTypes(by="ACTIVE", includeSizes="ALL")
         return items
 
     # define props for popup
@@ -231,8 +232,8 @@ class drawAdjacent(Operator):
         newBrickHeight = 1 if targetType in getBrickTypes(height=1) else 3
         return newBrickHeight
 
-    def getNewCoord(self, cm, co, dimensions, side, newBrickHeight):
-        full_d = [dimensions["width"], dimensions["width"], dimensions["height"]]
+    def getNewCoord(self, cm, co, dimensions, side, newBrickHeight, offset:Vector=Vector((1, 1, 1))):
+        full_d = [dimensions["width"] * offset.x, dimensions["width"] * offset.y, dimensions["height"] * offset.z]
         co = list(co)
         if side in (0, 2, 4):  # positive directions
             co[side//2] += full_d[side//2]
@@ -261,7 +262,7 @@ class drawAdjacent(Operator):
                 newDictLoc[side//2] += (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
             theKey = listToStr(newDictLoc)
             co0 = self.bricksDict[theKey]["co"]
-            co = self.getNewCoord(cm, co0, dimensions, side, newBrickHeight)
+            co = self.getNewCoord(cm, co0, dimensions, side, newBrickHeight, offset=Vector(cm.distOffset) if "CUSTOM" in cm.brickType else Vector((1, 1, 1)))
             self.bricksDict[adjacent_key] = createBricksDictEntry(
                 name=              'Bricker_%(n)s_brick__%(adjacent_key)s' % locals(),
                 loc=               adjacent_loc,
