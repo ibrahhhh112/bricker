@@ -505,7 +505,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         update=dirtyBricks,
         default=False)
     injectionPattern = BoolProperty(
-        name="Injection Pattern",
+        name="Injection Mold Pattern",
         description="Add a cylindrical injection pattern to the blocks",
         update=dirtyBricks,
         default=True)

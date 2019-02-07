@@ -950,7 +950,7 @@ class DetailingPanel(Panel):
             row = col.row(align=True)
             row.prop(cm, "uvUnwrap", text="UV Unwrap")
         row = col.row(align=True)
-        row.prop(cm, "InjectionPattern")
+        row.prop(cm, "injectionPattern")
 
         # row = col.row(align=True)
         # row.label("Bevel:")
