@@ -192,7 +192,7 @@ class BrickerBrickify(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo()
         self.undo_stack.iterateStates(cm)
         Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-        cm.customObject1 = bpy.data.objects.get("Six-Sided Cube " + ("(high)" if cm.moldPattern else "(low)"))
+        cm.customObject1 = bpy.data.objects.get("Six-Sided Cube " + ("(high)" if cm.injectionPattern else "(low)"))
 
         # ensure that Bricker can run successfully
         if not self.isValid(scn, cm, n, self.source, Bricker_bricks_gn):

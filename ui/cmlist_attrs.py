@@ -504,9 +504,9 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         description="Make loop cut on cylinders so that bevel operation can bevel base of studs",
         update=dirtyBricks,
         default=False)
-    moldPattern = BoolProperty(
-        name="Mold Pattern",
-        description="Add a cylindrical mold pattern to the blocks",
+    injectionPattern = BoolProperty(
+        name="Injection Pattern",
+        description="Add a cylindrical injection pattern to the blocks",
         update=dirtyBricks,
         default=True)
     uvUnwrap = BoolProperty(
