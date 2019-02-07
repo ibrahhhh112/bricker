@@ -56,7 +56,6 @@ addon_keymaps = []
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.props.bricker_module_name = __name__
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
     bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
 
@@ -69,9 +68,6 @@ def register():
     Object.isBrick = BoolProperty(name='Is Brick', default=False)
     Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
     Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
-
-    # # backup rigid body settings
-    # bpy.types.Object.rigid_body_settings = PointerProperty(type=Bricker_RigidBodySettings)
 
     WindowManager.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
@@ -165,7 +161,6 @@ def unregister():
     del bpy.props.bricker_initialized
     del bpy.props.bricker_preferences
     del bpy.props.bricker_version
-    del bpy.props.bricker_module_name
 
     # handle the keymaps
     wm = bpy.context.window_manager
