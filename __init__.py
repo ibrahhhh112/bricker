@@ -16,9 +16,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name"        : "Bricker",
+    "name"        : "Bricker (Sertan)",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
-    "version"     : (1, 6, 01),
+    "version"     : (1, 6, 0),
     "blender"     : (2, 79, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
@@ -56,7 +56,6 @@ addon_keymaps = []
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.props.bricker_module_name = __name__
     bpy.props.bricker_version = str(bl_info["version"])[1:-1].replace(", ", ".")
     bpy.props.bricker_preferences = bpy.context.user_preferences.addons[__package__].preferences
 
