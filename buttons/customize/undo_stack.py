@@ -36,17 +36,17 @@ class UndoStack():
     bl_region_type = 'TOOLS'
 
     @staticmethod
-    def get_instance():
-        if UndoStack.instance is None:
-            UndoStack.creating = True
-            UndoStack.instance = UndoStack()
-            del UndoStack.creating
-        UndoStack.instance.reset()
+    def get_instance(reset=False):
+        if UndoStack.instance is None or reset:
+            UndoStack.new()
         return UndoStack.instance
 
-    def reset(self):
-        """ runs every time the instance is gotten """
-        pass
+    @staticmethod
+    def new():
+        UndoStack.creating = True
+        UndoStack.instance = UndoStack()
+        del UndoStack.creating
+        return UndoStack.instance
 
     ################################################
     # initialization method
@@ -98,18 +98,14 @@ class UndoStack():
             bricker_bfm_cache[key] = json.loads(state['bfm_cache'][key])
 
     def appendState(self, action, stack, stackType, affected_ids="ALL"):
-        if action == "undo" and stackType == "redo":
-            new_bfm_cache = self.undo[-1]['bfm_cache']
-        elif action == "undo" and stackType == "redo":
-            new_bfm_cache = self.redo[-1]['bfm_cache']
-        else:
-            new_bfm_cache = {}
-            bfm_cached = stack[-1]["bfm_cache"] if len(stack) > 0 else {}
-            for cm_id in bricker_bfm_cache:
-                if affected_ids != "ALL" and cm_id not in affected_ids and cm_id in bfm_cached:
-                    new_bfm_cache[cm_id] = bfm_cached[cm_id]
-                else:
-                    new_bfm_cache[cm_id] = json.dumps(bricker_bfm_cache[cm_id])
+        new_bfm_cache = {}
+        bfm_cached = stack[-1]["bfm_cache"] if len(stack) > 0 else {}
+        global bricker_bfm_cache
+        for cm_id in bricker_bfm_cache:
+            if affected_ids != "ALL" and cm_id not in affected_ids and cm_id in bfm_cached:
+                new_bfm_cache[cm_id] = bfm_cached[cm_id]
+            else:
+                new_bfm_cache[cm_id] = json.dumps(bricker_bfm_cache[cm_id])
         stack.append(self._create_state(action, new_bfm_cache))
         return new_bfm_cache
 
@@ -161,7 +157,7 @@ class UndoStack():
     def instrument_write(self, action):
         if True:
             return # disabled for now...
-        tb_name = 'RetopoFlow_instrumentation'
+        tb_name = 'Bricker_instrumentation'
         if tb_name not in bpy.data.texts:
             bpy.data.texts.new(tb_name)
         tb = bpy.data.texts[tb_name]

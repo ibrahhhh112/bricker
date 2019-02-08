@@ -31,21 +31,22 @@ from ...lib.Brick.legal_brick_sizes import *
 from .undo_stack import *
 
 
-def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
+def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCreated=True, tempBrick=False):
     if len(keysToUpdate) == 0: return
     if not isUnique(keysToUpdate): raise ValueError("keysToUpdate cannot contain duplicate values")
-    print("[Bricker] redrawing...")
+    if action is not None:
+        print("[Bricker] %(action)s..." % locals())
     # get arguments for createNewBricks
     source = cm.source_obj
     source_details, dimensions = getDetailsAndBounds(source, cm)
     n = source.name
     parent = cm.parent_obj
-    logo_details, refLogo = BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
+    logo_details, refLogo = [None, None] if tempBrick else BRICKER_OT_brickify.getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, redraw=True)
+    BRICKER_OT_brickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
     # add bevel if it was previously added
-    if cm.bevelAdded:
+    if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)
         BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
@@ -89,6 +90,11 @@ def verifyBrickExposureAboveAndBelow(scn, zStep, origLoc, bricksDict, decriment=
     # double check exposure of bricks above/below new adjacent brick
     for dictLoc in dictLocs:
         k = listToStr(dictLoc)
+        junk1 = k not in bricksDict
+        try:
+            junk2 = bricksDict[k]
+        except:
+            pass
         if k not in bricksDict:
             continue
         parent_key = k if bricksDict[k]["parent"] == "self" else bricksDict[k]["parent"]
@@ -257,7 +263,6 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             continue
         bricksDict = bricksDicts[cm_id]
         selectedSomething = False
-        zStep = getZStep(cm)
 
         for obj_name in objNamesD[cm_id]:
             # get dict key details of current obj
@@ -265,7 +270,7 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             dictLoc = getDictLoc(bricksDict, dictKey)
             siz = bricksDict[dictKey]["size"]
             typ = bricksDict[dictKey]["type"]
-            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=zStep)
+            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=cm.zStep)
 
             # get current brick object
             curObj = bpy.data.objects.get(obj_name)
@@ -300,3 +305,43 @@ def removeUnusedFromList(cm, brickType="NULL", brickSize="NULL", selectedSomethi
         cm.brickSizesUsed = newLst
     else:
         cm.brickTypesUsed = newLst
+
+
+def getAdjDKLs(cm, bricksDict, dictKey, obj):
+    # initialize vars for self.adjDKLs setup
+    x,y,z = getDictLoc(bricksDict, dictKey)
+    objSize = bricksDict[dictKey]["size"]
+    sX, sY, sZ = objSize[0], objSize[1], objSize[2] // cm.zStep
+    adjDKLs = [[],[],[],[],[],[]]
+    # initialize ranges
+    rgs = [range(x, x + sX),
+           range(y, y + sY),
+           range(z, z + sZ)]
+    # set up self.adjDKLs
+    adjDKLs[0] += [[x + sX, y0, z0] for z0 in rgs[2] for y0 in rgs[1]]
+    adjDKLs[1] += [[x - 1, y0, z0]  for z0 in rgs[2] for y0 in rgs[1]]
+    adjDKLs[2] += [[x0, y + sY, z0] for z0 in rgs[2] for x0 in rgs[0]]
+    adjDKLs[3] += [[x0, y - 1, z0]  for z0 in rgs[2] for x0 in rgs[0]]
+    adjDKLs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
+    adjDKLs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
+    return adjDKLs
+
+
+def installBrickSculpt():
+    if not hasattr(bpy.props, "bricksculpt_module_name"):
+        return False
+    addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
+    Bricker = bpy.props.bricker_module_name
+    BrickSculpt = bpy.props.bricksculpt_module_name
+    paintbrushPathOld = "%(addonsPath)s/%(BrickSculpt)s/paintbrush_framework.py" % locals()
+    paintbrushPathNew = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/paintbrush_framework.py" % locals()
+    fOld = open(paintbrushPathOld, "r")
+    fNew = open(paintbrushPathNew, "w")
+    # write META commands
+    lines = fOld.readlines()
+    fNew.truncate(0)
+    print(lines)
+    fNew.writelines(lines)
+    fOld.close()
+    fNew.close()
+    return True

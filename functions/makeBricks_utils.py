@@ -34,21 +34,22 @@ from .hashObject import hash_object
 from ..lib.Brick import Bricks
 from ..lib.bricksDict import *
 from .common import *
+from .mat_utils import *
 from .wrappers import *
 from .general import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
+def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize, brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS2, randS3):
     brickD = bricksDict[key]
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
-        topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
+        topExposed, botExposed = setAllBrickExposures(bricksDict, cm.zStep, key)
     else:
-        topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
+        topExposed, botExposed = isBrickExposed(bricksDict, cm.zStep, key)
 
     # get brick material
-    mat = getMaterial(cm, bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
+    mat = getMaterial(cm, bricksDict, key, brickSize, cm.zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
 
     # set up arguments for brick mesh
     useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
@@ -67,7 +68,7 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
     randomRotMatrix = getRandomRotMatrix(randomRot, randS2, brickSize) if randomRot > 0 else None
     # get brick location
     locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
-    brickLoc = getBrickCenter(bricksDict, key, zStep, loc) + locOffset
+    brickLoc = getBrickCenter(bricksDict, key, cm.zStep, loc) + locOffset
 
     if split:
         brick = bpy.data.objects.get(brickD["name"])
@@ -90,16 +91,13 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, dimensions, zStep, brickSize, 
                 addEdgeSplitMod(brick)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
-            brick.matrix_world = Matrix.Identity(4) @ randomRotMatrix
+            # resets rotation_euler in case object is reused
+            brick.rotation_euler = Euler((0, 0, 0), "XYZ")
+            brick.rotation_euler.rotate(randomRotMatrix)
         # set brick location
         brick.location = brickLoc
         # set brick material
-        if len(m.materials) > 0 or len(brick.material_slots) > 0:
-            m.materials.clear(update_data=True)
-        if mat is not None or internalMat is not None:
-            m.materials.append(mat or internalMat)
-            brick.material_slots[0].link = 'OBJECT'
-            brick.material_slots[0].material = mat or internalMat
+        setMaterial(brick, mat or internalMat)
         # append to bricksCreated
         bricksCreated.append(brick)
     else:
@@ -170,10 +168,10 @@ def addEdgeSplitMod(obj):
     eMod.split_angle = math.radians(44)
 
 
-def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, mergeVertical=True):
+def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternals, materialType, mergeVertical=True):
     if brickD["size"] is None or buildIsDirty:
         preferLargest = brickD["val"] > 0 and brickD["val"] < 1
-        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
+        brickSize = attemptMerge(bricksDict, key, keysNotChecked, defaultSize, zStep, randS1, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternals, materialType, preferLargest=preferLargest, mergeVertical=mergeVertical, height3Only=brickD["type"] in getBrickTypes(height=3))
     else:
         brickSize = brickD["size"]
     return brickSize

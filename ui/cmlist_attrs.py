@@ -207,7 +207,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
                ("CONES", "Cones", description),
                ("BRICKS AND PLATES", "Bricks and Plates", description),
                ("BRICKS", "Bricks (fast)", description)],
-        update=dirtyMatrix,
+        update=updateBrickType,
         default="BRICKS")
     alignBricks: BoolProperty(
         name="Align Bricks Horizontally",
@@ -277,6 +277,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         name="Auto Update on Delete",
         description="Draw newly exposed bricks when existing bricks are deleted",
         default=True)
+    paintbrushMat: StringProperty(default="")
 
     # MATERIAL & COLOR SETTINGS
     materialType: EnumProperty(
@@ -304,11 +305,6 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         min=1, max=50,
         default=1,
         update=dirtyModel)
-    mergeInconsistentMats: BoolProperty(
-        name="Merge Inconsistent Materials",
-        description="Merge bricks whether or not they share a material",
-        default=False,
-        update=dirtyBuild)
     mergeInternals: EnumProperty(
         name="Merge Shell with Internals",
         description="Merge bricks on shell with internal bricks",
@@ -620,6 +616,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
     animated: BoolProperty(default=False)
     materialApplied: BoolProperty(default=False)
     armature: BoolProperty(default=False)
+    zStep: IntProperty(default=3)
     parent_obj: PointerProperty(type=bpy.types.Object)
     collection: PointerProperty(type=bpy.types.Collection)
     # rigid_body: BoolProperty(default=False)

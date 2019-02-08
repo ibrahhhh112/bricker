@@ -60,7 +60,6 @@ class BRICKER_OT_export_ldraw(Operator):
         # initialize vars
         legalBricks = getLegalBricks()
         absMatCodes = getAbsPlasticMatCodes()
-        zStep = getZStep(cm)
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
             path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
             if errorMsg is not None:
@@ -105,9 +104,9 @@ class BRICKER_OT_export_ldraw(Operator):
                     idx += 1 if size[1] > size[0] else 0
                     matrix = matrices[idx]
                     # get coordinate for brick in Ldraw units
-                    co = self.blendToLdrawUnits(cm, bricksDict, zStep, key, idx)
+                    co = self.blendToLdrawUnits(cm, bricksDict, cm.zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(cm, bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
+                    mat = getMaterial(cm, bricksDict, key, size, cm.zStep, cm.materialType, cm.materialName, cm.randomMatSeed, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0

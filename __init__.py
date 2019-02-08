@@ -30,6 +30,7 @@ bl_info = {
 developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for 'BRICKER_OT_test_brick_generators' button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
+# NOTE: Copy contents from 'paintbrush_tools_backup' to 'paintbrush_tools'
 
 # System imports
 # NONE!
@@ -63,6 +64,7 @@ def register():
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
+    bpy.props.running_bricksculpt_tool = False
 
     Object.protected = BoolProperty(name='protected', default=False)
     Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
@@ -145,6 +147,7 @@ def unregister():
     del Object.isBrick
     del Object.isBrickifiedObject
     del Object.protected
+    del bpy.props.running_bricksculpt_tool
     del bpy.props.Bricker_developer_mode
     del bpy.props.bricker_undoUpdating
     del bpy.props.bricker_initialized

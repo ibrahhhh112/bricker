@@ -73,22 +73,20 @@ class BRICKER_OT_merge_bricks(Operator):
                 allSplitKeys = []
                 cm.customized = True
                 brickType = cm.brickType
-                zStep = getZStep(cm)
 
                 # iterate through cm_ids of selected objects
                 for obj_name in self.objNamesD[cm_id]:
                     # initialize vars
                     dictKey = getDictKey(obj_name)
-                    x0, y0, z0 = getDictLoc(bricksDict, dictKey)
 
                     # split brick in matrix
-                    splitKeys = Bricks.split(bricksDict, dictKey, zStep, brickType)
+                    splitKeys = Bricks.split(bricksDict, dictKey, cm.zStep, brickType)
                     allSplitKeys += splitKeys
                     # delete the object that was split
                     delete(bpy.data.objects.get(obj_name))
 
                 # run self.mergeBricks
-                keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(bricksDict, allSplitKeys, cm)
+                keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(bricksDict, allSplitKeys, cm, anyHeight=True)
 
                 # draw modified bricks
                 drawUpdatedBricks(cm, bricksDict, keysToUpdate)
@@ -124,18 +122,18 @@ class BRICKER_OT_merge_bricks(Operator):
     # class methods
 
     @staticmethod
-    def mergeBricks(bricksDict, keys, cm, mergeVertical=True, targetType="BRICK", height3Only=False):
+    def mergeBricks(bricksDict, keys, cm, targetType="BRICK", anyHeight=False):
         # initialize vars
         updatedKeys = []
         brickType = cm.brickType
         maxWidth = cm.maxWidth
         maxDepth = cm.maxDepth
         legalBricksOnly = cm.legalBricksOnly
-        mergeInconsistentMats = cm.mergeInconsistentMats
         mergeInternals = cm.mergeInternals
         materialType = cm.materialType
-        zStep = getZStep(cm)
         randState = np.random.RandomState(cm.mergeSeed)
+        mergeVertical = targetType in getBrickTypes(height=3)
+        height3Only = "PLATES" in cm.brickType and mergeVertical and not anyHeight
 
         # sort keys
         keys.sort(key=lambda k: (strToList(k)[0] * strToList(k)[1] * strToList(k)[2]))
@@ -145,7 +143,7 @@ class BRICKER_OT_merge_bricks(Operator):
             if bricksDict[key]["parent"] not in (None, "self"):
                 continue
             # attempt to merge current brick with other bricks in keys, according to available brick types
-            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
+            brickSize = attemptMerge(bricksDict, key, keys, bricksDict[key]["size"], cm.zStep, randState, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternals, materialType, preferLargest=True, mergeVertical=mergeVertical, targetType=targetType, height3Only=height3Only)
             updatedKeys.append(key)
         return updatedKeys
 

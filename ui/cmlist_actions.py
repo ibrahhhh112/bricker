@@ -134,13 +134,7 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
         item.idx = len(scn.cmlist)-1
         item.startFrame = scn.frame_start
         item.stopFrame = scn.frame_end
-        # create new matObj for current cmlist id
-        matObjNames = ["Bricker_{}_RANDOM_mats".format(i), "Bricker_{}_ABS_mats".format(i)]
-        for n in matObjNames:
-            matObj = bpy.data.objects.get(n)
-            if matObj is None:
-                matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                getSafeScn().collection.objects.link(matObj)
+        createNewMatObjs(item.id)
 
     def removeItem(cls, idx):
         scn, cm, sn = getActiveContextInfo()

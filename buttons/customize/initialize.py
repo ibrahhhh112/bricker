@@ -49,6 +49,9 @@ class BRICKER_OT_initialize_undo_stack(Operator):
 
     def modal(self, context, event):
         scn = bpy.context.scene
+        if self.stop:
+            self.cancel(context)
+            return {"CANCELLED"}
         if not self.undo_stack.isUpdating() and not brickerRunningBlockingOp() and scn.cmlist_index != -1:
             global python_undo_state
             cm = scn.cmlist[scn.cmlist_index]
@@ -57,15 +60,14 @@ class BRICKER_OT_initialize_undo_stack(Operator):
             # handle undo
             elif python_undo_state[cm.id] > cm.blender_undo_state:
                 self.undo_stack.undo_pop()
-                tag_redraw_areas()
+                tag_redraw_areas("VIEW_3D")
             # handle redo
             elif python_undo_state[cm.id] < cm.blender_undo_state:
                 self.undo_stack.redo_pop()
-                tag_redraw_areas()
+                tag_redraw_areas("VIEW_3D")
         return {"PASS_THROUGH"}
 
     def execute(self, context):
-        # self.ui.start()
         # add new scn.cmlist item
         if self.action == "ADD":
             BRICKER_OT_cmlist_actions.addItem()
@@ -79,18 +81,18 @@ class BRICKER_OT_initialize_undo_stack(Operator):
         return {"RUNNING_MODAL"}
 
     def cancel(self, context):
-        # self.ui.end()
         pass
 
     ################################################
     # initialization method
 
     def __init__(self):
+        scn = bpy.context.scene
         self.undo_stack = UndoStack.get_instance()
+        self.stop = False
         bpy.props.bricker_initialized = True
         if self.action == "NONE":
             self.report({"INFO"}, "Bricker initialized")
-        # self.ui = Bricker_UI.get_instance()
 
     ###################################################
     # class variables
@@ -102,6 +104,13 @@ class BRICKER_OT_initialize_undo_stack(Operator):
         ),
         default="NONE"
     )
+
+    ################################################
+    # class methods
+
+    @staticmethod
+    def killModal():
+        self.stop = True
 
     ################################################
     # event handling functions

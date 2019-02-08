@@ -29,6 +29,7 @@ from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
 from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.undo_stack import *
 from ..buttons.customize.tools import *
+from ..buttons.customize.undo_stack import *
 
 
 def brickerIsActive():
@@ -81,6 +82,18 @@ def clear_bfm_cache(dummy):
 
 
 bpy.app.handlers.load_pre.append(clear_bfm_cache)
+
+
+# pull dicts from deep cache to light cache on load
+@persistent
+def reset_undo_stack(scene):
+    if not brickerIsActive():
+        return
+    # reset undo stack
+    undo_stack = UndoStack.get_instance(reset=True)
+
+
+bpy.app.handlers.load_post.append(reset_undo_stack)
 
 
 # pull dicts from deep cache to light cache on load
@@ -272,6 +285,8 @@ def handle_upconversion(scene):
                 cm.matrixLost = True
             # convert from v1_5 to v1_6
             if int(cm.version[2]) < 6:
+                for cm in scn.cmlist:
+                    cm.zStep = getZStep(cm)
                 cm.source_obj = bpy.data.objects.get(cm.source_name)
                 n = getSourceName(cm)
                 cm.collection = bpy.data.collections.get("Bricker_%(n)s_bricks" % locals())

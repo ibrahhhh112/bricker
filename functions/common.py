@@ -144,8 +144,8 @@ def remove_item(ls, item):
     return True
 
 
-def tag_redraw_areas(areaTypes=("ALL")):
-    areaTypes = confirmIter(areaTypes)
+def tag_redraw_areas(areaTypes=["ALL"]):
+    areaTypes = confirmList(areaTypes)
     for area in bpy.context.screen.areas:
         for areaType in areaTypes:
             if areaType == "ALL" or area.type == areaType:
@@ -304,7 +304,7 @@ def hash_str(string):
 
 def confirmList(itemList):
     """ if single item passed, convert to list """
-    if type(itemList) != list:
+    if type(itemList) not in (list, tuple):
         itemList = [itemList]
     return itemList
 
@@ -321,7 +321,6 @@ def confirmIter(object):
 def insertKeyframes(objs, keyframeType, frame, if_needed=False):
     """ insert key frames for given objects to given frames """
     objs = confirmIter(objs)
-    ct = time.time()
     options = set(["INSERTKEY_NEEDED"] if if_needed else [])
     for obj in objs:
         inserted = obj.keyframe_insert(data_path=keyframeType, frame=frame, options=options)
@@ -388,7 +387,7 @@ def isObjVisibleInViewport(obj):
 def select(objList, active:bool=False, only:bool=False):
     """ selects objs in list and deselects the rest """
     # confirm objList is a list of objects
-    objList = confirmList(objList)
+    objList = confirmIter(objList)
     # deselect all if selection is exclusive
     if only: deselectAll()
     # select/deselect objects in list

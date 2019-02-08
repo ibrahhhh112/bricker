@@ -38,6 +38,7 @@ from ..lib.Brick.test_brick_generators import *
 from ..buttons.delete import BRICKER_OT_delete_model
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
+from ..buttons.customize.tools.paintbrush_tools import paintbrushTools
 from ..functions import *
 
 # updater import
@@ -99,10 +100,7 @@ class BRICKER_PT_brick_models(Panel):
             return
 
         # draw UI list and list actions
-        if len(scn.cmlist) < 2:
-            rows = 2
-        else:
-            rows = 4
+        rows = 2 if len(scn.cmlist) < 2 else 4
         row = layout.row()
         row.template_list("BRICKER_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
@@ -157,7 +155,8 @@ class BRICKER_PT_brick_models(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH")
+                    row.active = brickifyShouldRun(cm)
+                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").splitBeforeUpdate = False
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -170,7 +169,7 @@ class BRICKER_PT_brick_models(Panel):
                 else:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Animation", icon="MOD_REMESH").splitBeforeUpdate = False
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -186,7 +185,7 @@ class BRICKER_PT_brick_models(Panel):
                 if not cm.animated and not cm.modelCreated:
                     row = col1.row(align=True)
                     row.active = obj is not None and obj.type == 'MESH' and (obj.rigid_body is None or obj.rigid_body.type == "PASSIVE")
-                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH")
+                    row.operator("bricker.brickify", text="Brickify Object", icon="MOD_REMESH").splitBeforeUpdate = False
                     if obj and obj.rigid_body is not None:
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -201,7 +200,9 @@ class BRICKER_PT_brick_models(Panel):
                     row = col1.row(align=True)
                     row.operator("bricker.delete_model", text="Delete Brickified Model", icon="CANCEL")
                     col = layout.column(align=True)
-                    col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH")
+                    row = col.row(align=True)
+                    row.active = brickifyShouldRun(cm)
+                    row.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
                     if createdWithUnsupportedVersion(cm):
                         col = layout.column(align=True)
                         col.scale_y = 0.7
@@ -385,7 +386,7 @@ class BRICKER_PT_model_settings(Panel):
         # draw Brick Model dimensions to UI if set
         if -1 not in s:
             if cm.brickType != "CUSTOM":
-                dimensions = Bricks.get_dimensions(cm.brickHeight, getZStep(cm), cm.gap)
+                dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
                 full_d = Vector((dimensions["width"],
                                  dimensions["width"],
                                  dimensions["height"]))
@@ -448,6 +449,143 @@ class BRICKER_PT_model_settings(Panel):
         #     # row = col.row(align=True)
         #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh")
 
+
+class BRICKER_PT_customize_model(Panel):
+    bl_space_type  = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_label       = "Customize Model"
+    bl_idname      = "BRICKER_PT_customize_model"
+    bl_context     = "objectmode"
+    bl_category    = "Bricker"
+    bl_options     = {"DEFAULT_CLOSED"}
+
+    @classmethod
+    def poll(self, context):
+        if not settingsCanBeDrawn():
+            return False
+        scn, cm, _ = getActiveContextInfo()
+        if createdWithUnsupportedVersion(cm):
+            return False
+        if not (cm.modelCreated or cm.animated):
+            return False
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        scn, cm, _ = getActiveContextInfo()
+
+        if matrixReallyIsDirty(cm):
+            layout.label(text="Matrix is dirty!")
+            col = layout.column(align=True)
+            col.label(text="Model must be updated to customize:")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
+            if cm.customized:
+                row = col.row(align=True)
+                row.label(text="Customizations will be lost")
+                row = col.row(align=True)
+                row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
+            return
+        if cm.animated:
+            layout.label(text="Not available for animations")
+            return
+        if not cm.lastSplitModel:
+            col = layout.column(align=True)
+            col.label(text="Model must be split to customize:")
+            col.operator("bricker.brickify", text="Split & Update Model", icon="FILE_REFRESH").splitBeforeUpdate = True
+            return
+        if cm.buildIsDirty:
+            col = layout.column(align=True)
+            col.label(text="Model must be updated to customize:")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
+            return
+        if not BRICKER_OT_caches.cacheExists(cm):
+            layout.label(text="Matrix not cached!")
+            col = layout.column(align=True)
+            col.label(text="Model must be updated to customize:")
+            col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
+            if cm.customized:
+                row = col.row(align=True)
+                row.label(text="Customizations will be lost")
+                row = col.row(align=True)
+                row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
+            return
+        # if not bpy.props.bricker_initialized:
+        #     layout.operator("bricker.initialize", icon="MODIFIER")
+        #     return
+
+        # display BrickSculpt tools
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        brickSculptInstalled = hasattr(bpy.props, "bricksculpt_module_name")
+        row.active = brickSculptInstalled
+        row.label(text="BrickSculpt Tools:")
+        row = col.row(align=True)
+        row.active = brickSculptInstalled
+        row.operator("bricker.paintbrush", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
+        row = col.row(align=True)
+        row.active = brickSculptInstalled
+        row.operator("bricker.paintbrush", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
+        row = col.row(align=True)
+        row.active = brickSculptInstalled
+        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "PAINT"
+        row.prop_search(cm, "paintbrushMat", bpy.data, "materials", text="")
+        if not BRICKER_OT_paintbrush.BrickSculptInstalled:
+            row = col.row(align=True)
+            row.scale_y = 0.7
+            row.label(text="BrickSculpt available for purchase")
+            row = col.row(align=True)
+            row.scale_y = 0.7
+            row.label(text="at the Blender Market:")
+            col = layout.column(align=True)
+            row = col.row(align=True)
+            row.operator("wm.url_open", text="View Website", icon="WORLD").url = "http://www.blendermarket.com/products/bricksculpt"
+            layout.split()
+            layout.split()
+
+        col1 = layout.column(align=True)
+        col1.label(text="Selection:")
+        split = col1.split(align=True, factor=0.5)
+        # set top exposed
+        col = split.column(align=True)
+        col.operator("bricker.select_bricks_by_type", text="By Type")
+        # set bottom exposed
+        col = split.column(align=True)
+        col.operator("bricker.select_bricks_by_size", text="By Size")
+
+        col1 = layout.column(align=True)
+        col1.label(text="Toggle Exposure:")
+        split = col1.split(align=True, factor=0.5)
+        # set top exposed
+        col = split.column(align=True)
+        col.operator("bricker.set_exposure", text="Top").side = "TOP"
+        # set bottom exposed
+        col = split.column(align=True)
+        col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
+
+        col1 = layout.column(align=True)
+        col1.label(text="Brick Operations:")
+        split = col1.split(align=True, factor=0.5)
+        # split brick into 1x1s
+        col = split.column(align=True)
+        col.operator("bricker.split_bricks", text="Split")
+        # merge selected bricks
+        col = split.column(align=True)
+        col.operator("bricker.merge_bricks", text="Merge")
+        # Add identical brick on +/- x/y/z
+        row = col1.row(align=True)
+        row.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
+        # change brick type
+        row = col1.row(align=True)
+        row.operator("bricker.change_brick_type", text="Change Type")
+        # change material type
+        row = col1.row(align=True)
+        row.operator("bricker.change_brick_material", text="Change Material")
+        # additional controls
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.prop(cm, "autoUpdateOnDelete")
+        # row = col.row(align=True)
+        # row.operator("bricker.redraw_bricks")
 
 
 class BRICKER_PT_smoke_settings(Panel):
@@ -587,107 +725,13 @@ class BRICKER_PT_merge_settings(Panel):
             row.prop(cm, "connectThresh")
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(cm, "mergeInconsistentMats")
-        # TODO: Introduce to everyone if deemed helpful
-        if bpy.props.Bricker_developer_mode > 0:
-            row = col.row(align=True)
-            row.prop(cm, "mergeInternals")
+        row.prop(cm, "mergeInternals")
         if cm.brickType == "BRICKS AND PLATES":
             row = col.row(align=True)
             row.prop(cm, "alignBricks")
             if cm.alignBricks:
                 row = col.row(align=True)
                 row.prop(cm, "offsetBrickLayers")
-
-
-
-class BRICKER_PT_customize_model(Panel):
-    bl_space_type  = "VIEW_3D"
-    bl_region_type = "UI"
-    bl_label       = "Customize Model"
-    bl_idname      = "BRICKER_PT_customize_model"
-    bl_context     = "objectmode"
-    bl_category    = "Bricker"
-    bl_options     = {"DEFAULT_CLOSED"}
-
-    @classmethod
-    def poll(self, context):
-        if not settingsCanBeDrawn():
-            return False
-        scn, cm, _ = getActiveContextInfo()
-        if createdWithUnsupportedVersion(cm):
-            return False
-        if not (cm.modelCreated or cm.animated):
-            return False
-        return True
-
-    def draw(self, context):
-        layout = self.layout
-        scn, cm, _ = getActiveContextInfo()
-
-        if matrixReallyIsDirty(cm):
-            layout.label(text="Matrix is dirty!")
-            return
-        if cm.animated:
-            layout.label(text="Not available for animations")
-            return
-        if not cm.lastSplitModel:
-            layout.label(text="Split model to customize")
-            return
-        if cm.buildIsDirty:
-            layout.label(text="Run 'Update Model' to customize")
-            return
-        if not BRICKER_OT_caches.cacheExists(cm):
-            layout.label(text="Matrix not cached!")
-            return
-        # if not bpy.props.bricker_initialized:
-        #     layout.operator("bricker.initialize", icon="MODIFIER")
-        #     return
-
-        col1 = layout.column(align=True)
-        col1.label(text="Selection:")
-        split = col1.split(align=True, factor=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_type", text="By Type")
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.select_bricks_by_size", text="By Size")
-
-        col1 = layout.column(align=True)
-        col1.label(text="Toggle Exposure:")
-        split = col1.split(align=True, factor=0.5)
-        # set top exposed
-        col = split.column(align=True)
-        col.operator("bricker.set_exposure", text="Top").side = "TOP"
-        # set bottom exposed
-        col = split.column(align=True)
-        col.operator("bricker.set_exposure", text="Bottom").side = "BOTTOM"
-
-        col1 = layout.column(align=True)
-        col1.label(text="Brick Operations:")
-        split = col1.split(align=True, factor=0.5)
-        # split brick into 1x1s
-        col = split.column(align=True)
-        col.operator("bricker.split_bricks", text="Split")
-        # merge selected bricks
-        col = split.column(align=True)
-        col.operator("bricker.merge_bricks", text="Merge")
-        # Add identical brick on +/- x/y/z
-        row = col1.row(align=True)
-        row.operator("bricker.draw_adjacent", text="Draw Adjacent Bricks")
-        # change brick type
-        row = col1.row(align=True)
-        row.operator("bricker.change_brick_type", text="Change Type")
-        # change material type
-        row = col1.row(align=True)
-        row.operator("bricker.change_brick_material", text="Change Material")
-        # additional controls
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.prop(cm, "autoUpdateOnDelete")
-        # row = col.row(align=True)
-        # row.operator("bricker.redraw_bricks")
 
 
 class BRICKER_PT_materials(Panel):
@@ -797,7 +841,9 @@ class BRICKER_PT_materials(Panel):
 
         if cm.materialType == "RANDOM" or (cm.materialType == "SOURCE" and cm.colorSnap == "ABS"):
             matObj = getMatObject(cm.id, typ="RANDOM" if cm.materialType == "RANDOM" else "ABS")
-            if matObj is not None:
+            if matObj is None:
+                createNewMatObjs(cm.id)
+            else:
                 if not brick_materials_installed():
                     col.label(text="'ABS Plastic Materials' not installed")
                 elif scn.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
@@ -844,7 +890,7 @@ class BRICKER_PT_materials(Panel):
                     nodeNamesStr = "'Matte Material' node"
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
-                col.label(text=nodeNames)
+                col.label(text=nodeNamesStr)
             if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
                 if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
                     col = layout.column(align=True)
@@ -1112,7 +1158,7 @@ class BRICKER_PT_matrix_details(Panel):
         col1 = layout.column(align=True)
         split = col1.split(align=True, factor=0.35)
         # hard code keys so that they are in the order I want
-        keys = ["name", "val", "draw", "co", "near_face", "near_intersection", "near_normal", "mat_name", "rgba", "parent", "size", "attempted_merge", "top_exposed", "bot_exposed", "type", "flipped", "rotated", "created_from"]
+        keys = ["name", "val", "draw", "co", "near_face", "near_intersection", "near_normal", "mat_name", "custom_mat_name", "rgba", "parent", "size", "attempted_merge", "top_exposed", "bot_exposed", "type", "flipped", "rotated", "created_from"]
         # draw keys
         col = split.column(align=True)
         col.scale_y = 0.65

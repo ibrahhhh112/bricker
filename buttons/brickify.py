@@ -27,7 +27,7 @@ import json
 # Blender imports
 import bpy
 from mathutils import Matrix, Vector, Euler
-props = bpy.props
+from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
@@ -38,20 +38,6 @@ from .cache import *
 from ..lib.bricksDict import *
 # from ..lib.rigid_body_props import *
 from ..functions import *
-
-
-def updateCanRun(type):
-    scn, cm, n = getActiveContextInfo()
-    if createdWithUnsupportedVersion(cm):
-        return True
-    elif scn.cmlist_index == -1:
-        return False
-    else:
-        commonNeedsUpdate = (cm.logoType != "NONE" and cm.logoType != "LEGO") or cm.brickType == "CUSTOM" or cm.modelIsDirty or cm.matrixIsDirty or cm.internalIsDirty or cm.buildIsDirty or cm.bricksAreDirty
-        if type == "ANIMATION":
-            return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
-        elif type == "MODEL":
-            return commonNeedsUpdate or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
 
 
 class BRICKER_OT_brickify(bpy.types.Operator):
@@ -70,9 +56,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if scn.cmlist_index == -1:
             return False
         cm = scn.cmlist[scn.cmlist_index]
-        if ((cm.animated and (not updateCanRun("ANIMATION") and not cm.animIsDirty))
-           or (cm.modelCreated and not updateCanRun("MODEL"))):
-            return False
+        # return brickifyShouldRun(cm)
         return True
 
     def execute(self, context):
@@ -116,6 +100,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.createdCollections = []
         self.setAction(cm)
         self.source = cm.source_obj
+        if self.splitBeforeUpdate:
+            cm.splitModel = True
+
+    ###################################################
+    # class variables
+
+    splitBeforeUpdate: BoolProperty(default=False)
 
     #############################################
     # class methods
@@ -202,6 +193,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.materialIsDirty = False
         cm.modelIsDirty = False
         cm.buildIsDirty = False
+        cm.animIsDirty = False
         cm.bricksAreDirty = False
         cm.matrixIsDirty = False
         cm.matrixLost = False
@@ -467,7 +459,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
 
     @classmethod
-    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, redraw=False):
+    def createNewBricks(self, source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
@@ -504,9 +496,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, curFrame)
         # make bricks
         coll_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, redraw=redraw)
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, tempBrick=tempBrick, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
-            select(bricksCreated, active=True, only=True)
+            select(bricksCreated)
         # store current bricksDict to cache
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
         return coll_name
@@ -539,6 +531,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return False
             # ensure ABS Plastic materials UI list is populated
             matObj = getMatObject(cm.id, typ="ABS")
+            if matObj is None:
+                matObj = createNewMatObjs(cm.id)[1]
             if len(matObj.data.materials) == 0:
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
                 return False

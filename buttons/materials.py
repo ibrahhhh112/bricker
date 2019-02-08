@@ -85,7 +85,6 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
         # set up variables
         scn, cm, _ = getActiveContextInfo()
         bricks = getBricks()
-        zStep = getZStep(cm)
         cm.lastMaterialType = cm.materialType
         lastSplitModel = cm.lastSplitModel
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
@@ -110,7 +109,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                 if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
 
                 for brick in bricks:
-                    if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
+                    if self.action == "CUSTOM" or (self.action == "INTERNAL" and not isOnShell(bricksDict, brick.name.split("__")[-1], zStep=cm.zStep, shellDepth=cm.matShellDepth) and cm.matShellDepth <= cm.lastMatShellDepth):
                         if len(brick.material_slots) == 0:
                             # Assign material to object data
                             brick.data.materials.append(mat)
@@ -136,43 +135,33 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
     def applyRandomMaterial(self, scn, cm, context, bricks, bricksDict):
         # initialize list of brick materials
         brick_mats = []
-        mats = bpy.data.materials.keys()
         matObj = getMatObject(cm.id, typ="RANDOM")
-        for color in matObj.data.materials.keys():
-            brick_mats.append(color)
+        for mat in matObj.data.materials.keys():
+            brick_mats.append(mat)
         if len(brick_mats) == 0:
             return
         randS0 = np.random.RandomState(0)
         # initialize variables
         lastSplitModel = cm.lastSplitModel
         randomMatSeed = cm.randomMatSeed
-        # if model is split, apply a random material to each brick
-        for i, brick in enumerate(bricks):
-            lastMatSlots = list(brick.material_slots.keys())
-
-            if lastSplitModel or len(lastMatSlots) == 0:
+        # apply a random material to each brick
+        if lastSplitModel:
+            for i, brick in enumerate(bricks):
                 # iterate seed and set random index
                 randS0.seed(randomMatSeed + i)
                 randIdx = randS0.randint(0, len(brick_mats)) if len(brick_mats) > 1 else 0
                 # Assign random material to object
                 mat = bpy.data.materials.get(brick_mats[randIdx])
-                if len(lastMatSlots) == 0:
-                    addMaterial(brick, mat)
-                else:
-                    brick.material_slots[0].link = 'OBJECT'
-                    brick.material_slots[0].material = mat
-                if lastSplitModel:
-                    bricksDict[brick.name.split("__")[-1]]["mat_name"] = mat.name
-            elif len(lastMatSlots) == len(brick_mats):
-                brick_mats_dup = brick_mats.copy()
-                for i in range(len(lastMatSlots)):
-                    # iterate seed and set random index
-                    randS0.seed(randomMatSeed + i)
-                    if len(brick_mats_dup) == 1:
-                        randIdx = 0
-                    else:
-                        randIdx = randS0.randint(0, len(brick_mats_dup))
-                    # Assign random material to object
-                    matName = brick_mats_dup.pop(randIdx)
-                    mat = bpy.data.materials.get(matName)
-                    brick.material_slots[i].material = mat
+                setMaterial(brick, mat)
+                # update bricksDict
+                bricksDict[brick.name.split("__")[-1]]["mat_name"] = mat.name
+        # apply a random material to each random material slot
+        elif len(lastMatSlots) == len(brick_mats):
+            for i in range(len(lastMatSlots)):
+                # iterate seed and set random index
+                randS0.seed(randomMatSeed + i)
+                randIdx = 0 if len(brick_mats) == 1 else randS0.randint(0, len(brick_mats))
+                # Assign random material to object
+                matName = brick_mats.pop(randIdx)
+                mat = bpy.data.materials.get(matName)
+                brick.material_slots[i].material = mat

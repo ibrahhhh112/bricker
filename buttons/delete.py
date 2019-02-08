@@ -59,10 +59,9 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        scn, cm, _ = getActiveContextInfo()
+        scn = bpy.context.scene
         scn.Bricker_runningBlockingOperation = True
         try:
-            self.undo_stack.iterateStates(cm)
             self.runFullDelete()
         except:
             handle_exception()
@@ -78,6 +77,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('delete', affected_ids=[cm.id])
+        self.undo_stack.iterateStates(cm)
 
     #############################################
     # class methods
@@ -169,7 +169,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 setObjOrigin(source, source.matrix_world @ source.data.vertices[0].co)
                 source.data.vertices[0].co = last_co
                 source.rotation_mode = lastMode
-            # adjust source loc to account for local_orient_offset applied in BrickerBrickify.transformBricks
+            # adjust source loc to account for local_orient_offset applied in BRICKER_OT_brickify.transformBricks
             if cm.useLocalOrient and not cm.useAnimation:
                 try:
                     source.location -= Vector(source["local_orient_offset"])

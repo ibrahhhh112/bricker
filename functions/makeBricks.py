@@ -42,15 +42,16 @@ from .mat_utils import *
 
 
 @timed_call('Time Elapsed')
-def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, redraw=False):
+def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, tempBrick=False, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
-    zStep = getZStep(cm)
 
     # reset brickSizes/TypesUsed
     if keys == "ALL":
         cm.brickSizesUsed = ""
         cm.brickTypesUsed = ""
+    # initialize cm.zStep
+    cm.zStep = getZStep(cm)
 
     mergeVertical = keys != "ALL" or cm.brickType == "BRICKS AND PLATES"
 
@@ -86,33 +87,32 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     maxWidth = cm.maxWidth
     maxDepth = cm.maxDepth
     legalBricksOnly = cm.legalBricksOnly
-    mergeInconsistentMats = cm.mergeInconsistentMats
     mergeInternals = cm.mergeInternals
     mergeType = cm.mergeType
     mergeSeed = cm.mergeSeed
     materialType = cm.materialType
     materialName = cm.materialName
     randomMatSeed = cm.randomMatSeed
-    studDetail = cm.studDetail
-    exposedUndersideDetail = cm.exposedUndersideDetail
-    hiddenUndersideDetail = cm.hiddenUndersideDetail
+    studDetail = "ALL" if tempBrick else cm.studDetail
+    exposedUndersideDetail = "FLAT" if tempBrick else cm.exposedUndersideDetail
+    hiddenUndersideDetail = "FLAT" if tempBrick else cm.hiddenUndersideDetail
+    randomRot = 0 if tempBrick else cm.randomRot
+    randomLoc = 0 if tempBrick else cm.randomLoc
     lastSplitModel = cm.lastSplitModel
-    randomRot = cm.randomRot
-    randomLoc = cm.randomLoc
-    logoType = cm.logoType
+    logoType = "NONE" if tempBrick else cm.logoType
     logoScale = cm.logoScale
     logoInset = cm.logoInset
     logoResolution = cm.logoResolution
     logoDecimate = cm.logoDecimate
-    loopCut = cm.loopCut
-    circleVerts = cm.circleVerts
+    loopCut = False if tempBrick else cm.loopCut
+    circleVerts = min(16, cm.circleVerts) if tempBrick else cm.circleVerts
     brickHeight = cm.brickHeight
     alignBricks = cm.alignBricks
     offsetBrickLayers = cm.offsetBrickLayers
     # initialize random states
-    randS1 = np.random.RandomState(cm.mergeSeed)  # for brickSize calc
-    randS2 = np.random.RandomState(cm.mergeSeed+1)
-    randS3 = np.random.RandomState(cm.mergeSeed+2)
+    randS1 = None if tempBrick else np.random.RandomState(cm.mergeSeed)  # for brickSize calc
+    randS2 = None if tempBrick else np.random.RandomState(cm.mergeSeed+1)
+    randS3 = None if tempBrick else np.random.RandomState(cm.mergeSeed+2)
     # initialize other variables
     brick_mats = getBrickMats(cm.materialType, cm.id)
     brickSizeStrings = {}
@@ -121,7 +121,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     lowestZ = -1
     availableKeys = []
     bricksCreated = []
-    maxBrickHeight = 1 if zStep == 3 else max(legalBricks.keys())
+    maxBrickHeight = 1 if cm.zStep == 3 else max(legalBricks.keys())
     connectThresh = cm.connectThresh if mergableBrickType(brickType) and mergeType == "RANDOM" else 1
     # set up internal material for this object
     internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
@@ -131,14 +131,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     numIters = 2 if brickType == "BRICKS AND PLATES" else 1
     i = 0
     # if merging unnecessary, simply update bricksDict values
-    if not cm.customized and not (mergableBrickType(brickType, up=zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
-        size = [1, 1, zStep]
+    if not cm.customized and not (mergableBrickType(brickType, up=cm.zStep == 1) and (maxDepth != 1 or maxWidth != 1)):
+        size = [1, 1, cm.zStep]
         updateBrickSizesAndTypesUsed(cm, listToStr(size), bricksDict[keys[0]]["type"])
         availableKeys = keys
         for key in keys:
             bricksDict[key]["parent"] = "self"
             bricksDict[key]["size"] = size.copy()
-            setAllBrickExposures(bricksDict, zStep, key)
+            setAllBrickExposures(bricksDict, cm.zStep, key)
             setFlippedAndRotated(bricksDict, key, [key])
             if bricksDict[key]["type"] == "SLOPE" and brickType == "SLOPES":
                 setBrickTypeForSlope(bricksDict, key, [key])
@@ -191,11 +191,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         loc = getDictLoc(bricksDict, key)
 
                         # merge current brick with available adjacent bricks
-                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, zStep], zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInconsistentMats, mergeInternals, materialType, mergeVertical=mergeVertical)
+                        brickSize = mergeWithAdjacentBricks(brickD, bricksDicts[j], key, availableKeys, [1, 1, cm.zStep], cm.zStep, randS1, buildIsDirty, brickType, maxWidth, maxDepth, legalBricksOnly, mergeInternals, materialType, mergeVertical=mergeVertical)
                         brickD["size"] = brickSize
                         # iterate number aligned edges and bricks if generating multiple variations
                         if connectThresh > 1:
-                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, zStep, bricksAndPlates)
+                            numAlignedEdges[j] += getNumAlignedEdges(bricksDict, brickSize, key, loc, bricksAndPlates)
                             numBricks += 1
 
                         # print status to terminal and cursor
@@ -203,7 +203,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                         old_percent = updateProgressBars(printStatus, cursorStatus, cur_percent, old_percent, "Merging")
 
                         # remove keys in new brick from availableKeys (for attemptMerge)
-                        updateKeysLists(bricksDict, brickSize, zStep, key, loc, availableKeys)
+                        updateKeysLists(bricksDict, brickSize, cm.zStep, key, loc, availableKeys)
 
                     if connectThresh > 1:
                         # if no aligned edges / bricks found, skip to next z level
@@ -243,7 +243,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 continue
             loc = getDictLoc(bricksDict, k2)
             # create brick based on the current brick info
-            drawBrick(cm, cm_id, bricksDict, k2, loc, i, dimensions, zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
+            drawBrick(cm, cm_id, bricksDict, k2, loc, i, parent, dimensions, bricksDict[k2]["size"], brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS2, randS3)
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
             i += 1
@@ -252,7 +252,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     updateProgressBars(printStatus, cursorStatus, 1, 0, "Building", end=True)
 
     # remove duplicate of original logo
-    if cm.logoType != "LEGO" and logo is not None:
+    if logoType != "LEGO" and logo is not None:
         bpy.data.objects.remove(logo)
 
     # combine meshes, link to scene, and add relevant data to the new Blender MESH object
@@ -305,13 +305,12 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vg = allBricksObj.vertex_groups.new(name="%(name)s_bvl" % locals())
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
-        if materialType == "CUSTOM":
+        if materialType in ("CUSTOM", "NONE"):
             mat = bpy.data.materials.get(materialName)
-            if mat is not None:
-                addMaterial(allBricksObj, mat)
+            setMaterial(allBricksObj, mat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
             for mat in mats:
-                addMaterial(allBricksObj, mat)
+                setMaterial(allBricksObj, mat)
         # set parent
         allBricksObj.parent = parent
         # add bricks obj to scene and bricksCreated

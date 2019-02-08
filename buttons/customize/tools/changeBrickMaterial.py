@@ -74,13 +74,12 @@ class BRICKER_OT_change_material(Operator):
                 bricksDict = json.loads(self.cached_bfm[cm_id])
                 keysToUpdate = []
                 cm.customized = True
-                zStep = getZStep(cm)
 
                 # iterate through cm_ids of selected objects
                 for obj_name in self.objNamesD[cm_id]:
                     dictKey = getDictKey(obj_name)
                     # change material
-                    keysInBrick = getKeysInBrick(bricksDict, bricksDict[dictKey]["size"], zStep, dictKey)
+                    keysInBrick = getKeysInBrick(bricksDict, bricksDict[dictKey]["size"], cm.zStep, dictKey)
                     for k in keysInBrick:
                         bricksDict[k]["mat_name"] = targetMatName
                         bricksDict[k]["custom_mat_name"] = True

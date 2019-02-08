@@ -20,6 +20,7 @@ import collections
 import json
 import math
 import numpy as np
+import bmesh
 
 # Blender imports
 import bpy
@@ -163,29 +164,26 @@ def getAnimAdjustedFrame(frame, startFrame, stopFrame):
         curFrame = frame
     return curFrame
 
-
 def setObjOrigin(obj, loc):
-    # TODO: Speed up this function by not using the ops call
-    # for v in obj.data.vertices:
-    #     v.co += obj.location - loc
-    # obj.location = loc
-    scn = bpy.context.scene
-    ct = time.time()
-    old_loc = tuple(scn.cursor_location)
-    scn.cursor_location = loc
-    select(obj, active=True, only=True)
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-    scn.cursor_location = old_loc
+    l, r, s = obj.matrix_world.decompose()
+    l_mat = Matrix.Translation(l)
+    r_mat = r.to_matrix().to_4x4()
+    s_mat_x = Matrix.Scale(s.x, 4, Vector((1, 0, 0)))
+    s_mat_y = Matrix.Scale(s.y, 4, Vector((0, 1, 0)))
+    s_mat_z = Matrix.Scale(s.z, 4, Vector((0, 0, 1)))
+    s_mat = s_mat_x * s_mat_y * s_mat_z
+    m = obj.data
+    m.transform(Matrix.Translation((obj.location-loc) * l_mat * r_mat * s_mat.inverted()))
+    obj.location = loc
 
 
 # def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
 #     assert fromObj or fromLoc
 #     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
-#     if fromObj:
-#         if deleteFromObj:
-#             m = fromObj.data
-#             bpy.data.objects.remove(fromObj, do_unlink=True)
-#             bpy.data.meshes.remove(m)
+#     if fromObj and deleteFromObj:
+#         m = fromObj.data
+#         bpy.data.objects.remove(fromObj, do_unlink=True)
+#         bpy.data.meshes.remove(m)
 
 
 def getBricks(cm=None, typ=None):
@@ -270,7 +268,7 @@ def brick_materials_loaded():
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
     # TODO: Maybe remove custom object names from this?
-    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset, cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
+    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
     smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
     return listToStr(regularSettings + smokeSettings)
 
@@ -300,12 +298,12 @@ def strToTuple(string, item_type=int, split_on=","):
     return tuple(strToList(string, item_type, split_on))
 
 
-def isUnique(lst):
-    return np.unique(lst).size == len(lst)
-
-
 def getZStep(cm):
     return 1 if flatBrickType(cm.brickType) else 3
+
+
+def isUnique(lst):
+    return np.unique(lst).size == len(lst)
 
 
 def gammaCorrect(rgba, val):
@@ -388,7 +386,25 @@ def getBrickCenter(bricksDict, key, zStep, loc=None):
     return coord_ave
 
 
-def getNormalDirection(normal, maxDist=0.77):
+def getNearbyLocFromVector(locDiff, curLoc, dimensions, zStep, width_divisor=2.05, height_divisor=2.05):
+    d = Vector((dimensions["width"] / width_divisor, dimensions["width"] / width_divisor, dimensions["height"] / height_divisor))
+    nextLoc = Vector(curLoc)
+    if locDiff.z > d.z - dimensions["stud_height"]:
+        nextLoc.z += math.ceil((locDiff.z - d.z) / (d.z * 2))
+    elif locDiff.z < -d.z:
+        nextLoc.z -= 1
+    if locDiff.x > d.x:
+        nextLoc.x += math.ceil((locDiff.x - d.x) / (d.x * 2))
+    elif locDiff.x < -d.x:
+        nextLoc.x += math.floor((locDiff.x + d.x) / (d.x * 2))
+    if locDiff.y > d.y:
+        nextLoc.y += math.ceil((locDiff.y - d.y) / (d.y * 2))
+    elif locDiff.y < -d.y:
+        nextLoc.y += math.floor((locDiff.y + d.y) / (d.y * 2))
+    return [int(nextLoc.x), int(nextLoc.y), int(nextLoc.z)]
+
+
+def getNormalDirection(normal, maxDist=0.77, slopes=False):
     # initialize vars
     minDist = maxDist
     minDir = None
@@ -396,14 +412,22 @@ def getNormalDirection(normal, maxDist=0.77):
     if normal is None or ((normal.z > -0.2 and normal.z < 0.2) or normal.z > 0.8 or normal.z < -0.8):
         return minDir
     # set Vectors for perfect normal directions
-    normDirs = {"^X+":Vector((1, 0, 0.5)),
-                "^Y+":Vector((0, 1, 0.5)),
-                "^X-":Vector((-1, 0, 0.5)),
-                "^Y-":Vector((0, -1, 0.5)),
-                "vX+":Vector((1, 0, -0.5)),
-                "vY+":Vector((0, 1, -0.5)),
-                "vX-":Vector((-1, 0, -0.5)),
-                "vY-":Vector((0, -1, -0.5))}
+    if slopes:
+        normDirs = {"^X+":Vector((1, 0, 0.5)),
+                    "^Y+":Vector((0, 1, 0.5)),
+                    "^X-":Vector((-1, 0, 0.5)),
+                    "^Y-":Vector((0, -1, 0.5)),
+                    "vX+":Vector((1, 0, -0.5)),
+                    "vY+":Vector((0, 1, -0.5)),
+                    "vX-":Vector((-1, 0, -0.5)),
+                    "vY-":Vector((0, -1, -0.5))}
+    else:
+        normDirs = {"X+":Vector((1, 0, 0)),
+                    "Y+":Vector((0, 1, 0)),
+                    "Z+":Vector((0, 0, 1)),
+                    "X-":Vector((-1, 0, 0)),
+                    "Y-":Vector((0, -1, 0)),
+                    "Z-":Vector((0, 0, -1))}
     # calculate nearest
     for dir,v in normDirs.items():
         dist = (v - normal).length
@@ -562,3 +586,83 @@ def getBrickMats(materialType, cm_id):
         matObj = getMatObject(cm_id, typ="RANDOM")
         brick_mats = list(matObj.data.materials.keys())
     return brick_mats
+
+
+def transformToWorld(vec, mat, junk_bme=None):
+    # decompose matrix
+    loc = mat.to_translation()
+    rot = mat.to_euler()
+    scale = mat.to_scale()[0]
+    # apply rotation
+    if rot != Euler((0, 0, 0), "XYZ"):
+        junk_bme = bmesh.new() if junk_bme is None else junk_bme
+        v1 = junk_bme.verts.new(vec)
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.x, 3, 'X'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.y, 3, 'Y'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.z, 3, 'Z'))
+        vec = v1.co
+    # apply scale
+    vec = vec * scale
+    # apply translation
+    vec += loc
+    return vec
+
+
+def transformToLocal(vec, mat, junk_bme=None):
+    # decompose matrix
+    loc = mat.to_translation()
+    rot = mat.to_euler()
+    scale = mat.to_scale()[0]
+    # apply scale
+    vec = vec / scale
+    # apply rotation
+    if rot != Euler((0, 0, 0), "XYZ"):
+        junk_bme = bmesh.new() if junk_bme is None else junk_bme
+        v1 = junk_bme.verts.new(vec)
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.z, 3, 'Z'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.y, 3, 'Y'))
+        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
+        vec = v1.co
+    return vec
+
+
+def createNewMatObjs(cm_id):
+    # create new matObj for current cmlist id
+    matObjs = []
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(cm_id), "Bricker_{}_ABS_mats".format(cm_id)]
+    for n in matObjNames:
+        matObj = bpy.data.objects.get(n)
+        if matObj is None:
+            matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
+            getSafeScn().collection.objects.link(matObj)
+        matObjs.append(matObj)
+    return matObjs  # returns list of two matObjs: [RANDOM, ABS]
+
+
+def getBrickType(modelBrickType):
+    return "PLATE" if modelBrickType == "BRICKS AND PLATES" else (modelBrickType[:-1] if modelBrickType.endswith("S") else ("CUSTOM 1" if modelBrickType == "CUSTOM" else modelBrickType))
+
+
+def getRoundBrickTypes():
+    return ("CYLINDER", "CONE", "STUD", "STUD_HOLLOW")
+
+
+def brickifyShouldRun(cm):
+    if ((cm.animated and (not updateCanRun("ANIMATION") and not cm.animIsDirty))
+       or (cm.modelCreated and not updateCanRun("MODEL"))):
+        return False
+    return True
+
+
+def updateCanRun(type):
+    scn, cm, n = getActiveContextInfo()
+    if createdWithUnsupportedVersion(cm):
+        return True
+    elif scn.cmlist_index == -1:
+        return False
+    else:
+        commonNeedsUpdate = (cm.logoType != "NONE" and cm.logoType != "LEGO") or cm.brickType == "CUSTOM" or cm.modelIsDirty or cm.matrixIsDirty or cm.internalIsDirty or cm.buildIsDirty or cm.bricksAreDirty
+        if type == "ANIMATION":
+            return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
+        elif type == "MODEL":
+            return commonNeedsUpdate or (cm.collection is not None and len(cm.collection.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
