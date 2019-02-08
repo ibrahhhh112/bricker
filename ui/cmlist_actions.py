@@ -67,7 +67,7 @@ class cmlist_actions(bpy.types.Operator):
             elif self.action == 'UP' and idx >= 1:
                 self.moveUp(item)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ###################################################
@@ -140,20 +140,19 @@ class cmlist_actions(bpy.types.Operator):
         item.idx = len(scn.cmlist)-1
         item.startFrame = scn.frame_start
         item.stopFrame = scn.frame_end
-        createNewMatObjs(item.id)
+        # create new matObj for current cmlist id
+        createMatObjs(i)
 
     def removeItem(cls, idx):
         scn, cm, sn = getActiveContextInfo()
         n = cm.name
         if not cm.modelCreated and not cm.animated:
+            for idx0 in range(idx + 1, len(scn.cmlist)):
+                scn.cmlist[idx0].idx -= 1
             if len(scn.cmlist) - 1 == scn.cmlist_index:
                 scn.cmlist_index -= 1
             # remove matObj for current cmlist id
-            matObjNames = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
-            for n in matObjNames:
-                matObj = bpy.data.objects.get(n)
-                if matObj is not None:
-                    bpy.data.objects.remove(matObj, True)
+            removeMatObjs(cm.id)
             scn.cmlist.remove(idx)
             if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
                 scn.cmlist_index = 0
@@ -202,7 +201,7 @@ class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
                 if cm0 != cm1:
                     matchProperties(cm1, cm0, overrideIdx=cm1.idx)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 
@@ -225,7 +224,7 @@ class Bricker_Uilist_copySettings(bpy.types.Operator):
             scn, cm, _ = getActiveContextInfo()
             scn.Bricker_copy_from_id = cm.id
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 
@@ -251,7 +250,7 @@ class Bricker_Uilist_pasteSettings(bpy.types.Operator):
                     matchProperties(cm0, cm1)
                     break
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 
@@ -276,7 +275,7 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
         try:
             select(getBricks(), deselect=self.deselect)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{'FINISHED'}
 
 

@@ -154,8 +154,15 @@ class BrickModelsPanel(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.active = brickifyShouldRun(cm)
-                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").splitBeforeUpdate = False
+                    if cm.brickifyingInBackground:
+                        col.scale_y = 0.75
+                        row.label(text="Animating in background...")
+                        row = col.row(align=True)
+                        percentage = round(cm.numAnimatedFrames * 100 / (cm.lastStopFrame - cm.lastStartFrame + 1), 3)
+                        row.label(text=str(percentage) + "% completed")
+                    else:
+                        row.active = brickifyShouldRun(cm)
+                        row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").splitBeforeUpdate = False
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -219,14 +226,14 @@ class BrickModelsPanel(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
 
-        if bpy.data.texts.find('Bricker_log') >= 0:
+        if bpy.data.texts.find('Bricker log') >= 0:
             split = layout.split(align=True, percentage=0.9)
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("bricker.report_error", text="Report Error", icon="URL")
+            row.operator("scene.report_error", text="Report Error", icon="URL").addon_name = "Bricker"
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
+            row.operator("scene.close_report_error", text="", icon="PANEL_CLOSE").addon_name = "Bricker"
 
 
 def is_baked(mod):
@@ -288,14 +295,14 @@ class AnimationPanel(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label("Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            if (cm.stopFrame - cm.startFrame > 10 and not cm.animated) or self.appliedMods:
+            if cm.brickifyInBackground:
                 col = layout.column(align=True)
-                col.scale_y = 0.7
-                col.label("WARNING: May take a while.")
-                col.separator()
-                col.label("Watch the progress in")
-                col.label("the command line.")
-                col.separator()
+                row = col.row(align=True)
+                row.label(text="Background Processing:")
+                row = col.row(align=True)
+                row.prop(cm, "maxWorkers")
+                row = col.row(align=True)
+                row.prop(cm, "backProcTimeout")
 
 
 class ModelTransformPanel(Panel):
@@ -767,7 +774,7 @@ class MaterialsPanel(Panel):
                     row.label("Switch to 'Cycles' for Brick materials")
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
-                    row.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                    row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     # import settings
                     if hasattr(bpy.props, "abs_mats_common"): # checks that ABS plastic mats are at least v2.1
                         col = layout.column(align=True)
@@ -856,7 +863,7 @@ class MaterialsPanel(Panel):
                     col1.operator("bricker.mat_list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
                     if not brick_materials_loaded():
-                        col.operator("scene.append_abs_plastic_materials", text="Import Brick Materials", icon="IMPORT")
+                        col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
                     else:
                         col.operator("bricker.add_abs_plastic_materials", text="Add ABS Plastic Materials", icon="ZOOMIN")
                     # import settings
@@ -1085,6 +1092,10 @@ class AdvancedPanel(Panel):
             row.label("Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
+        row = col.row(align=True)
+        row.label("Other:")
+        row = col.row(align=True)
+        row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
         if testBrickGenerators.drawUIButton():
             col = layout.column(align=True)

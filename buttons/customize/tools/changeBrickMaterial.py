@@ -94,7 +94,7 @@ class changeMaterial(Operator):
             # select the new objects created
             select(objsToSelect)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     def invoke(self, context, event):

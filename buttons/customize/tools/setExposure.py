@@ -96,7 +96,7 @@ class setExposure(Operator):
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
             setActiveObj(orig_obj)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return {"FINISHED"}
 
     ################################################

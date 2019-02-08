@@ -31,13 +31,6 @@ from bpy.types import Object
 from .common import *
 
 
-def getSafeScn():
-    safeScn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
-    if safeScn == None:
-        safeScn = bpy.data.scenes.new("Bricker_storage (DO NOT MODIFY)")
-    return safeScn
-
-
 def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
@@ -61,30 +54,21 @@ def centerMeshOrigin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def safeUnlink(obj, hide=True, protect=True):
+def safeUnlink(obj, protect=True):
     scn = bpy.context.scene
-    safeScn = getSafeScn()
     try:
         scn.objects.unlink(obj)
     except RuntimeError:
         pass
-    safeScn.objects.link(obj)
     obj.protected = protect
-    if hide:
-        obj.hide = True
+    obj.use_fake_user = True
 
 
-def safeLink(obj, unhide=True, protect=False):
+def safeLink(obj, protect=False):
     scn = bpy.context.scene
-    safeScn = getSafeScn()
     scn.objects.link(obj)
     obj.protected = protect
-    if unhide:
-        obj.hide = False
-    try:
-        safeScn.objects.unlink(obj)
-    except RuntimeError:
-        pass
+    obj.use_fake_user = False
 
 
 def getBoundsBF(obj):
@@ -485,19 +469,18 @@ def getSpace():
 
 
 def getExportPath(fn, ext, basePath, frame=-1, subfolder=False):
-    path = basePath
-    lastSlash = path.rfind("/")
-    path = path[:len(path) if lastSlash == -1 else lastSlash + 1]
-    blendPath = bpy.path.abspath("//") or "/tmp/"
-    blendPathSplit = blendPath[:-1].split("/")
+    # TODO: support PC with os.path.join instead of strings and support backslashes
+    path = os.path.dirname(basePath)
+    blendPath = bpy.path.abspath("//")[:-1] or os.path.join(root_path(), "tmp")
+    blendPathSplit = splitpath(blendPath)
     # if relative path, construct path from user input
     if path.startswith("//"):
-        splitPath = path[2:].split("/")
+        splitPath = splitpath(path[2:])
         while len(splitPath) > 0 and splitPath[0] == "..":
             splitPath.pop(0)
             blendPathSplit.pop()
-        newPath = "/".join(splitPath)
-        fullBlendPath = "/".join(blendPathSplit) if len(blendPathSplit) > 1 else "/"
+        newPath = os.path.join(*splitPath)
+        fullBlendPath = os.path.join(*blendPathSplit) if len(blendPathSplit) > 1 else root_path()
         path = os.path.join(fullBlendPath, newPath)
     # if path is blank at this point, use default render location
     if path == "":
@@ -645,17 +628,27 @@ def transformToLocal(vec, mat, junk_bme=None):
     return vec
 
 
-def createNewMatObjs(cm_id):
-    # create new matObj for current cmlist id
-    matObjs = []
-    matObjNames = ["Bricker_{}_RANDOM_mats".format(cm_id), "Bricker_{}_ABS_mats".format(cm_id)]
+def bricker_handle_exception():
+    handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
+
+
+def createMatObjs(idx):
+    """ create new matObjs for current cmlist id """
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
     for n in matObjNames:
         matObj = bpy.data.objects.get(n)
         if matObj is None:
             matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-            getSafeScn().objects.link(matObj)
-        matObjs.append(matObj)
-    return matObjs  # returns list of two matObjs: [RANDOM, ABS]
+            matObj.use_fake_user = True
+
+
+def removeMatObjs(idx):
+    """ remove matObjs for current cmlist id """
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    for n in matObjNames:
+        matObj = bpy.data.objects.get(n)
+        if matObj is not None:
+            bpy.data.objects.remove(matObj, do_unlink=True)
 
 
 def getBrickType(modelBrickType):

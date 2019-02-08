@@ -65,7 +65,7 @@ class BrickerBevel(bpy.types.Operator):
             # create or remove bevel
             BrickerBevel.runBevelAction(bricks, cm, action, setBevel=True)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     #############################################

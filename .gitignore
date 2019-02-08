@@ -8,3 +8,4 @@ bricksDict_dump.py
 *.ldr
 buttons/customize/tools/paintbrush_framework.py
 buttons/customize/tools/bricksculpt_framework.py
+background_processing

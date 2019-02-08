@@ -48,7 +48,7 @@ class Caches(bpy.types.Operator):
         try:
             self.clearCaches()
         except:
-            handle_exception()
+            bricker_handle_exception()
 
         return{"FINISHED"}
 

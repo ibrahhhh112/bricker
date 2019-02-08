@@ -69,7 +69,7 @@ class exportModelData(Operator):
             self.writeToFile(strings, path)
             self.report({"INFO"}, "Model data saved to '%(path)s'" % locals())
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     #############################################

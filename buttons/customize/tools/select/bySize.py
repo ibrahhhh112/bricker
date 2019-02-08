@@ -47,7 +47,7 @@ class selectBricksBySize(Operator):
         try:
             selectBricks(self.objNamesD, self.bricksDicts, brickSize=self.brickSize, allModels=self.allModels, only=self.only, include=self.include)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     def invoke(self, context, event):

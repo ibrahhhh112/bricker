@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # System imports
-# NONE!
+from os.path import dirname, abspath
 
 # Addon imports
 from .common import *
@@ -32,7 +32,7 @@ def removeDoubles(obj):
     obj.data.update()
 
 
-def getLegoLogo(self, scn, typ, res, decimate, dimensions):
+def getLegoLogo(scn, typ, res, decimate, dimensions):
     # update refLogo
     if typ == "NONE":
         refLogo = None
@@ -66,9 +66,8 @@ def getLegoLogo(self, scn, typ, res, decimate, dimensions):
 def getLEGOStudFont():
     LEGOStudFont = bpy.data.fonts.get("LEGO Stud Font")
     if not LEGOStudFont:
-        addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
-        Bricker = bpy.props.bricker_module_name
-        fontPath = "%(addonsPath)s/%(Bricker)s/lib/LEGO_Stud_Font.ttf" % locals()
+        brickerAddonPath = dirname(dirname(abspath(__file__)))
+        fontPath = "%(brickerAddonPath)s/lib/LEGO_Stud_Font.ttf" % locals()
         LEGOStudFont = bpy.data.fonts.load(fontPath)
     return LEGOStudFont
 

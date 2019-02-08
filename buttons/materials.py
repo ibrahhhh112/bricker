@@ -57,7 +57,7 @@ class BrickerApplyMaterial(bpy.types.Operator):
         try:
             self.runApplyMaterial(context)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ################################################
