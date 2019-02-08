@@ -291,26 +291,17 @@ def handle_upconversion(dummy):
                             bGroup.name = rreplace(bGroup.name, "frame", "f")
                             for obj in bGroup.objects:
                                 obj.name = rreplace(obj.name, "frame", "f")
-                    # rename storage scene
+                    # remove old storage scene
                     sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
-                    sto_scn_new = getSafeScn()
                     if sto_scn_old is not None:
                         for obj in sto_scn_old.objects:
                             if obj.name.startswith("Bricker_refLogo"):
                                 bpy.data.objects.remove(obj, True)
                             else:
-                                try:
-                                    sto_scn_new.objects.link(obj)
-                                except RuntimeError:
-                                    pass
+                                obj.use_fake_user = True
                         bpy.data.scenes.remove(sto_scn_old)
                     # create "Bricker_cm.id_mats" object for each cmlist idx
-                    matObjNames = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
-                    for n in matObjNames:
-                        matObj = bpy.data.objects.get(n)
-                        if matObj is None:
-                            matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                            sto_scn_new.objects.link(matObj)
+                    createMatObjs(cm.id)
                     # update names of Bricker source objects
                     old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
                     if old_source is not None:
@@ -326,3 +317,9 @@ def handle_upconversion(dummy):
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
+                    # remove storage scene
+                    sto_scn_new = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
+                    if sto_scn_new is not None:
+                        for obj in sto_scn_new.objects:
+                            obj.use_fake_user = True
+                        bpy.data.scenes.remove(sto_scn_new)

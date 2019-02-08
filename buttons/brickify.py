@@ -88,7 +88,7 @@ class BrickerBrickify(bpy.types.Operator):
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
                     scn.objects.link(bricker_bricks)
-                    self.safe_scn.objects.link(bricker_parent)
+                    bricker_parent.use_fake_user = True
                     bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0
                     cm.numAnimatedFrames += 1
@@ -174,7 +174,6 @@ class BrickerBrickify(bpy.types.Operator):
         self.origFrame = scn.frame_current
         self.start_time = time.time()
         # initialize important vars
-        self.safe_scn = getSafeScn()
         self.JobManager = SCENE_OT_job_manager.get_instance(cm.id)
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
@@ -260,9 +259,9 @@ class BrickerBrickify(bpy.types.Operator):
         if cm.animated and not cm.brickifyInBackground:
             self.finishAnimation()
 
-        # unlink source from scene and link to safe scene
+        # unlink source from scene
         if self.source.name in scn.objects.keys():
-            safeUnlink(self.source, hide=False)
+            safeUnlink(self.source)
         # reset layers
         if oldLayers != sourceLayers:
             setLayers(oldLayers)
@@ -490,8 +489,10 @@ class BrickerBrickify(bpy.types.Operator):
             parent = bpy.data.objects.new(p_name, m)
             parent.location = source_details.mid - parent0.location
             parent.parent = parent0
+            # TODO: is it necessary to update this? Perhaps just set use_fake_user to True...
+            safeLink(parent)
+            scn.update()
             safeUnlink(parent)
-            getSafeScn().update()
 
         # create new bricks
         try:
@@ -811,8 +812,7 @@ class BrickerBrickify(bpy.types.Operator):
         m = bpy.data.meshes.new(Bricker_parent_on + "_mesh")
         parent = bpy.data.objects.new(Bricker_parent_on, m)
         parent.location = loc
-        safeScn = getSafeScn()
-        safeScn.objects.link(parent)
+        parent.use_fake_user = True
         return parent
 
     def setAction(self, cm):

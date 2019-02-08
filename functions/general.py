@@ -30,13 +30,6 @@ from bpy.types import Object
 from .common import *
 
 
-def getSafeScn():
-    safeScn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
-    if safeScn == None:
-        safeScn = bpy.data.scenes.new("Bricker_storage (DO NOT MODIFY)")
-    return safeScn
-
-
 def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
@@ -60,30 +53,21 @@ def centerMeshOrigin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def safeUnlink(obj, hide=True, protect=True):
+def safeUnlink(obj, protect=True):
     scn = bpy.context.scene
-    safeScn = getSafeScn()
     try:
         scn.objects.unlink(obj)
     except RuntimeError:
         pass
-    safeScn.objects.link(obj)
     obj.protected = protect
-    if hide:
-        obj.hide = True
+    obj.use_fake_user = True
 
 
-def safeLink(obj, unhide=True, protect=False):
+def safeLink(obj, protect=False):
     scn = bpy.context.scene
-    safeScn = getSafeScn()
     scn.objects.link(obj)
     obj.protected = protect
-    if unhide:
-        obj.hide = False
-    try:
-        safeScn.objects.unlink(obj)
-    except RuntimeError:
-        pass
+    obj.use_fake_user = False
 
 
 def getBoundsBF(obj):
@@ -559,5 +543,25 @@ def getBrickMats(materialType, cm_id):
         brick_mats = list(matObj.data.materials.keys())
     return brick_mats
 
+
 def bricker_handle_exception():
     handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
+
+
+def createMatObjs(idx):
+    """ create new matObjs for current cmlist id """
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    for n in matObjNames:
+        matObj = bpy.data.objects.get(n)
+        if matObj is None:
+            matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
+            matObj.use_fake_user = True
+
+
+def removeMatObjs(idx):
+    """ remove matObjs for current cmlist id """
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    for n in matObjNames:
+        matObj = bpy.data.objects.get(n)
+        if matObj is not None:
+            bpy.data.objects.remove(matObj, do_unlink=True)

@@ -46,7 +46,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
     # Blender Operator methods
 
     def execute(self, context):
-        # update data in safe_scn
+        # get active context info
         scn, cm, n = getActiveContextInfo()
         # run brickify for current frame
         BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
@@ -56,8 +56,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
     # initialization method
 
     def __init__(self):
-        # initialize vars
-        self.safe_scn = getSafeScn()
+        pass
 
     #############################################
     # class variables
