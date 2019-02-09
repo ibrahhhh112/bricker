@@ -29,7 +29,7 @@ props = bpy.props
 
 # Addon imports
 from ..functions import *
-from .delete import BrickerDelete
+from .delete_model import BrickerDelete
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 

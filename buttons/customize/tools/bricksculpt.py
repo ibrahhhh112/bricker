@@ -40,7 +40,7 @@ from ..functions import *
 from ...brickify import *
 from ....lib.Brick import *
 from ....functions import *
-from ....operators.delete import OBJECT_OT_delete_override
+from ....operators.delete_object import OBJECT_OT_delete_override
 
 
 class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools, bricksculpt_drawing):

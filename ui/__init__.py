@@ -33,7 +33,7 @@ from .matlist_window import *
 from .matlist_actions import *
 from ..lib.bricksDict import *
 from ..lib.Brick.test_brick_generators import *
-from ..buttons.delete import BrickerDelete
+from ..buttons.delete_model import BrickerDelete
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
 from ..buttons.customize.tools.bricksculpt import *
