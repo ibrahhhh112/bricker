@@ -20,8 +20,8 @@
     """
 
 
-class paintbrushFramework:
-    """ modal framework for the paintbrush tool """
+class bricksculpt_framework:
+    """modal framework for the BrickSculpt tools"""
     BrickSculptInstalled = False
     BrickSculptLoaded = False
     brickType = ""

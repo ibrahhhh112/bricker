@@ -35,7 +35,6 @@ from mathutils import Vector, Euler, Matrix
 from bpy.types import Object, Scene
 props = bpy.props
 
-
 # https://github.com/CGCookie/retopoflow
 def bversion():
     bversion = '%03d.%03d.%03d' % (bpy.app.version[0], bpy.app.version[1], bpy.app.version[2])
@@ -211,6 +210,23 @@ class Suppressor(object):
         pass
 
 
+def applyModifiers(obj, only=None, exclude=["SMOKE"], curFrame=None):
+    hasArmature = False
+    select(obj, active=True, only=True)
+    # apply modifiers
+    for mod in obj.modifiers:
+        if not (only is None or mod.type in only) or not (exclude is None or mod.type not in exclude) or not mod.show_viewport:
+            continue
+        try:
+            with Suppressor():
+                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
+        except:
+            mod.show_viewport = False
+        if mod.type == "ARMATURE" and not hasArmature and mod.show_viewport:
+            hasArmature = True
+    return hasArmature
+
+
 # code from https://stackoverflow.com/questions/1518522/python-most-common-element-in-a-list
 def most_common(L):
     # get an iterable of (item, iterable) pairs
@@ -337,6 +353,24 @@ def getLayersList(layers):
     return newLayersList
 
 
+def setLayers(layers, scn=None):
+    """ set active layers of scn w/o 'dag ZERO' error """
+    assert len(layers) == 20
+    scn = scn or bpy.context.scene
+    # update scene (prevents dag ZERO errors)
+    scn.update()
+    # set active layers of scn
+    scn.layers = layers
+
+
+def openLayer(layerNum, scn=None):
+    assert type(layerNum) == int
+    scn = scn or bpy.context.scene
+    layerList = [i == layerNum - 1 for i in range(20)]
+    scn.layers = layerList
+    return layerList
+
+
 def deselectAll():
     try:
         selected_objects = bpy.context.selected_objects
@@ -365,6 +399,8 @@ def unhide(objs):
 
 
 def setActiveObj(obj, view_layer=None):
+    if obj is None:
+        return
     assert type(obj) == Object
     view_layer = view_layer or bpy.context.view_layer
     view_layer.objects.active = obj
@@ -532,10 +568,10 @@ def showErrorMessage(message, wrap=80):
     return
 
 
-def handle_exception(plugin_name="Bricker", report_button_loc="Brick Models"):
-    errormsg = print_exception('%(plugin_name)s_log' % locals())
+def handle_exception(log_name, report_button_loc):
+    errormsg = print_exception(log_name)
     # if max number of exceptions occur within threshold of time, abort!
-    errorStr = "Something went wrong. Please start an error report with us so we can fix it! (press the 'Report a Bug' button under the '%(report_button_loc)s' dropdown menu of %(plugin_name)s)" % locals()
+    errorStr = "Something went wrong. Please start an error report with us so we can fix it! ('%(report_button_loc)s')" % locals()
     print('\n'*5)
     print('-'*100)
     print(errorStr)
@@ -544,8 +580,7 @@ def handle_exception(plugin_name="Bricker", report_button_loc="Brick Models"):
     showErrorMessage(errorStr, wrap=240)
 
 
-# http://stackoverflow.com/questions/14519177/python-exception-handling-line-number
-def print_exception(txtName, showError=False):
+def getExceptionMessage():
     exc_type, exc_obj, tb = sys.exc_info()
 
     errormsg = 'EXCEPTION (%s): %s\n' % (exc_type, exc_obj)
@@ -557,6 +592,13 @@ def print_exception(txtName, showError=False):
             pfilename = filename
             errormsg += '         %s\n' % (filename)
         errormsg += '%03d %04d:%s() %s\n' % (i, lineno, funcname, line.strip())
+
+    return errormsg
+
+
+# http://stackoverflow.com/questions/14519177/python-exception-handling-line-number
+def print_exception(txtName, showError=False, errormsg=None):
+    errormsg = getExceptionMessage() if errormsg is None else errormsg
 
     print(errormsg)
 
@@ -632,18 +674,18 @@ def parent_clear(objs, apply_transform=True):
         obj.parent = None
 
 
-def writeErrorToFile(errorReportPath, txtName, addonVersion):
+def writeErrorToFile(error_report_path:str, error_log:str, addon_version:str, github_path:str):
     # write error to log text object
-    if not os.path.exists(errorReportPath):
-        os.makedirs(errorReportPath)
-    fullFilePath = os.path.join(errorReportPath, "Bricker_error_report.txt")
-    f = open(fullFilePath, "w")
-    f.write("\nPlease copy the following form and paste it into a new issue at https://github.com/bblanimation/bricker/issues")
+    error_report_dir = os.path.dirname(error_report_path)
+    if not os.path.exists(error_report_dir):
+        os.makedirs(error_report_dir)
+    f = open(error_report_path, "w")
+    f.write("\nPlease copy the following form and paste it into a new issue at " + github_path)
     f.write("\n\nDon't forget to include a description of your problem! The more information you provide (what you were trying to do, what action directly preceeded the error, etc.), the easier it will be for us to squash the bug.")
     f.write("\n\n### COPY EVERYTHING BELOW THIS LINE ###\n")
     f.write("\nDescription of the Problem:\n")
     f.write("\nBlender Version: " + bversion())
-    f.write("\nAddon Version: " + addonVersion)
+    f.write("\nAddon Version: " + addon_version)
     f.write("\nPlatform Info:")
     f.write("\n   system   = " + platform.system())
     f.write("\n   platform = " + platform.platform())
@@ -651,6 +693,27 @@ def writeErrorToFile(errorReportPath, txtName, addonVersion):
     f.write("\n   python   = " + platform.python_version())
     f.write("\nError:")
     try:
-        f.write("\n" + bpy.data.texts[txtName].as_string())
+        f.write("\n" + error_log)
     except KeyError:
         f.write(" No exception found")
+
+
+def root_path():
+    return os.path.abspath(os.sep)
+
+
+def splitpath(path):
+    folders = []
+    while 1:
+        path, folder = os.path.split(path)
+        if folder != "":
+            folders.append(folder)
+        else:
+            if path != "": folders.append(path)
+            break
+    return folders[::-1]
+
+def apply_modifiers(obj, settings="PREVIEW"):
+    m = obj.to_mesh(bpy.context.scene, True, "PREVIEW")
+    obj.modifiers.clear()
+    obj.data = m

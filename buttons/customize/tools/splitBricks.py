@@ -168,6 +168,6 @@ class BRICKER_OT_split_bricks(Operator):
             # select the new objects created
             select(objsToSelect)
         except:
-            handle_exception()
+            bricker_handle_exception()
 
     #############################################

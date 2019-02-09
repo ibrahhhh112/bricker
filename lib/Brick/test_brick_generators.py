@@ -39,7 +39,7 @@ class BRICKER_OT_test_brick_generators(bpy.types.Operator):
         try:
             test_brick_generators()
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     @staticmethod

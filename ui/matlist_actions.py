@@ -66,7 +66,7 @@ class BRICKER_OT_matlist_actions(bpy.types.Operator):
             elif self.action == 'UP' and idx >= 1:
                 self.moveUp(item)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     def removeItem(self, cm, matObj, idx):

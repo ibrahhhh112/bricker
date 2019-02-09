@@ -51,7 +51,7 @@ class OBJECT_OT_delete_override(Operator):
         try:
             self.runDelete(context)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -63,7 +63,7 @@ class OBJECT_OT_delete_override(Operator):
             try:
                 self.runDelete(context)
             except:
-                handle_exception()
+                bricker_handle_exception()
             return {'FINISHED'}
 
     ################################################

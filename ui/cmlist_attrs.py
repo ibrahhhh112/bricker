@@ -64,6 +64,10 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=False)
 
     # ANIMATION SETTINGS
+    useAnimation: BoolProperty(
+        name="Use Animation",
+        description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
+        default=False)
     startFrame: IntProperty(
         name="Start Frame",
         description="Start frame of Brick animation",
@@ -76,10 +80,16 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         update=dirtyAnim,
         min=0, max=500000,
         default=10)
-    useAnimation: BoolProperty(
-        name="Use Animation",
-        description="Create Brick Model for each frame, from start to stop frame (WARNING: Calculation takes time, and may result in large blend file )",
-        default=False)
+    maxWorkers: IntProperty(
+        name="Max Worker Instances",
+        description="Maximum number of Blender instances allowed to run in background for Bricker calculations (larger numbers are faster at a higher CPU load; 0 for local calculation)",
+        min=0, max=24,
+        default=5)
+    backProcTimeout: FloatProperty(
+        name="Timeout",
+        description="Max seconds allowed for each frame's model to calculate (0 for infinite; cancels process if time exceeded)",
+        precision=0, min=0,
+        default=0)
 
     # BASIC MODEL SETTINGS
     brickHeight: FloatProperty(
@@ -168,7 +178,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=0.025)
     brickShell: EnumProperty(
         name="Brick Shell",
-        description="Choose whether the shell of the model will be inside or outside source mesh",
+        description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
         items=[("INSIDE", "Inside Mesh (recommended)", "Draw brick shell inside source mesh (Recommended)"),
                ("OUTSIDE", "Outside Mesh", "Draw brick shell outside source mesh"),
                ("INSIDE AND OUTSIDE", "Inside and Outside", "Draw brick shell inside and outside source mesh (two layers)")],
@@ -177,18 +187,18 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
     calculationAxes: EnumProperty(
         name="Expanded Axes",
         description="The brick shell will be drawn on the outside in these directions",
-        items=[("XYZ", "XYZ", "PLACEHOLDER"),
-               ("XY", "XY", "PLACEHOLDER"),
-               ("YZ", "YZ", "PLACEHOLDER"),
-               ("XZ", "XZ", "PLACEHOLDER"),
-               ("X", "X", "PLACEHOLDER"),
-               ("Y", "Y", "PLACEHOLDER"),
-               ("Z", "Z", "PLACEHOLDER")],
+        items=[("XYZ", "XYZ", "XYZ"),
+               ("XY", "XY", "XY"),
+               ("YZ", "YZ", "YZ"),
+               ("XZ", "XZ", "XZ"),
+               ("X", "X", "X"),
+               ("Y", "Y", "Y"),
+               ("Z", "Z", "Z")],
         update=dirtyMatrix,
         default="XY")
     shellThickness: IntProperty(
         name="Shell Thickness",
-        description="Thickness of the Brick shell",
+        description="Thickness of the outer shell of bricks",
         update=dirtyBuild,
         min=1, max=50,
         default=1)
@@ -223,21 +233,21 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=0)
     maxWidth: IntProperty(
         name="Max Width",
-        description="Maximum brick width",
+        description="Maximum brick width in studs",
         update=dirtyBuild,
         step=1,
         min=1, max=1000,
         default=2)
     maxDepth: IntProperty(
         name="Max Depth",
-        description="Maximum brick depth",
+        description="Maximum brick depth in studs",
         update=dirtyBuild,
         step=1,
         min=1, max=1000,
         default=10)
     mergeType: EnumProperty(
         name="Merge Type",
-        description="Type of algorithm to use for merging bricks together",
+        description="Type of algorithm used for merging bricks together",
         items=[("GREEDY", "Greedy", "Creates fewest amount of bricks possible"),
                ("RANDOM", "Random", "Merges randomly for realistic build")],
         update=dirtyBuild,
@@ -277,7 +287,10 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         name="Auto Update on Delete",
         description="Draw newly exposed bricks when existing bricks are deleted",
         default=True)
-    paintbrushMat: StringProperty(default="")
+    paintbrushMat: PointerProperty(
+        type=bpy.types.Material,
+        name="Paintbrush Material",
+        description="Material for the BrickSculpt paintbrush tool")
 
     # MATERIAL & COLOR SETTINGS
     materialType: EnumProperty(
@@ -339,7 +352,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default="RGB")
     colorSnapAmount: FloatProperty(
         name="Color Snap Amount",
-        description="Threshold for combining colors together",
+        description="Threshold for combining colors together (higher numbers for fewer unique materials generated)",
         precision=3,
         min=0.00001, max=1.0,
         default=0.001,
@@ -370,7 +383,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         description="Saturation of the subsurface scattering for the created materials (relative to base color value)",
         precision=3,
         min=0.0, max=10.0,
-        default=0.0,
+        default=1.0,
         update=dirtyMaterial)
     colorSnapIOR: FloatProperty(
         name="IOR",
@@ -388,12 +401,12 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         update=dirtyMaterial)
     includeTransparency: BoolProperty(
         name="Include Transparency",
-        description="Mix diffuse and transparency nodes to represent alpha value of color picked",
+        description="Mix in a transparency node to represent alpha value of original material color",
         default=False,
         update=dirtyMatrix)
     transparentWeight: FloatProperty(
         name="Transparency Weight",
-        description="How much affect color transparency has on chosen ABS color",
+        description="How much affect the original material's alpha value has on chosen ABS color",
         precision=3,
         min=0, max=2,
         default=1,
@@ -442,8 +455,8 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=7.25)
     logoObject: PointerProperty(
         type=bpy.types.Object,
-        name="Logo Object Name",
-        description="Name of the custom logo object",
+        name="Logo Object",
+        description="Select a custom logo object to use on top of each stud",
         update=dirtyBricks)
     logoScale: FloatProperty(
         name="Logo Scale",
@@ -455,7 +468,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=0.78)
     logoInset: FloatProperty(
         name="Logo Inset",
-        description="Percentage inset of logo in stud",
+        description="How far to inset logo to stud (0: none, 1: fully inset)",
         step=1,
         update=dirtyBricks,
         precision=2,
@@ -463,7 +476,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default=0.5)
     hiddenUndersideDetail: EnumProperty(
         name="Underside Detailing of Obstructed Bricks",
-        description="Level of detail on underside of obstructed bricks",
+        description="Level of detail on underside of bricks with obstructed undersides",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
                ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
                ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
@@ -472,7 +485,7 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         default="FLAT")
     exposedUndersideDetail: EnumProperty(
         name="Underside Detailing of Exposed Bricks",
-        description="Level of detail on underside of exposed bricks",
+        description="Level of detail on underside of bricks with exposed undersides",
         items=[("FLAT", "Flat", "draw single face on brick underside"),
                ("LOW", "Low", "Hollow out brick underside and draw tube supports"),
                ("MEDIUM", "Medium", "Draw inset tubes below studs and support beams"),
@@ -491,6 +504,10 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         update=dirtyBricks,
         default=False)
     # BEVEL SETTINGS
+    bevelAdded: BoolProperty(
+        name="Bevel Bricks",
+        description="Bevel brick edges and corners for added realism",
+        default=False)
     bevelWidth: FloatProperty(
         name="Bevel Width",
         description="Bevel amount (relative to Brick Height)",
@@ -585,7 +602,10 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
         name="Use Local Orient",
         description="Generate bricks based on local orientation of source object",
         default=False)
-
+    brickifyInBackground = BoolProperty(
+        name="Brickify in Background",
+        description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
+        default=True)
     # EXPORT SETTINGS
     exportPath: StringProperty(
         name="Export Path",
@@ -600,7 +620,6 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
     objEdges: IntProperty(default=0)
     isWaterTight: BoolProperty(default=False)
 
-
     # Deep Cache of bricksDict
     BFMCache: StringProperty(default="")
 
@@ -613,14 +632,15 @@ class BRICKER_UL_created_models(bpy.types.PropertyGroup):
 
     # Internal Model Properties
     modelCreated: BoolProperty(default=False)
+    brickifyingInBackground: BoolProperty(default=False)
+    numAnimatedFrames: IntProperty(default=0)
     animated: BoolProperty(default=False)
     materialApplied: BoolProperty(default=False)
     armature: BoolProperty(default=False)
     zStep: IntProperty(default=3)
     parent_obj: PointerProperty(type=bpy.types.Object)
     collection: PointerProperty(type=bpy.types.Collection)
-    # rigid_body: BoolProperty(default=False)
-    bevelAdded: BoolProperty(default=False)
+    # rigid_body = BoolProperty(default=False)
     customized: BoolProperty(default=True)
     brickSizesUsed: StringProperty(default="")  # list of brickSizes used separated by | (e.g. '5,4,3|7,4,5|8,6,5')
     brickTypesUsed: StringProperty(default="")  # list of brickTypes used separated by | (e.g. 'PLATE|BRICK|STUD')

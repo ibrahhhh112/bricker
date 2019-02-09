@@ -40,16 +40,16 @@ from .general import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize, brickType, split, lastSplitModel, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS2, randS3):
+def drawBrick(cm_id, bricksDict, key, loc, i, parent, dimensions, zStep, brickSize, brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
-        topExposed, botExposed = setAllBrickExposures(bricksDict, cm.zStep, key)
+        topExposed, botExposed = setAllBrickExposures(bricksDict, zStep, key)
     else:
-        topExposed, botExposed = isBrickExposed(bricksDict, cm.zStep, key)
+        topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
 
     # get brick material
-    mat = getMaterial(cm, bricksDict, key, brickSize, cm.zStep, materialType, materialName, randomMatSeed, brick_mats=brick_mats, seedInc=i)
+    mat = getMaterial(bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, matDirty, brick_mats=brick_mats, seedInc=i)
 
     # set up arguments for brick mesh
     useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
@@ -68,26 +68,27 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize,
     randomRotMatrix = getRandomRotMatrix(randomRot, randS2, brickSize) if randomRot > 0 else None
     # get brick location
     locOffset = getRandomLoc(randomLoc, randS2, dimensions["width"], dimensions["height"]) if randomLoc > 0 else Vector((0, 0, 0))
-    brickLoc = getBrickCenter(bricksDict, key, cm.zStep, loc) + locOffset
+    brickLoc = getBrickCenter(bricksDict, key, zStep, loc) + locOffset
 
     if split:
         brick = bpy.data.objects.get(brickD["name"])
+        edgeSplit = useEdgeSplitMod(brickD, customObject1, customObject2, customObject3)
         if brick:
             # NOTE: last brick mesh is left in memory (faster)
             # set brick.data to new mesh (resets materials)
             brick.data = m
             # add/remove edge split modifier if necessary
             eMod = brick.modifiers.get('Edge Split')
-            if not eMod and useEdgeSplitMod(cm, brickD):
+            if not eMod and edgeSplit:
                 addEdgeSplitMod(brick)
-            elif eMod and not useEdgeSplitMod(cm, brickD):
+            elif eMod and not edgeSplit:
                 brick.modifiers.remove(eMod)
         else:
             # create new object with mesh data
             brick = bpy.data.objects.new(brickD["name"], m)
             brick.cmlist_id = cm_id
             # add edge split modifier
-            if useEdgeSplitMod(cm, brickD):
+            if edgeSplit:
                 addEdgeSplitMod(brick)
         # rotate brick by random rotation
         if randomRotMatrix is not None:
@@ -151,12 +152,12 @@ def drawBrick(cm, cm_id, bricksDict, key, loc, i, parent, dimensions, brickSize,
     return bricksDict
 
 
-def useEdgeSplitMod(cm, brickD):
+def useEdgeSplitMod(brickD, customObject1, customObject2, customObject3):
     typ = brickD["type"]
     if ("CUSTOM" not in brickD["type"] or
-        (typ == "CUSTOM 1" and cm.customObject1 and cm.customObject1.name.startswith("Bricker_")) or
-        (typ == "CUSTOM 2" and cm.customObject2 and cm.customObject2.name.startswith("Bricker_")) or
-        (typ == "CUSTOM 3" and cm.customObject3 and cm.customObject3.name.startswith("Bricker_"))):
+        (typ == "CUSTOM 1" and customObject1 and customObject1.name.startswith("Bricker_")) or
+        (typ == "CUSTOM 2" and customObject2 and customObject2.name.startswith("Bricker_")) or
+        (typ == "CUSTOM 3" and customObject3 and customObject3.name.startswith("Bricker_"))):
         return True
     else:
         return False
@@ -326,11 +327,10 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
     return m0
 
 
-def getMaterial(cm, bricksDict, key, size, zStep, materialType, materialName, randomMatSeed, brick_mats=None, seedInc=None):
+def getMaterial(bricksDict, key, size, zStep, materialType, materialName, randomMatSeed, matDirty, brick_mats=None, seedInc=None):
     mat = None
     highestVal = 0
     matsL = []
-    matDirty = cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty
     if bricksDict[key]["custom_mat_name"] and not matDirty:
         mat = bpy.data.materials.get(bricksDict[key]["mat_name"])
     elif materialType == "CUSTOM":

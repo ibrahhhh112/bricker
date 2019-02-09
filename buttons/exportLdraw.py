@@ -31,7 +31,7 @@ from ..lib.abs_plastic_materials import *
 
 
 class BRICKER_OT_export_ldraw(Operator):
-    """export bricksDict to ldraw file"""
+    """Export active brick model to ldraw file"""
     bl_idname = "bricker.export_ldraw"
     bl_label = "Export to Ldraw File"
     bl_options = {"REGISTER", "UNDO"}
@@ -48,7 +48,7 @@ class BRICKER_OT_export_ldraw(Operator):
         try:
             self.writeLdrawFile()
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     #############################################
@@ -106,7 +106,7 @@ class BRICKER_OT_export_ldraw(Operator):
                     # get coordinate for brick in Ldraw units
                     co = self.blendToLdrawUnits(cm, bricksDict, cm.zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(cm, bricksDict, key, size, cm.zStep, cm.materialType, cm.materialName, cm.randomMatSeed, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
+                    mat = getMaterial(bricksDict, key, size, cm.zStep, cm.materialType, cm.materialName, cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0

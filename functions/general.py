@@ -31,13 +31,6 @@ from bpy.types import Object
 from .common import *
 
 
-def getSafeScn():
-    safeScn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
-    if safeScn is None:
-        safeScn = bpy.data.scenes.new("Bricker_storage (DO NOT MODIFY)")
-    return safeScn
-
-
 def getActiveContextInfo(cm=None, cm_id=None):
     scn = bpy.context.scene
     cm = cm or scn.cmlist[scn.cmlist_index]
@@ -61,33 +54,23 @@ def centerMeshOrigin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def safeUnlink(obj, hide=True, protect=True):
+def safeUnlink(obj, protect=True):
     scn = bpy.context.scene
-    safeScn = getSafeScn()
     try:
         for cn in obj.users_collection:
             cn.objects.unlink(obj)
         scn.collection.objects.unlink(obj)
     except RuntimeError:
         pass
-    safeScn.collection.objects.link(obj)
     obj.protected = protect
-    if hide:
-        obj.hide_viewport = True
+    obj.use_fake_user = True
 
 
-def safeLink(obj, unhide=True, protect=False, collections=None):
-    safeScn = getSafeScn()
-    collections = collections or [bpy.context.scene.collection]
-    for cn in collections:
-        cn.objects.link(obj)
+def safeLink(obj, protect=False):
+    scn = bpy.context.scene
+    scn.objects.link(obj)
     obj.protected = protect
-    if unhide:
-        obj.hide_viewport = False
-    try:
-        safeScn.collection.objects.unlink(obj)
-    except RuntimeError:
-        pass
+    obj.use_fake_user = False
 
 
 def getBoundsBF(obj):
@@ -267,14 +250,36 @@ def brick_materials_loaded():
 
 def getMatrixSettings(cm=None):
     cm = cm or getActiveContextInfo()[1]
-    # TODO: Maybe remove custom object names from this?
-    regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObject1, cm.customObject2, cm.customObject3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
-    smokeSettings = [] if not cm.lastIsSmoke else [cm.smokeDensity, cm.smokeQuality, cm.smokeBrightness, cm.smokeSaturation, cm.flameColor, cm.flameIntensity]
+    # TODO: Maybe remove custom objects from this?
+    regularSettings = [round(cm.brickHeight, 6),
+                       round(cm.gap, 6),
+                       cm.brickType,
+                       cm.distOffset[0],
+                       cm.distOffset[1],
+                       cm.distOffset[2],
+                       cm.includeTransparency,
+                       cm.customObject1.name if cm.customObject1 is not None else "",
+                       cm.customObject2.name if cm.customObject2 is not None else "",
+                       cm.customObject3.name if cm.customObject3 is not None else "",
+                       cm.useNormals,
+                       cm.verifyExposure,
+                       cm.insidenessRayCastDir,
+                       cm.castDoubleCheckRays,
+                       cm.brickShell,
+                       cm.calculationAxes]
+    smokeSettings = [round(cm.smokeDensity, 6),
+                     round(cm.smokeQuality, 6),
+                     round(cm.smokeBrightness, 6),
+                     round(cm.smokeSaturation, 6),
+                     round(cm.flameColor[0], 6),
+                     round(cm.flameColor[1], 6),
+                     round(cm.flameColor[2], 6),
+                     round(cm.flameIntensity, 6)] if cm.lastIsSmoke else []
     return listToStr(regularSettings + smokeSettings)
 
 
-def matrixReallyIsDirty(cm):
-    return (cm.matrixIsDirty and cm.lastMatrixSettings != getMatrixSettings()) or cm.matrixLost
+def matrixReallyIsDirty(cm, include_lost_matrix=True):
+    return (cm.matrixIsDirty and cm.lastMatrixSettings != getMatrixSettings()) or (cm.matrixLost and include_lost_matrix)
 
 
 def vecToStr(vec, separate_by=","):
@@ -466,19 +471,18 @@ def getSpace():
 
 
 def getExportPath(fn, ext, basePath, frame=-1, subfolder=False):
-    path = basePath
-    lastSlash = path.rfind("/")
-    path = path[:len(path) if lastSlash == -1 else lastSlash + 1]
-    blendPath = bpy.path.abspath("//") or "/tmp/"
-    blendPathSplit = blendPath[:-1].split("/")
+    # TODO: support PC with os.path.join instead of strings and support backslashes
+    path = os.path.dirname(basePath)
+    blendPath = bpy.path.abspath("//")[:-1] or os.path.join(root_path(), "tmp")
+    blendPathSplit = splitpath(blendPath)
     # if relative path, construct path from user input
     if path.startswith("//"):
-        splitPath = path[2:].split("/")
+        splitPath = splitpath(path[2:])
         while len(splitPath) > 0 and splitPath[0] == "..":
             splitPath.pop(0)
             blendPathSplit.pop()
-        newPath = "/".join(splitPath)
-        fullBlendPath = "/".join(blendPathSplit) if len(blendPathSplit) > 1 else "/"
+        newPath = os.path.join(*splitPath)
+        fullBlendPath = os.path.join(*blendPathSplit) if len(blendPathSplit) > 1 else root_path()
         path = os.path.join(fullBlendPath, newPath)
     # if path is blank at this point, use default render location
     if path == "":
@@ -626,17 +630,27 @@ def transformToLocal(vec, mat, junk_bme=None):
     return vec
 
 
-def createNewMatObjs(cm_id):
-    # create new matObj for current cmlist id
-    matObjs = []
-    matObjNames = ["Bricker_{}_RANDOM_mats".format(cm_id), "Bricker_{}_ABS_mats".format(cm_id)]
+def bricker_handle_exception():
+    handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
+
+
+def createMatObjs(idx):
+    """ create new matObjs for current cmlist id """
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
     for n in matObjNames:
         matObj = bpy.data.objects.get(n)
         if matObj is None:
             matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-            getSafeScn().collection.objects.link(matObj)
-        matObjs.append(matObj)
-    return matObjs  # returns list of two matObjs: [RANDOM, ABS]
+            matObj.use_fake_user = True
+
+
+def removeMatObjs(idx):
+    """ remove matObjs for current cmlist id """
+    matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
+    for n in matObjNames:
+        matObj = bpy.data.objects.get(n)
+        if matObj is not None:
+            bpy.data.objects.remove(matObj, do_unlink=True)
 
 
 def getBrickType(modelBrickType):

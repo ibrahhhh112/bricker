@@ -32,20 +32,13 @@ from ..buttons.customize.tools import *
 from ..buttons.customize.undo_stack import *
 
 
-def brickerIsActive():
-    return hasattr(bpy.props, "bricker_module_name") and bpy.props.bricker_module_name in bpy.context.preferences.addons.keys()
-
-
 def brickerRunningBlockingOp():
-    scn = bpy.context.scene
-    return hasattr(scn, "Bricker_runningBlockingOperation") and scn.Bricker_runningBlockingOperation
+    wm = bpy.context.window_manager
+    return hasattr(wm, "Bricker_runningBlockingOperation") and wm.Bricker_runningBlockingOperation
 
 
 @persistent
-def handle_animation(scene):
-    scn = scene
-    if not brickerIsActive():
-        return
+def handle_animation(scn):
     for i, cm in enumerate(scn.cmlist):
         if not cm.animated:
             continue
@@ -69,101 +62,198 @@ def handle_animation(scene):
                     brick.select_set(False)
 
 
-bpy.app.handlers.frame_change_pre.append(handle_animation)
+def isObjVisible(scn, cm, n):
+    objVisible = False
+    if cm.modelCreated or cm.animated:
+        gn = "Bricker_%(n)s_bricks" % locals()
+        if groupExists(gn) and len(bpy.data.groups[gn].objects) > 0:
+            obj = bpy.data.groups[gn].objects[0]
+        else:
+            obj = None
+    else:
+        obj = cm.source_obj
+    if obj:
+        objVisible = False
+        for i in range(20):
+            if obj.layers[i] and scn.layers[i]:
+                objVisible = True
+    return objVisible, obj
+
+
+@persistent
+def handle_selections(scn):
+    if brickerRunningBlockingOp():
+        return
+    curLayers = str(list(scn.layers))
+    # if scn.layers changes and active object is no longer visible, set scn.cmlist_index to -1
+    if scn.Bricker_last_layers != curLayers:
+        scn.Bricker_last_layers = curLayers
+        curObjVisible = False
+        if scn.cmlist_index != -1:
+            cm0, n0 = getActiveContextInfo()[1:]
+            curObjVisible, _ = isObjVisible(scn, cm0, n0)
+        if not curObjVisible or scn.cmlist_index == -1:
+            setIndex = False
+            for i, cm in enumerate(scn.cmlist):
+                if i != scn.cmlist_index:
+                    nextObjVisible, obj = isObjVisible(scn, cm, getSourceName(cm))
+                    if nextObjVisible and bpy.context.active_object == obj:
+                        scn.cmlist_index = i
+                        setIndex = True
+                        break
+            if not setIndex:
+                scn.cmlist_index = -1
+    # if scn.cmlist_index changes, select and make source or Brick Model active
+    elif scn.Bricker_last_cmlist_index != scn.cmlist_index and scn.cmlist_index != -1:
+        scn.Bricker_last_cmlist_index = scn.cmlist_index
+        cm = scn.cmlist[scn.cmlist_index]
+        cm, n = getActiveContextInfo()[1:]
+        source = cm.source_obj
+        if source and cm.version[:3] != "1_0":
+            if cm.modelCreated:
+                bricks = getBricks()
+                if bricks and len(bricks) > 0:
+                    select(bricks, active=True, only=True)
+                    scn.Bricker_last_active_object_name = scn.objects.active.name
+            elif cm.animated:
+                cf = scn.frame_current
+                if cf > cm.stopFrame:
+                    cf = cm.stopFrame
+                elif cf < cm.startFrame:
+                    cf = cm.startFrame
+                g = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+                if g is not None and len(g.objects) > 0:
+                    select(list(g.objects), active=True, only=True)
+                    scn.Bricker_last_active_object_name = scn.objects.active.name
+                else:
+                    scn.objects.active = None
+                    deselectAll()
+                    scn.Bricker_last_active_object_name = ""
+            else:
+                select(source, active=True, only=True)
+                scn.Bricker_last_active_object_name = source.name
+        else:
+            for i,cm0 in enumerate(scn.cmlist):
+                if getSourceName(cm0) == scn.Bricker_active_object_name:
+                    deselectAll()
+                    break
+    # if active object changes, open Brick Model settings for active object
+    elif scn.objects.active and scn.Bricker_last_active_object_name != scn.objects.active.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and scn.objects.active.type == "MESH":
+        scn.Bricker_last_active_object_name = scn.objects.active.name
+        beginningString = "Bricker_"
+        if scn.objects.active.name.startswith(beginningString):
+            usingSource = False
+            frameLoc = scn.objects.active.name.rfind("_bricks")
+            if frameLoc == -1:
+                frameLoc = scn.objects.active.name.rfind("_brick_")
+                if frameLoc == -1:
+                    frameLoc = scn.objects.active.name.rfind("_parent")
+            if frameLoc != -1:
+                scn.Bricker_active_object_name = scn.objects.active.name[len(beginningString):frameLoc]
+        else:
+            usingSource = True
+            scn.Bricker_active_object_name = scn.objects.active.name
+        for i,cm in enumerate(scn.cmlist):
+            if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
+                continue
+            scn.cmlist_index = i
+            scn.Bricker_last_cmlist_index = scn.cmlist_index
+            active_obj = scn.objects.active
+            if active_obj.isBrick:
+                # adjust scn.active_brick_detail based on active brick
+                x0, y0, z0 = strToList(getDictKey(active_obj.name))
+                cm.activeKey = (x0, y0, z0)
+            return
+        # if no matching cmlist item found, set cmlist_index to -1
+        scn.cmlist_index = -1
+
+
+@persistent
+def prevent_user_from_viewing_storage_scene(scn):
+    if brickerRunningBlockingOp() or bpy.props.Bricker_developer_mode != 0:
+        return
+    if scn.name == "Bricker_storage (DO NOT MODIFY)":
+        i = 0
+        if bpy.data.scenes[i].name == scn.name:
+            i += 1
+        bpy.context.screen.scene = bpy.data.scenes[i]
+        showErrorMessage("This scene is for Bricker internal use only")
+
+
+def find_3dview_space():
+    # Find 3D_View window and its scren space
+    area = None
+    for a in bpy.data.window_managers[0].windows[0].screen.areas:
+        if a.type == 'VIEW_3D':
+            area = a
+            break
+
+    if area:
+        space = area.spaces[0]
+    else:
+        space = bpy.context.space_data
+
+    return space
 
 
 # clear light cache before file load
 @persistent
 def clear_bfm_cache(dummy):
-    if not brickerIsActive():
-        return
     for key in bricker_bfm_cache.keys():
         bricker_bfm_cache[key] = None
-
-
-bpy.app.handlers.load_pre.append(clear_bfm_cache)
 
 
 # pull dicts from deep cache to light cache on load
 @persistent
 def reset_undo_stack(scene):
-    if not brickerIsActive():
-        return
     # reset undo stack
     undo_stack = UndoStack.get_instance(reset=True)
 
 
-bpy.app.handlers.load_post.append(reset_undo_stack)
-
-
-# pull dicts from deep cache to light cache on load
 @persistent
-def handle_loading_to_light_cache(scene):
-    if not brickerIsActive():
-        return
+def handle_loading_to_light_cache(dummy):
     deepToLightCache(bricker_bfm_cache)
     # verify caches loaded properly
-    for cm in bpy.context.scene.cmlist:
-        if not (cm.modelCreated or cm.animated):
-            continue
-        # reset undo states
-        cm.blender_undo_state = 0
-        python_undo_state[cm.id] = 0
-        # load bricksDict
-        bricksDict = getBricksDict(cm=cm)[0]
-        if bricksDict is None:
-            cm.matrixLost = True
-            cm.matrixIsDirty = True
-            scn = bpy.context.scene
-
-
-
-bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
+    for scn in bpy.data.scenes:
+        for cm in scn.cmlist:
+            if not (cm.modelCreated or cm.animated):
+                continue
+            # reset undo states
+            cm.blender_undo_state = 0
+            python_undo_state[cm.id] = 0
+            # load bricksDict
+            bricksDict = getBricksDict(cm=cm)[0]
+            if bricksDict is None:
+                cm.matrixLost = True
+                cm.matrixIsDirty = True
 
 
 # push dicts from light cache to deep cache on save
 @persistent
-def handle_storing_to_deep_cache(scene):
-    if not brickerIsActive():
-        return
+def handle_storing_to_deep_cache(dummy):
     lightToDeepCache(bricker_bfm_cache)
 
 
-bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
-
-
 # send parent object to scene for linking scene in other file
 @persistent
-def safe_link_parent(scene):
-    if not brickerIsActive():
-        return
+def safe_link_parent(dummy):
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
             n = getSourceName(cm)
-            if (cm.modelCreated or cm.animated) and not cm.exposeParent:
-                safeLink(cm.parent_obj)
-
-
-bpy.app.handlers.save_pre.append(safe_link_parent)
+            Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
+            p = bpy.data.objects.get(Bricker_parent_on)
+            if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
+                safeLink(p)
 
 
 # send parent object to scene for linking scene in other file
 @persistent
-def safe_unlink_parent(scene):
-    if not brickerIsActive():
-        return
+def safe_unlink_parent(dummy):
     for scn in bpy.data.scenes:
         for cm in scn.cmlist:
             p = cm.parent_obj
             if p is not None and (cm.modelCreated or cm.animated) and not cm.exposeParent:
-                try:
-                    safeUnlink(p)
-                except RuntimeError:
-                    pass
-
-
-bpy.app.handlers.save_post.append(safe_unlink_parent)
-bpy.app.handlers.load_post.append(safe_unlink_parent)
+                safeUnlink(p)
 
 
 # @persistent
@@ -203,93 +293,87 @@ bpy.app.handlers.load_post.append(safe_unlink_parent)
 
 
 @persistent
-def handle_upconversion(scene):
-    scn = bpy.context.scene
-    if not brickerIsActive():
-        return
+def handle_upconversion(dummy):
     # update storage scene name
-    for cm in scn.cmlist:
-        if createdWithUnsupportedVersion(cm):
-            # normalize cm.version
-            if cm.version[1] == ",":
-                cm.version = cm.version.replace(", ", ".")
-            # convert from v1_0 to v1_1
-            if int(cm.version[2]) < 1:
-                cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
-                cm.brickDepth = cm.maxBrickScale2
-            # convert from v1_2 to v1_3
-            if int(cm.version[2]) < 3:
-                if cm.colorSnapAmount == 0:
-                    cm.colorSnapAmount = 0.001
-                for obj in bpy.data.objects:
-                    if obj.name.startswith("Rebrickr"):
-                        obj.name = obj.name.replace("Rebrickr", "Bricker")
-                for scn in bpy.data.scenes:
-                    if scn.name.startswith("Rebrickr"):
-                        scn.name = scn.name.replace("Rebrickr", "Bricker")
-                for coll in bpy.data.collections:
-                    if coll.name.startswith("Rebrickr"):
-                        coll.name = coll.name.replace("Rebrickr", "Bricker")
-            # convert from v1_3 to v1_4
-            if int(cm.version[2]) < 4:
-                # update "_frame_" to "_f_" in brick and group names
-                n = getSourceName(cm)
-                Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-                if cm.animated:
-                    for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                        Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
-                        bColl = bpy.data.collections.get(Bricker_bricks_curF_gn)
-                        if bColl is None:
+    for scn in bpy.data.scenes:
+        for cm in scn.cmlist:
+            if createdWithUnsupportedVersion(cm):
+                # normalize cm.version
+                if cm.version[1] == ",":
+                    cm.version = cm.version.replace(", ", ".")
+                # convert from v1_0 to v1_1
+                if int(cm.version[2]) < 1:
+                    cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
+                    cm.brickDepth = cm.maxBrickScale2
+                # convert from v1_2 to v1_3
+                if int(cm.version[2]) < 3:
+                    if cm.colorSnapAmount == 0:
+                        cm.colorSnapAmount = 0.001
+                    for obj in bpy.data.objects:
+                        if obj.name.startswith("Rebrickr"):
+                            obj.name = obj.name.replace("Rebrickr", "Bricker")
+                    for scn in bpy.data.scenes:
+                        if scn.name.startswith("Rebrickr"):
+                            scn.name = scn.name.replace("Rebrickr", "Bricker")
+                    for group in bpy.data.groups:
+                        if group.name.startswith("Rebrickr"):
+                            group.name = group.name.replace("Rebrickr", "Bricker")
+                # convert from v1_3 to v1_4
+                if int(cm.version[2]) < 4:
+                    # update "_frame_" to "_f_" in brick and group names
+                    n = getSourceName(cm)
+                    Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
+                    if cm.animated:
+                        for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                            Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
+                            bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
+                            if bGroup is None:
+                                continue
+                            bGroup.name = rreplace(bGroup.name, "frame", "f")
+                            for obj in bGroup.objects:
+                                obj.name = rreplace(obj.name, "frame", "f")
+                    elif cm.modelCreated:
+                        bGroup = bpy.data.groups.get(Bricker_bricks_gn)
+                        if bGroup is None:
                             continue
                         bColl.name = rreplace(bColl.name, "frame", "f")
                         for obj in bColl.objects:
                             obj.name = rreplace(obj.name, "frame", "f")
-                elif cm.modelCreated:
-                    bColl = bpy.data.collections.get(Bricker_bricks_gn)
-                    if bColl is None:
-                        continue
-                    bColl.name = rreplace(bColl.name, "frame", "f")
-                    for obj in bColl.objects:
-                        obj.name = rreplace(obj.name, "frame", "f")
-                # rename storage scene
-                sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
-                sto_scn_new = getSafeScn()
-                if sto_scn_old is not None:
-                    for obj in sto_scn_old.objects:
-                        if obj.name.startswith("Bricker_refLogo"):
-                            bpy.data.objects.remove(obj, do_unlink=True)
-                        else:
-                            try:
-                                sto_scn_new.collection.objects.link(obj)
-                            except RuntimeError:
-                                pass
-                    bpy.data.scenes.remove(sto_scn_old)
-                # create "Bricker_cm.id_mats" object for each cmlist idx
-                matObjNames = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
-                for n in matObjNames:
-                    matObj = bpy.data.objects.get(n)
-                    if matObj is None:
-                        matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                        sto_scn_new.collection.objects.link(matObj)
-                # update names of Bricker source objects
-                old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
-                if old_source is not None:
-                    old_source = cm.source_obj
-                # transfer dist offset values to new prop locations
-                if cm.distOffsetX != -1:
-                    cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
-            # convert from v1_4 to v1_5
-            if int(cm.version[2]) < 5:
-                cm.logoType = cm.logoDetail
-                cm.matrixIsDirty = True
-                cm.matrixLost = True
-            # convert from v1_5 to v1_6
-            if int(cm.version[2]) < 6:
-                for cm in scn.cmlist:
-                    cm.zStep = getZStep(cm)
-                cm.source_obj = bpy.data.objects.get(cm.source_name)
-                n = getSourceName(cm)
-                cm.collection = bpy.data.collections.get("Bricker_%(n)s_bricks" % locals())
-
-
-bpy.app.handlers.load_post.append(handle_upconversion)
+                    # remove old storage scene
+                    sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
+                    if sto_scn_old is not None:
+                        for obj in sto_scn_old.objects:
+                            if obj.name.startswith("Bricker_refLogo"):
+                                bpy.data.objects.remove(obj, True)
+                            else:
+                                obj.use_fake_user = True
+                        bpy.data.scenes.remove(sto_scn_old)
+                    # create "Bricker_cm.id_mats" object for each cmlist idx
+                    createMatObjs(cm.id)
+                    # update names of Bricker source objects
+                    old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
+                    if old_source is not None:
+                        old_source = cm.source_obj
+                    # transfer dist offset values to new prop locations
+                    if cm.distOffsetX != -1:
+                        cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
+                # convert from v1_4 to v1_5
+                if int(cm.version[2]) < 5:
+                    cm.logoType = cm.logoDetail
+                    cm.matrixIsDirty = True
+                    cm.matrixLost = True
+                # convert from v1_5 to v1_6
+                if int(cm.version[2]) < 6:
+                    for cm in scn.cmlist:
+                        cm.zStep = getZStep(cm)
+                    n = getSourceName(cm)
+                    cm.source_obj = bpy.data.objects.get(cm.source_name)
+                    cm.collection = bpy.data.collections.get("Bricker_%(n)s_bricks" % locals())
+                    # remove storage scene
+                    sto_scn_new = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
+                    if sto_scn_new is not None:
+                        for obj in sto_scn_new.objects:
+                            obj.use_fake_user = True
+                        bpy.data.scenes.remove(sto_scn_new)
+                    for cm in scn.cmlist:
+                        cm.zStep = getZStep(cm)

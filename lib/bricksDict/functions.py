@@ -171,7 +171,7 @@ def getFirstNode(mat, types:list=None):
             return node
 
 
-def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
+def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame=None):
     """ create new material with specified rgba values """
     scn = bpy.context.scene
     # get or create material with unique color
@@ -188,7 +188,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
             break
     mat_name_end_string = "".join((str(round(r0, 5)), str(round(g0, 5)), str(round(b0, 5)), str(round(a0, 5))))
     mat_name_hash = str(hash_str(mat_name_end_string))[:14]
-    mat_name = "Bricker_{n}{f}_{hash}".format(n=model_name, f="_f_%(curFrame)s" % locals() if curFrame else "", hash=mat_name_hash)
+    mat_name = "Bricker_{n}{f}_{hash}".format(n=model_name, f="_f_%(curFrame)s" % locals() if curFrame is not None else "", hash=mat_name_hash)
     mat = bpy.data.materials.get(mat_name)
     mat_is_new = mat is None
     mat = mat or bpy.data.materials.new(name=mat_name)
@@ -204,7 +204,6 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 # set values for Principled BSDF
                 principled.inputs[0].default_value = rgba
                 principled.inputs[1].default_value = sss
-                sat_mat = getSaturationMatrix(sssSat)
                 principled.inputs[3].default_value[:3] = (Vector(rgba[:3]) @ sat_mat).to_tuple()
                 principled.inputs[5].default_value = specular
                 principled.inputs[7].default_value = roughness
@@ -256,16 +255,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sssSat, specular, roughn
                 rgba1 = first_node.inputs[0].default_value
                 newRGBA = getAverage(Vector(rgba), Vector(rgba1), mat.num_averaged)
                 first_node.inputs[0].default_value = newRGBA
-        if scn.render.engine in ("CYCLES", "BLENDER_EEVEE"):
-            # set values for Principled BSDF
-            first_node.inputs[0].default_value = rgba
-            first_node.inputs[1].default_value = sss
-            sat_mat = getSaturationMatrix(sssSat)
-            first_node.inputs[3].default_value[:3] = (Vector(rgba[:3]) @ sat_mat).to_tuple()
-            first_node.inputs[5].default_value = specular
-            first_node.inputs[7].default_value = roughness
-            first_node.inputs[14].default_value = ior
-            first_node.inputs[15].default_value = transmission
+                first_node.inputs[3].default_value[:3] = (Vector(newRGBA[:3]) @ sat_mat).to_tuple()
     mat.num_averaged += 1
     return mat_name
 

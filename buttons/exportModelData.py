@@ -29,7 +29,7 @@ from ..functions import *
 
 
 class BRICKER_OT_export_model_data(Operator):
-    """send bricksDict to external file"""
+    """send active brick model to external file"""
     bl_idname = "bricker.export_model_data"
     bl_label = "Export Model Data"
     bl_options = {"REGISTER", "UNDO"}
@@ -69,7 +69,7 @@ class BRICKER_OT_export_model_data(Operator):
             self.writeToFile(strings, path)
             self.report({"INFO"}, "Model data saved to '%(path)s'" % locals())
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     #############################################

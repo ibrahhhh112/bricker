@@ -16,4 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-__all__ = ["caches", "preferences", "bricksDict"]
+from .caches import *
+from .preferences import *
+from .reportError import *
+from .bricksDict import *
+from .keymaps import *

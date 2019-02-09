@@ -27,7 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from .cache import *
-# from ..lib.rigid_body_props import *
+from ..lib.JobManager import *
 
 
 def getModelType(cm):
@@ -42,7 +42,7 @@ def getModelType(cm):
 
 
 class BRICKER_OT_delete_model(bpy.types.Operator):
-    """ Delete Brickified model """
+    """Delete brickified model (restores original source object)"""
     bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
     bl_options = {"REGISTER", "UNDO"}
@@ -59,13 +59,15 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         return True
 
     def execute(self, context):
-        scn = bpy.context.scene
-        scn.Bricker_runningBlockingOperation = True
+        wm = bpy.context.window_manager
+        wm.Bricker_runningBlockingOperation = True
         try:
+            cm = getActiveContextInfo()[1]
+            self.undo_stack.iterateStates(cm)
             self.runFullDelete()
         except:
-            handle_exception()
-        scn.Bricker_runningBlockingOperation = False
+            bricker_handle_exception()
+        wm.Bricker_runningBlockingOperation = False
 
         return{"FINISHED"}
 
@@ -128,6 +130,10 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         else:
             bricks = getBricks()
             pivot_point = bricks[0].matrix_world.to_translation()
+
+        if cm.brickifyingInBackground:
+            JobManager = SCENE_OT_job_manager.get_instance(cm.id)
+            JobManager.kill_all()
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
 

@@ -46,6 +46,7 @@ def updateMaterials(bricksDict, source, curFrame=None):
     transWeight = cm.transparentWeight
     sss = cm.colorSnapSubsurface
     sssSat = cm.colorSnapSubsurfaceSaturation
+    sat_mat = getSaturationMatrix(sssSat)
     specular = cm.colorSnapSpecular
     roughness = cm.colorSnapRoughness
     ior = cm.colorSnapIOR
@@ -81,7 +82,7 @@ def updateMaterials(bricksDict, source, curFrame=None):
             elif colorSnap == "ABS" and len(matObj.data.materials) > 0:
                 matName = findNearestBrickColorName(rgba, transWeight, matObj=matObj)
             elif colorSnap == "RGB" or isSmoke or useUVMap:
-                matName = createNewMaterial(n, rgba, rgba_vals, sss, sssSat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame)
+                matName = createNewMaterial(n, rgba, rgba_vals, sss, sat_mat, specular, roughness, ior, transmission, colorSnap, colorSnapAmount, includeTransparency, curFrame)
             if rgba is not None:
                 rgba_vals.append(rgba)
         elif materialType == "CUSTOM":

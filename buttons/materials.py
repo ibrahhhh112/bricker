@@ -34,7 +34,7 @@ from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
 class BRICKER_OT_apply_material(bpy.types.Operator):
-    """Apply specified material to all bricks """
+    """Apply specified material to all bricks"""
     bl_idname = "bricker.apply_material"
     bl_label = "Apply Material"
     bl_options = {"REGISTER", "UNDO"}
@@ -57,7 +57,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
         try:
             self.runApplyMaterial(context)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ################################################
@@ -127,7 +127,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                         if bricksDict[k]["draw"] and bricksDict[k]["parent"] == "self":
                             bricksDict[k]["mat_name"] = matName
 
-        tag_redraw_areas(("VIEW_3D", "PROPERTIES", "NODE_EDITOR"))
+        tag_redraw_areas(["VIEW_3D", "PROPERTIES", "NODE_EDITOR"])
         cm.materialIsDirty = False
         cm.lastMatShellDepth = cm.matShellDepth
 

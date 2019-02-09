@@ -38,7 +38,7 @@ from ..lib.Brick.test_brick_generators import *
 from ..buttons.delete import BRICKER_OT_delete_model
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
-from ..buttons.customize.tools.paintbrush_tools import paintbrushTools
+from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
 
 # updater import
@@ -155,8 +155,15 @@ class BRICKER_PT_brick_models(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    row.active = brickifyShouldRun(cm)
-                    row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").splitBeforeUpdate = False
+                    if cm.brickifyingInBackground:
+                        col.scale_y = 0.75
+                        row.label(text="Animating in background...")
+                        row = col.row(align=True)
+                        percentage = round(cm.numAnimatedFrames * 100 / (cm.lastStopFrame - cm.lastStartFrame + 1), 3)
+                        row.label(text=str(percentage) + "% completed")
+                    else:
+                        row.active = brickifyShouldRun(cm)
+                        row.operator("bricker.brickify", text="Update Animation", icon="FILE_REFRESH").splitBeforeUpdate = False
                     if createdWithUnsupportedVersion(cm):
                         v_str = cm.version[:3]
                         col = layout.column(align=True)
@@ -211,7 +218,7 @@ class BRICKER_PT_brick_models(Panel):
                         col.label(text="run 'Update Model' so")
                         col.label(text="it is compatible with")
                         col.label(text="your current version.")
-                    elif matrixReallyIsDirty(cm) and cm.customized:
+                    elif matrixReallyIsDirty(cm, include_lost_matrix=False) and cm.customized:
                         row = col.row(align=True)
                         row.label(text="Customizations will be lost")
                         row = col.row(align=True)
@@ -220,14 +227,14 @@ class BRICKER_PT_brick_models(Panel):
             col = layout.column(align=True)
             row = col.row(align=True)
 
-        if bpy.data.texts.find('Bricker_log') >= 0:
+        if bpy.data.texts.find('Bricker log') >= 0:
             split = layout.split(align=True, factor=0.9)
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("bricker.report_error", text="Report Error", icon="URL")
+            row.operator("scene.report_error", text="Report Error", icon="URL").addon_name = "Bricker"
             col = split.column(align=True)
             row = col.row(align=True)
-            row.operator("bricker.close_report_error", text="", icon="PANEL_CLOSE")
+            row.operator("scene.close_report_error", text="", icon="PANEL_CLOSE").addon_name = "Bricker"
 
 
 def is_baked(mod):
@@ -290,14 +297,14 @@ class BRICKER_PT_animation(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            if (cm.stopFrame - cm.startFrame > 10 and not cm.animated) or self.appliedMods:
+            if cm.brickifyInBackground:
                 col = layout.column(align=True)
-                col.scale_y = 0.7
-                col.label(text="WARNING: May take a while.")
-                col.separator()
-                col.label(text="Watch the progress in")
-                col.label(text="the command line.")
-                col.separator()
+                row = col.row(align=True)
+                row.label(text="Background Processing:")
+                row = col.row(align=True)
+                row.prop(cm, "maxWorkers")
+                row = col.row(align=True)
+                row.prop(cm, "backProcTimeout")
 
 
 class BRICKER_PT_model_transform(Panel):
@@ -479,9 +486,9 @@ class BRICKER_PT_customize_model(Panel):
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
-            if cm.customized:
+            if cm.customized and not cm.matrixLost:
                 row = col.row(align=True)
-                row.label(text="Customizations will be lost")
+                row.label(text="Prior customizations will be lost")
                 row = col.row(align=True)
                 row.operator("bricker.revert_matrix_settings", text="Revert Settings", icon="LOOP_BACK")
             return
@@ -521,15 +528,15 @@ class BRICKER_PT_customize_model(Panel):
         row.label(text="BrickSculpt Tools:")
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
+        row.operator("bricker.bricksculpt", text="Draw/Cut Tool", icon="MOD_DYNAMICPAINT").mode = "DRAW"
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
+        row.operator("bricker.bricksculpt", text="Merge/Split Tool", icon="MOD_DYNAMICPAINT").mode = "MERGE/SPLIT"
         row = col.row(align=True)
         row.active = brickSculptInstalled
-        row.operator("bricker.paintbrush", text="Material Paintbrush", icon="MOD_DYNAMICPAINT").mode = "PAINT"
+        row.operator("bricker.bricksculpt", text="Paintbrush Tool", icon="MOD_DYNAMICPAINT").mode = "PAINT"
         row.prop_search(cm, "paintbrushMat", bpy.data, "materials", text="")
-        if not BRICKER_OT_paintbrush.BrickSculptInstalled:
+        if not BRICKER_OT_bricksculpt.BrickSculptInstalled:
             row = col.row(align=True)
             row.scale_y = 0.7
             row.label(text="BrickSculpt available for purchase")
@@ -1088,6 +1095,10 @@ class BRICKER_PT_advanced(Panel):
             row.label(text="Model Orientation:")
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
+        row = col.row(align=True)
+        row.label("Other:")
+        row = col.row(align=True)
+        row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)

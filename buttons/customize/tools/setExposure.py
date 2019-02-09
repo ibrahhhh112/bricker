@@ -32,7 +32,7 @@ from ....functions import *
 
 
 class BRICKER_OT_set_exposure(Operator):
-    """Set exposure of bricks"""
+    """Set exposure of bricks to correct insideness calculation (consider setting ‘Advanced > Insideness Ray Cast Direction’ to ‘XYZ’ instead)"""
     bl_idname = "bricker.set_exposure"
     bl_label = "Set Exposure"
     bl_options = {"REGISTER", "UNDO"}
@@ -96,7 +96,7 @@ class BRICKER_OT_set_exposure(Operator):
             orig_obj = bpy.data.objects.get(initial_active_obj_name)
             setActiveObj(orig_obj)
         except:
-            handle_exception()
+            bricker_handle_exception()
         return {"FINISHED"}
 
     ################################################

@@ -33,7 +33,7 @@ from ....functions import *
 
 
 class BRICKER_OT_change_type(Operator):
-    """change brick type of active brick"""
+    """Change brick type of active brick"""
     bl_idname = "bricker.change_brick_type"
     bl_label = "Change Brick Type"
     bl_options = {"REGISTER", "UNDO"}
@@ -58,12 +58,13 @@ class BRICKER_OT_change_type(Operator):
         return False
 
     def execute(self, context):
+        wm = bpy.context.window_manager
+        wm.Bricker_runningBlockingOperation = True
         try:
             self.changeType()
         except:
-
-            context.scene.Bricker_runningBlockingOperation = False
-            handle_exception()
+            bricker_handle_exception()
+        wm.Bricker_runningBlockingOperation = False
         return {"FINISHED"}
 
     def invoke(self, context, event):
@@ -100,7 +101,7 @@ class BRICKER_OT_change_type(Operator):
                 break
             self.objNamesD, self.bricksDicts = createObjNamesAndBricksDictsDs(selected_objects)
         except:
-            handle_exception()
+            bricker_handle_exception()
 
     ###################################################
     # class variables
@@ -141,7 +142,6 @@ class BRICKER_OT_change_type(Operator):
         if self.orig_undo_stack_length == self.undo_stack.getLength():
             self.undo_stack.undo_push('change_type', affected_ids=list(self.objNamesD.keys()))
         scn = bpy.context.scene
-        scn.Bricker_runningBlockingOperation = True
         legalBrickSizes = bpy.props.Bricker_legal_brick_sizes
         # get original active and selected objects
         active_obj = bpy.context.object
@@ -231,7 +231,6 @@ class BRICKER_OT_change_type(Operator):
         if orig_obj is not None: setActiveObj(orig_obj)
         objsToSelect = [bpy.data.objects.get(n) for n in objNamesToSelect if bpy.data.objects.get(n) is not None]
         select(objsToSelect)
-        scn.Bricker_runningBlockingOperation = False
         # store current bricksDict to cache when re-run with original brick type so bricksDict is updated
         if not bricksWereGenerated:
             cacheBricksDict("CREATE", cm, bricksDict)

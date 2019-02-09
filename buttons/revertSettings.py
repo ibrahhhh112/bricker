@@ -51,7 +51,7 @@ class BRICKER_OT_revert_settings(Operator):
         try:
             self.revertMatrixSettings()
         except:
-            handle_exception()
+            bricker_handle_exception()
         return{"FINISHED"}
 
     ################################################
@@ -59,7 +59,6 @@ class BRICKER_OT_revert_settings(Operator):
 
     def revertMatrixSettings(self, cm=None):
         cm = cm or getActiveContextInfo()[1]
-        regularSettings = [cm.brickHeight, cm.gap, cm.brickType, cm.distOffset[0], cm.distOffset[1], cm.distOffset[2], cm.includeTransparency, cm.customObjectName1, cm.customObjectName2, cm.customObjectName3, cm.useNormals, cm.verifyExposure, cm.insidenessRayCastDir, cm.castDoubleCheckRays, cm.brickShell, cm.calculationAxes]
         settings = cm.lastMatrixSettings.split(",")
         cm.brickHeight = float(settings[0])
         cm.gap = float(settings[1])
@@ -68,9 +67,9 @@ class BRICKER_OT_revert_settings(Operator):
         cm.distOffset[1] = float(settings[4])
         cm.distOffset[2] = float(settings[5])
         cm.includeTransparency = str_to_bool(settings[6])
-        cm.customObject1 = settings[7]
-        cm.customObject2 = settings[8]
-        cm.customObject3 = settings[9]
+        cm.customObject1 = bpy.data.objects.get(settings[7])
+        cm.customObject2 = bpy.data.objects.get(settings[8])
+        cm.customObject3 = bpy.data.objects.get(settings[9])
         cm.useNormals = str_to_bool(settings[10])
         cm.verifyExposure = str_to_bool(settings[11])
         cm.insidenessRayCastDir = settings[12]
@@ -82,8 +81,10 @@ class BRICKER_OT_revert_settings(Operator):
             cm.smokeQuality = settings[17]
             cm.smokeBrightness = settings[18]
             cm.smokeSaturation = settings[19]
-            cm.flameColor = settings[20]
-            cm.flameIntensity = settings[21]
+            cm.flameColor[0] = settings[20]
+            cm.flameColor[1] = settings[21]
+            cm.flameColor[2] = settings[22]
+            cm.flameIntensity = settings[23]
         cm.matrixIsDirty = False
 
     ################################################
