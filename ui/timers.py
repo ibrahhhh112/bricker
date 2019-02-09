@@ -27,7 +27,7 @@ import bpy
 from bpy.app.handlers import persistent
 
 # Addon imports
-from .app_handlers import brickerIsActive, brickerRunningBlockingOp
+from .app_handlers import brickerRunningBlockingOp
 from ..functions import *
 from ..buttons.customize.tools import *
 
@@ -46,7 +46,7 @@ from ..buttons.customize.tools import *
 
 
 def handle_selections():
-    if not brickerIsActive() or brickerRunningBlockingOp():
+    if brickerRunningBlockingOp():
         return 0.5
     scn = bpy.context.scene
     obj = bpy.context.view_layer.objects.active
@@ -130,17 +130,3 @@ def handle_selections():
         scn.cmlist_index = -1
         tag_redraw_viewport_in_all_screens()
     return 0.05
-
-
-def prevent_user_from_viewing_storage_scene():
-    scn = bpy.context.scene
-    if not brickerIsActive() or brickerRunningBlockingOp() or bpy.props.Bricker_developer_mode != 0:
-        return 0.5
-    if scn.name == "Bricker_storage (DO NOT MODIFY)":
-        i = 0
-        if bpy.data.scenes[i].name == scn.name:
-            i += 1
-        bpy.context.screen.scene = bpy.data.scenes[i]
-        showErrorMessage("This scene is for Bricker internal use only")
-        return 0.5
-    return 0.1

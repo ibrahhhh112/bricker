@@ -29,7 +29,7 @@ props = bpy.props
 
 # Addon imports
 from ..functions import *
-from .delete import BRICKER_OT_delete_model
+from .delete_model import BRICKER_OT_delete_model
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
@@ -96,7 +96,7 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                 return
             # apply random material
             if self.action == "RANDOM":
-                BrickerApplyMaterial.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
+                BRICKER_OT_apply_material.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
             # apply custom or internal material
             else:
                 # set matName

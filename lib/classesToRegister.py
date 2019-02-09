@@ -21,6 +21,7 @@ from ..buttons import *
 from ..buttons.customize import *
 from ..operators import *
 from .preferences import *
+from .reportError import *
 from .. import addon_updater_ops
 
 
@@ -41,13 +42,11 @@ classes = (
     bevel.BRICKER_OT_bevel,
     brickify.BRICKER_OT_brickify,
     cache.BRICKER_OT_caches,
-    delete.BRICKER_OT_delete_model,
+    delete_model.BRICKER_OT_delete_model,
     exportLdraw.BRICKER_OT_export_ldraw,
     exportModelData.BRICKER_OT_export_model_data,
     materials.BRICKER_OT_apply_material,
     redrawCustomBricks.BRICKER_OT_redraw_custom_bricks,
-    reportError.BRICKER_OT_report_error,
-    reportError.BRICKER_OT_close_error,
     revertSettings.BRICKER_OT_revert_settings,
     # bricker/buttons/customize
     initialize.BRICKER_OT_initialize_undo_stack,
@@ -60,12 +59,14 @@ classes = (
     BRICKER_OT_select_bricks_by_type,
     BRICKER_OT_set_exposure,
     BRICKER_OT_split_bricks,
-    BRICKER_OT_paintbrush,
+    BRICKER_OT_bricksculpt,
     # bricker/lib
     BRICKER_OT_test_brick_generators,
     BRICKER_PT_preferences,
+    BRICKER_OT_report_error,
+    BRICKER_OT_close_error,
     # bricker/operators
-    delete.OBJECT_OT_delete_override,
+    delete_object.OBJECT_OT_delete_override,
     duplicate.OBJECT_OT_duplicate_override,
     duplicate.OBJECT_OT_duplicate_move,
     # move_to_layer.OBJECT_OT_move_to_layer_override,

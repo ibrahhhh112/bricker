@@ -120,8 +120,6 @@ def register():
 
     # register app handlers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
-    bpy.app.handlers.scene_update_pre.append(handle_selections)
-    bpy.app.handlers.scene_update_pre.append(prevent_user_from_viewing_storage_scene)
     bpy.app.handlers.load_pre.append(clear_bfm_cache)
     bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
     bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
@@ -136,15 +134,12 @@ def register():
 
     # register timers
     bpy.app.timers.register(handle_selections)
-    bpy.app.timers.register(prevent_user_from_viewing_storage_scene)
 
 
 def unregister():
     # unregister timers
     if bpy.app.timers.is_registered(handle_selections):
         bpy.app.timers.unregister(handle_selections)
-    if bpy.app.timers.is_registered(prevent_user_from_viewing_storage_scene):
-        bpy.app.timers.unregister(prevent_user_from_viewing_storage_scene)
 
     # addon updater unregister
     addon_updater_ops.unregister()
@@ -158,8 +153,6 @@ def unregister():
     bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)
     bpy.app.handlers.load_pre.remove(clear_bfm_cache)
-    bpy.app.handlers.scene_update_pre.remove(prevent_user_from_viewing_storage_scene)
-    bpy.app.handlers.scene_update_pre.remove(handle_selections)
     bpy.app.handlers.frame_change_pre.remove(handle_animation)
 
     del Scene.cmlist_index

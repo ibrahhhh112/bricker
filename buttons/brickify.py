@@ -30,7 +30,7 @@ from bpy.props import *
 # Addon imports
 from .customize.undo_stack import *
 from .materials import BRICKER_OT_apply_material
-from .delete import BRICKER_OT_delete_model
+from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *

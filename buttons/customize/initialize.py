@@ -74,8 +74,6 @@ class BRICKER_OT_initialize_undo_stack(Operator):
         # register timers
         if not bpy.app.timers.is_registered(handle_selections):
             bpy.app.timers.register(handle_selections)
-        if not bpy.app.timers.is_registered(prevent_user_from_viewing_storage_scene):
-            bpy.app.timers.register(prevent_user_from_viewing_storage_scene)
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

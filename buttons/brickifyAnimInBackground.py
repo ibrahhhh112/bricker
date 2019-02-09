@@ -27,9 +27,9 @@ from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BrickerApplyMaterial
-from .delete import BrickerDelete
-from .bevel import BrickerBevel
+from .materials import BRICKER_OT_apply_material
+from .delete_model import BRICKER_OT_delete_model
+from .bevel import BRICKER_OT_bevel
 from .cache import *
 from .brickify import *
 from ..lib.bricksDict import *

@@ -168,18 +168,6 @@ def handle_selections(scn):
         scn.cmlist_index = -1
 
 
-@persistent
-def prevent_user_from_viewing_storage_scene(scn):
-    if brickerRunningBlockingOp() or bpy.props.Bricker_developer_mode != 0:
-        return
-    if scn.name == "Bricker_storage (DO NOT MODIFY)":
-        i = 0
-        if bpy.data.scenes[i].name == scn.name:
-            i += 1
-        bpy.context.screen.scene = bpy.data.scenes[i]
-        showErrorMessage("This scene is for Bricker internal use only")
-
-
 def find_3dview_space():
     # Find 3D_View window and its scren space
     area = None
