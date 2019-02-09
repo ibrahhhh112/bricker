@@ -48,6 +48,8 @@ class bricksculpt_tools:
         locDiff = self.loc - transformToWorld(Vector(self.bricksDict[curKey]["co"]), self.parent.matrix_world, self.junk_bme)
         locDiff = transformToLocal(locDiff, self.parent.matrix_world)
         nextLoc = getNearbyLocFromVector(locDiff, curLoc, self.dimensions, cm.zStep, width_divisor=3.2 if self.brickType in getRoundBrickTypes() else 2.05)
+        if self.layerSolod is not None and nextLoc[2] not in range(self.layerSolod, self.layerSolod + 3 // cm.zStep):
+            return
         # draw brick at nextLoc location
         nextKey, adjBrickD = drawAdjacent.getBrickD(self.bricksDict, nextLoc)
         if not adjBrickD or self.bricksDict[nextKey]["val"] == 0:
@@ -140,6 +142,12 @@ class bricksculpt_tools:
                 self.allUpdatedKeys += mergedKeys
                 # draw merged bricks
                 drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
+                # re-solo layer
+                if self.layerSolod is not None:
+                    zStep = cm.zStep
+                    for key in mergedKeys:
+                        loc = getDictLoc(self.bricksDict, key)
+                        self.hideIfOnLayer(key, loc, self.layerSolod, zStep)
             else:
                 deselectAll()
             # reset lists
@@ -149,18 +157,24 @@ class bricksculpt_tools:
 
     def soloLayer(self, cm, curKey, curLoc, objSize):
         brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
+        assert type(brickKeys) is list
         curKey = self.getNearestLocToCursor(brickKeys)
         curZ = getDictLoc(self.bricksDict, curKey)[2]
+        zStep = cm.zStep
         for key in self.bricksDict.keys():
             if self.bricksDict[key]["parent"] != "self":
                 continue
             loc = getDictLoc(self.bricksDict, key)
-            if loc[2] > curZ or loc[2] + self.bricksDict[key]["size"][2] <= curZ:
-                brick = bpy.data.objects.get(self.bricksDict[key]["name"])
-                if brick is None:
-                    continue
-                brick.hide = True
-                self.hiddenBricks.append(brick)
+            self.hideIfOnLayer(key, loc, curZ, zStep)
+        return curZ
+
+    def hideIfOnLayer(self, key, loc, curZ, zStep):
+        if loc[2] > curZ or loc[2] + self.bricksDict[key]["size"][2] / zStep <= curZ:
+            brick = bpy.data.objects.get(self.bricksDict[key]["name"])
+            if brick is None:
+                return
+            brick.hide = True
+            self.hiddenBricks.append(brick)
 
     def unSoloLayer(self):
         unhide(self.hiddenBricks)

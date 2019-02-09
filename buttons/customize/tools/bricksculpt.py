@@ -135,7 +135,7 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
         self.double_ctrl = False
         self.ctrlClickTime = -1
         self.runUnSoloLayer = False
-        self.layerSolod = False
+        self.layerSolod = None
         self.possibleCtrlDisable = False
         # self.points = [(math.cos(d*math.pi/180.0),math.sin(d*math.pi/180.0)) for d in range(0,361,10)]
         # self.ox = Vector((1,0,0))
