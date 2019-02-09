@@ -158,7 +158,7 @@ class BrickerBrickify(bpy.types.Operator):
         self.origFrame = scn.frame_current
         self.start_time = time.time()
         # initialize important vars
-        self.JobManager = SCENE_OT_job_manager.get_instance(cm.id)
+        self.JobManager = JobManager.get_instance(cm.id)
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
         self.JobManager.max_attempts = 1
