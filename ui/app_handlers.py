@@ -254,12 +254,13 @@ def safe_unlink_parent(dummy):
 
 @persistent
 def handle_upconversion(dummy):
+    # remove storage scene
+    sto_scn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
+    if sto_scn is not None:
+        for obj in sto_scn.objects:
+            obj.use_fake_user = True
+        bpy.data.scenes.remove(sto_scn)
     for scn in bpy.data.scenes:
-        # remove storage scene
-        if scn.name == "Bricker_storage (DO NOT MODIFY)":
-            for obj in scn.objects:
-                obj.use_fake_user = True
-            bpy.data.scenes.remove(scn)
         # update cmlist indices to reflect updates to Bricker
         for cm in scn.cmlist:
             if createdWithUnsupportedVersion(cm):
@@ -324,6 +325,12 @@ def handle_upconversion(dummy):
                     cm.logoType = cm.logoDetail
                     cm.matrixIsDirty = True
                     cm.matrixLost = True
+                    remove_groups = list()
+                    for group in bpy.data.groups:
+                        if group.name.startswith("Bricker_") and (group.name.endswith("_parent") or group.name.endswith("_dupes")):
+                            remove_groups.append(group)
+                    for group in remove_groups:
+                        bpy.data.groups.remove(group)
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
