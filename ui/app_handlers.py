@@ -152,7 +152,7 @@ def handle_selections(scn):
             usingSource = True
             scn.Bricker_active_object_name = scn.objects.active.name
         for i,cm in enumerate(scn.cmlist):
-            if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
+            if getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
             scn.Bricker_last_cmlist_index = scn.cmlist_index
@@ -262,7 +262,6 @@ def handle_upconversion(dummy):
             bpy.data.scenes.remove(scn)
         # update cmlist indices to reflect updates to Bricker
         for cm in scn.cmlist:
-            print(cm.id)
             if createdWithUnsupportedVersion(cm):
                 # normalize cm.version
                 cm.version = cm.version.replace(", ", ".")
@@ -286,7 +285,7 @@ def handle_upconversion(dummy):
                 # convert from v1_3 to v1_4
                 if int(cm.version[2]) < 4:
                     # update "_frame_" to "_f_" in brick and group names
-                    n = getSourceName(cm)
+                    n = cm.source_name
                     Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
                     if cm.animated:
                         for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
@@ -295,13 +294,13 @@ def handle_upconversion(dummy):
                             if bGroup is not None:
                                 bGroup.name = rreplace(bGroup.name, "frame", "f")
                                 for obj in bGroup.objects:
-                                    obj.name = rreplace(obj.name, "frame", "f")
+                                    obj.name = rreplace(obj.name, "combined_frame" if "combined_frame" in obj.name else "frame", "f")
                     elif cm.modelCreated:
                         bGroup = bpy.data.groups.get(Bricker_bricks_gn)
                         if bGroup is not None:
-                            bGroup.name = rreplace(bGroup.name, "frame", "f")
                             for obj in bGroup.objects:
-                                obj.name = rreplace(obj.name, "frame", "f")
+                                if obj.name.endswith("_combined"):
+                                    obj.name = obj.name[:-9]
                     # remove old storage scene
                     sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
                     if sto_scn_old is not None:
@@ -327,7 +326,6 @@ def handle_upconversion(dummy):
                     cm.matrixLost = True
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
-                    print(cm.source_name)
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
                     for cm in scn.cmlist:
                         cm.zStep = getZStep(cm)
