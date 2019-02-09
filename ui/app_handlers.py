@@ -256,12 +256,13 @@ def safe_unlink_parent(dummy):
 def handle_upconversion(dummy):
     for scn in bpy.data.scenes:
         # remove storage scene
-        if scn.name == "Bricker_storage (DO NOT MODIFY)"):
+        if scn.name == "Bricker_storage (DO NOT MODIFY)":
             for obj in scn.objects:
                 obj.use_fake_user = True
             bpy.data.scenes.remove(scn)
         # update cmlist indices to reflect updates to Bricker
         for cm in scn.cmlist:
+            print(cm.id)
             if createdWithUnsupportedVersion(cm):
                 # normalize cm.version
                 cm.version = cm.version.replace(", ", ".")
@@ -291,18 +292,16 @@ def handle_upconversion(dummy):
                         for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                             Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
                             bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
-                            if bGroup is None:
-                                continue
+                            if bGroup is not None:
+                                bGroup.name = rreplace(bGroup.name, "frame", "f")
+                                for obj in bGroup.objects:
+                                    obj.name = rreplace(obj.name, "frame", "f")
+                    elif cm.modelCreated:
+                        bGroup = bpy.data.groups.get(Bricker_bricks_gn)
+                        if bGroup is not None:
                             bGroup.name = rreplace(bGroup.name, "frame", "f")
                             for obj in bGroup.objects:
                                 obj.name = rreplace(obj.name, "frame", "f")
-                    elif cm.modelCreated:
-                        bGroup = bpy.data.groups.get(Bricker_bricks_gn)
-                        if bGroup is None:
-                            continue
-                        bGroup.name = rreplace(bGroup.name, "frame", "f")
-                        for obj in bGroup.objects:
-                            obj.name = rreplace(obj.name, "frame", "f")
                     # remove old storage scene
                     sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
                     if sto_scn_old is not None:
@@ -315,9 +314,9 @@ def handle_upconversion(dummy):
                     # create "Bricker_cm.id_mats" object for each cmlist idx
                     createMatObjs(cm.id)
                     # update names of Bricker source objects
-                    old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
+                    old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
                     if old_source is not None:
-                        old_source = cm.source_obj
+                        old_source.name = cm.source_name
                     # transfer dist offset values to new prop locations
                     if cm.distOffsetX != -1:
                         cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
@@ -328,6 +327,7 @@ def handle_upconversion(dummy):
                     cm.matrixLost = True
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
+                    print(cm.source_name)
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
                     for cm in scn.cmlist:
                         cm.zStep = getZStep(cm)
