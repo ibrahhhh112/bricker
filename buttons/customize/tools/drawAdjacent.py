@@ -218,27 +218,18 @@ class drawAdjacent(Operator):
         newBrickHeight = 1 if targetType in getBrickTypes(height=1) else 3
         return newBrickHeight
 
-    # @staticmethod
-    # def getNewCoord2(cm, bricksDict, origKey, origLoc, newKey, newLoc, dimensions):
-    #     full_d = [dimensions["width"], dimensions["width"], dimensions["height"]]
-    #     cur_co = bricksDict[origKey]["co"]
-    #     new_co = Vector(cur_co)
-    #     loc_diff = (newLoc[0] - origLoc[0], newLoc[1] - origLoc[1], newLoc[2] - origLoc[2])
-    #     new_co.x += full_d[0] * loc_diff[0]
-    #     new_co.y += full_d[1] * loc_diff[1]
-    #     new_co.z += full_d[2] * loc_diff[2]
-    #     new_co.x += dimensions["gap"] * (loc_diff[0] - (0 if loc_diff[0] == 0 else 1)) + (0 if loc_diff[0] == 0 else dimensions["gap"])
-    #     new_co.y += dimensions["gap"] * (loc_diff[1] - (0 if loc_diff[1] == 0 else 1)) + (0 if loc_diff[1] == 0 else dimensions["gap"])
-    #     new_co.z += dimensions["gap"] * (loc_diff[2] - (0 if loc_diff[2] == 0 else 1)) + (0 if loc_diff[2] == 0 else dimensions["gap"])
-    #     return tuple(new_co)
     @staticmethod
-    def getNewCoord(cm, co, dimensions, side, newBrickHeight, offset:Vector=Vector((1, 1, 1))):
-        full_d = [dimensions["width"] * offset.x, dimensions["width"] * offset.y, dimensions["height"] * offset.z]
-        new_co = list(co)
-        if side in (0, 2, 4):  # positive directions
-            new_co[side//2] += full_d[side//2]
-        else:                  # negative directions
-            new_co[side//2] -= full_d[side//2] * (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
+    def getNewCoord(cm, bricksDict, origKey, origLoc, newKey, newLoc, dimensions):
+        full_d = [dimensions["width"], dimensions["width"], dimensions["height"]]
+        cur_co = bricksDict[origKey]["co"]
+        new_co = Vector(cur_co)
+        loc_diff = (newLoc[0] - origLoc[0], newLoc[1] - origLoc[1], newLoc[2] - origLoc[2])
+        new_co.x += full_d[0] * loc_diff[0]
+        new_co.y += full_d[1] * loc_diff[1]
+        new_co.z += full_d[2] * loc_diff[2]
+        new_co.x += dimensions["gap"] * (loc_diff[0] - (0 if loc_diff[0] == 0 else 1)) + (0 if loc_diff[0] == 0 else dimensions["gap"])
+        new_co.y += dimensions["gap"] * (loc_diff[1] - (0 if loc_diff[1] == 0 else 1)) + (0 if loc_diff[1] == 0 else dimensions["gap"])
+        new_co.z += dimensions["gap"] * (loc_diff[2] - (0 if loc_diff[2] == 0 else 1)) + (0 if loc_diff[2] == 0 else dimensions["gap"])
         return tuple(new_co)
 
     @staticmethod
@@ -260,16 +251,7 @@ class drawAdjacent(Operator):
         ni = tuple(ni) if type(ni) in [tuple, list] else ni
         # if key doesn't exist in bricksDict, create it
         if not adjBrickD:
-            newDictLoc = adjacent_loc.copy()
-            if side in (0, 2, 4):  # positive directions
-                newDictLoc[side//2] -= 1
-            else:                  # negative directions
-                newDictLoc[side//2] += (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
-            theKey = listToStr(newDictLoc)
-            print(theKey)
-            co0 = bricksDict[theKey]["co"]
-            co = drawAdjacent.getNewCoord(cm, co0, dimensions, side, newBrickHeight, offset=Vector(cm.distOffset) if "CUSTOM" in cm.brickType else Vector((1, 1, 1)))
-            # co = drawAdjacent.getNewCoord2(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
+            co = drawAdjacent.getNewCoord(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
             bricksDict[adjacent_key] = createBricksDictEntry(
                 name=              'Bricker_%(n)s_brick__%(adjacent_key)s' % locals(),
                 loc=               adjacent_loc,
