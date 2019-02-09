@@ -94,7 +94,7 @@ class BRICKER_OT_bricksculpt(Operator, bricksculpt_framework, bricksculpt_tools,
                 self.report({"WARNING"}, "Please install & enable BrickSculpt from the 'User Preferences > Addons' menu")
                 return {"CANCELLED"}
         except:
-            handle_exception()
+            bricker_handle_exception()
             return {"CANCELLED"}
 
     ################################################

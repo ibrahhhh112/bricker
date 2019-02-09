@@ -125,7 +125,7 @@ class bricksculpt_drawing:
     def draw_callback_preview(self, context):
         bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
         try:    self.draw_preview()
-        except: handle_exception()
+        except: bricker_handle_exception()
         bgl.glPopAttrib()                           # restore OpenGL attributes
 
     # def draw_callback_postview(self, context):
@@ -135,13 +135,13 @@ class bricksculpt_drawing:
     #     # self.drawing.line_width(1)
     #     bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
     #     try:    self.draw_postview()
-    #     except: handle_exception()
+    #     except: bricker_handle_exception()
     #     bgl.glPopAttrib()                           # restore OpenGL attributes
 
     def draw_callback_postpixel(self, context):
         bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
         try:    self.draw_postpixel()
-        except: handle_exception()
+        except: bricker_handle_exception()
         bgl.glPopAttrib()                           # restore OpenGL attributes
 
     def draw_callback_cover(self, context):

@@ -266,7 +266,8 @@ class drawAdjacent(Operator):
             else:                  # negative directions
                 newDictLoc[side//2] += (newBrickHeight if side == 5 and "PLATES" in cm.brickType else 1)
             theKey = listToStr(newDictLoc)
-            co0 = self.bricksDict[theKey]["co"]
+            print(theKey)
+            co0 = bricksDict[theKey]["co"]
             co = drawAdjacent.getNewCoord(cm, co0, dimensions, side, newBrickHeight, offset=Vector(cm.distOffset) if "CUSTOM" in cm.brickType else Vector((1, 1, 1)))
             # co = drawAdjacent.getNewCoord2(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
             bricksDict[adjacent_key] = createBricksDictEntry(
