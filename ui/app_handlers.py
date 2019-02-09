@@ -254,13 +254,17 @@ def safe_unlink_parent(dummy):
 
 @persistent
 def handle_upconversion(dummy):
-    # update storage scene name
     for scn in bpy.data.scenes:
+        # remove storage scene
+        if scn.name == "Bricker_storage (DO NOT MODIFY)"):
+            for obj in scn.objects:
+                obj.use_fake_user = True
+            bpy.data.scenes.remove(scn)
+        # update cmlist indices to reflect updates to Bricker
         for cm in scn.cmlist:
             if createdWithUnsupportedVersion(cm):
                 # normalize cm.version
-                if cm.version[1] == ",":
-                    cm.version = cm.version.replace(", ", ".")
+                cm.version = cm.version.replace(", ", ".")
                 # convert from v1_0 to v1_1
                 if int(cm.version[2]) < 1:
                     cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
@@ -325,11 +329,5 @@ def handle_upconversion(dummy):
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
-                    # remove storage scene
-                    sto_scn_new = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
-                    if sto_scn_new is not None:
-                        for obj in sto_scn_new.objects:
-                            obj.use_fake_user = True
-                        bpy.data.scenes.remove(sto_scn_new)
                     for cm in scn.cmlist:
                         cm.zStep = getZStep(cm)
