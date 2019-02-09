@@ -291,12 +291,11 @@ def handle_upconversion(dummy):
                     if cm.animated:
                         for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                             Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
-                            Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
-                            bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn1) or bpy.data.groups.Bricker_bricks_curF_gn2)
+                            bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
                             if bGroup is not None:
                                 bGroup.name = rreplace(bGroup.name, "frame", "f")
                                 for obj in bGroup.objects:
-                                    obj.name = rreplace(obj.name, "combined_frame" if "combined_frame" in obj.name else "frame", "f")
+                                    obj.name = rreplace(obj.name, "frame", "f")
                     elif cm.modelCreated:
                         bGroup = bpy.data.groups.get(Bricker_bricks_gn)
                         if bGroup is not None:
