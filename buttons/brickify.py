@@ -272,9 +272,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # unlink source from scene
         if self.source.name in scn.objects.keys():
             safeUnlink(self.source)
-        # reset layers
-        if oldLayers != sourceLayers:
-            setLayers(oldLayers)
 
         disableRelationshipLines()
 
@@ -510,7 +507,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create new bricks
         try:
-            group_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
+            coll_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
         except KeyboardInterrupt:
             if curFrame != cm.startFrame:
                 wm.progress_end()
@@ -521,7 +518,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return False
 
         # get object with created bricks
-        obj = bpy.data.groups[group_name].objects[0]
+        obj = bpy.data.collections[coll_name].objects[0]
         # hide obj unless on scene current frame
         showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
         if not showCurObj:
@@ -561,7 +558,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
 
     @staticmethod
-    def createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False, origSource=None):
+    def createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingCollection=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False, origSource=None):
         """ gets/creates bricksDict, runs makeBricks, and caches the final bricksDict """
         scn, cm, n = getActiveContextInfo(cm=cm)
         _, _, _, brickScale, customData = getArgumentsForBricksDict(cm, source=source, source_details=source_details, dimensions=dimensions)
@@ -598,7 +595,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if cm.materialType != "NONE" and (cm.materialIsDirty or cm.matrixIsDirty or cm.animIsDirty): bricksDict = updateMaterials(bricksDict, source, curFrame)
         # make bricks
         coll_name = 'Bricker_%(n)s_bricks_f_%(curFrame)s' % locals() if curFrame is not None else "Bricker_%(n)s_bricks" % locals()
-        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, group_name=coll_name, clearExistingGroup=clearExistingGroup, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, tempBrick=tempBrick, redraw=redraw)
+        bricksCreated, bricksDict = makeBricks(source, parent, refLogo, logo_details, dimensions, bricksDict, action, cm=cm, split=split, brickScale=brickScale, customData=customData, coll_name=coll_name, clearExistingCollection=clearExistingCollection, frameNum=curFrame, cursorStatus=updateCursor, keys=keys, printStatus=printStatus, tempBrick=tempBrick, redraw=redraw)
         if selectCreated and len(bricksCreated) > 0:
             select(bricksCreated)
         # store current bricksDict to cache
@@ -677,7 +674,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return False
 
         if self.action == "UPDATE_MODEL":
-            # make sure 'Bricker_[source name]_bricks' group exists
+            # make sure 'Bricker_[source name]_bricks' collection exists
             if not collExists(brick_coll_name):
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
                 return False
@@ -831,7 +828,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # unlink source duplicate
         scn.update()
         for obj in duplicates.values():
-            safeUnlink(obj, hide=False)
+            safeUnlink(obj)
         return duplicates
 
     @staticmethod

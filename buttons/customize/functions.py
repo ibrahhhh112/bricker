@@ -44,7 +44,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCr
     logo_details, refLogo = [None, None] if tempBrick else BRICKER_OT_brickify.getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    BRICKER_OT_brickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
+    BRICKER_OT_brickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingCollection=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
     # add bevel if it was previously added
     if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)

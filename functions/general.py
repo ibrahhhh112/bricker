@@ -66,9 +66,11 @@ def safeUnlink(obj, protect=True):
     obj.use_fake_user = True
 
 
-def safeLink(obj, protect=False):
+def safeLink(obj, protect=False, collections=None):
     scn = bpy.context.scene
-    scn.objects.link(obj)
+    collections = collections or [scn.collection]
+    for cn in collections:
+        cn.objects.link(obj)
     obj.protected = protect
     obj.use_fake_user = False
 
@@ -154,9 +156,9 @@ def setObjOrigin(obj, loc):
     s_mat_x = Matrix.Scale(s.x, 4, Vector((1, 0, 0)))
     s_mat_y = Matrix.Scale(s.y, 4, Vector((0, 1, 0)))
     s_mat_z = Matrix.Scale(s.z, 4, Vector((0, 0, 1)))
-    s_mat = s_mat_x * s_mat_y * s_mat_z
+    s_mat = s_mat_x @ s_mat_y @ s_mat_z
     m = obj.data
-    m.transform(Matrix.Translation((obj.location-loc) * l_mat * r_mat * s_mat.inverted()))
+    m.transform(Matrix.Translation((obj.location-loc) @ l_mat @ r_mat @ s_mat.inverted()))
     obj.location = loc
 
 
@@ -175,8 +177,8 @@ def getBricks(cm=None, typ=None):
     typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
     if typ == "MODEL":
         cn = "Bricker_%(n)s_bricks" % locals()
-        bGroup = bpy.data.collections[cn]
-        bricks = list(bGroup.objects)
+        bColl = bpy.data.collections[cn]
+        bricks = list(bColl.objects)
     elif typ == "ANIM":
         bricks = []
         for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):

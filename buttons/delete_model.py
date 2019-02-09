@@ -79,7 +79,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('delete', affected_ids=[cm.id])
-        self.undo_stack.iterateStates(cm)
 
     #############################################
     # class methods
@@ -91,11 +90,11 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo(cm=cm)
         source = bpy.data.objects.get(source_name or n)
 
-        # clean up 'Bricker_[source name]' group
+        # clean up 'Bricker_[source name]' collection
         if not skipSource:
             cls.cleanSource(cm, n, source, modelType)
 
-        # clean up 'Bricker_[source name]_dupes' group
+        # clean up 'Bricker_[source name]_dupes' collection
         if not skipDupes:
             cls.cleanDupes(cm, n, preservedFrames, modelType)
 

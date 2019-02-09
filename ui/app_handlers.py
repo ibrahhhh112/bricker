@@ -65,9 +65,9 @@ def handle_animation(scn):
 def isObjVisible(scn, cm, n):
     objVisible = False
     if cm.modelCreated or cm.animated:
-        gn = "Bricker_%(n)s_bricks" % locals()
-        if groupExists(gn) and len(bpy.data.groups[gn].objects) > 0:
-            obj = bpy.data.groups[gn].objects[0]
+        cn = "Bricker_%(n)s_bricks" % locals()
+        if collExists(gn) and len(bpy.data.collections[cn].objects) > 0:
+            obj = bpy.data.collections[cn].objects[0]
         else:
             obj = None
     else:
@@ -121,7 +121,7 @@ def handle_selections(scn):
                     cf = cm.stopFrame
                 elif cf < cm.startFrame:
                     cf = cm.startFrame
-                g = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+                g = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if g is not None and len(g.objects) > 0:
                     select(list(g.objects), active=True, only=True)
                     scn.Bricker_last_active_object_name = scn.objects.active.name
@@ -303,26 +303,26 @@ def handle_upconversion(dummy):
                     for scn in bpy.data.scenes:
                         if scn.name.startswith("Rebrickr"):
                             scn.name = scn.name.replace("Rebrickr", "Bricker")
-                    for group in bpy.data.groups:
-                        if group.name.startswith("Rebrickr"):
-                            group.name = group.name.replace("Rebrickr", "Bricker")
+                    for coll in bpy.data.collections:
+                        if coll.name.startswith("Rebrickr"):
+                            coll.name = coll.name.replace("Rebrickr", "Bricker")
                 # convert from v1_3 to v1_4
                 if int(cm.version[2]) < 4:
-                    # update "_frame_" to "_f_" in brick and group names
+                    # update "_frame_" to "_f_" in brick and collection names
                     n = getSourceName(cm)
                     Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
                     if cm.animated:
                         for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                             Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
-                            bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
-                            if bGroup is None:
+                            bColl = bpy.data.collections.get(Bricker_bricks_curF_gn)
+                            if bColl is None:
                                 continue
-                            bGroup.name = rreplace(bGroup.name, "frame", "f")
-                            for obj in bGroup.objects:
+                            bColl.name = rreplace(bColl.name, "frame", "f")
+                            for obj in bColl.objects:
                                 obj.name = rreplace(obj.name, "frame", "f")
                     elif cm.modelCreated:
-                        bGroup = bpy.data.groups.get(Bricker_bricks_gn)
-                        if bGroup is None:
+                        bColl = bpy.data.collections.get(Bricker_bricks_gn)
+                        if bColl is None:
                             continue
                         bColl.name = rreplace(bColl.name, "frame", "f")
                         for obj in bColl.objects:

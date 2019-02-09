@@ -42,7 +42,7 @@ from .mat_utils import *
 
 
 @timed_call('Time Elapsed')
-def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, group_name=None, clearExistingGroup=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, tempBrick=False, redraw=False):
+def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, action, cm=None, split=False, brickScale=None, customData=None, coll_name=None, clearExistingCollection=True, frameNum=None, cursorStatus=False, keys="ALL", printStatus=True, tempBrick=False, redraw=False):
     # set up variables
     scn, cm, n = getActiveContextInfo(cm=cm)
 
@@ -68,14 +68,14 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         loc = getDictLoc(bricksDict, keys[0])
         cm.activeKey = loc
 
-    # get brick group
-    group_name = group_name or 'Bricker_%(n)s_bricks' % locals()
-    bColl = bpy.data.collections.get(group_name)
-    # create new group if no existing group found
+    # get brick collection
+    coll_name = coll_name or 'Bricker_%(n)s_bricks' % locals()
+    bColl = bpy.data.collections.get(coll_name)
+    # create new collection if no existing collection found
     if bColl is None:
-        bColl = bpy.data.collections.new(group_name)
-    # else, replace existing group
-    elif clearExistingGroup:
+        bColl = bpy.data.collections.new(coll_name)
+    # else, replace existing collection
+    elif clearExistingCollection:
         for obj0 in bColl.objects:
             bColl.objects.unlink(obj0)
 
@@ -276,7 +276,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vertList = [v.index for v in brick.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
             # set up remaining brick info if brick object just created
-            if clearExistingGroup or brick.name not in bColl.objects.keys():
+            if clearExistingCollection or brick.name not in bColl.objects.keys():
                 bColl.objects.link(brick)
             brick.parent = parent
             if not brick.isBrick:

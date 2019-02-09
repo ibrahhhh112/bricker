@@ -63,12 +63,12 @@ classes = (
     # bricker/lib
     BRICKER_OT_test_brick_generators,
     BRICKER_PT_preferences,
-    BRICKER_OT_report_error,
-    BRICKER_OT_close_error,
+    SCENE_OT_report_error,
+    SCENE_OT_close_report_error,
     # bricker/operators
     delete_object.OBJECT_OT_delete_override,
-    duplicate.OBJECT_OT_duplicate_override,
-    duplicate.OBJECT_OT_duplicate_move,
+    duplicate_object.OBJECT_OT_duplicate_override,
+    duplicate_object.OBJECT_OT_duplicate_move,
     # move_to_layer.OBJECT_OT_move_to_layer_override,
     # move_to_layer.OBJECT_OT_move_to_layer,
     # bricker/ui
