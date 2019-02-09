@@ -28,7 +28,11 @@ from ..lib.bricksDict import *
 from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
+<<<<<<< HEAD:operators/delete_object.py
 from ..buttons.delete_model import BRICKER_OT_delete_model
+=======
+from ..buttons.delete_model import BrickerDelete
+>>>>>>> master:operators/delete_object.py
 from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
