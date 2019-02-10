@@ -163,7 +163,7 @@ def setObjOrigin(obj, loc):
 #     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
 #     if fromObj and deleteFromObj:
 #         m = fromObj.data
-#         bpy.data.objects.remove(fromObj, True)
+#         bpy.data.objects.remove(fromObj, do_unlink=True)
 #         bpy.data.meshes.remove(m)
 
 

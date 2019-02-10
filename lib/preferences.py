@@ -78,7 +78,7 @@ class BrickerPreferences(AddonPreferences):
         row = col.row(align=True)
         split = row.split(align=True, percentage=0.275)
         col = split.column(align=True)
-        col.label("Default Brick Height:")
+        col.label(text="Default Brick Height:")
         col = split.column(align=True)
         split = col.split(align=True, percentage=0.5)
         col = split.column(align=True)

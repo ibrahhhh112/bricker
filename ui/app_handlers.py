@@ -307,7 +307,7 @@ def handle_upconversion(dummy):
                     if sto_scn_old is not None:
                         for obj in sto_scn_old.objects:
                             if obj.name.startswith("Bricker_refLogo"):
-                                bpy.data.objects.remove(obj, True)
+                                bpy.data.objects.remove(obj, do_unlink=True)
                             else:
                                 obj.use_fake_user = True
                         bpy.data.scenes.remove(sto_scn_old)
