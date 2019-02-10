@@ -5,3 +5,4 @@ rebrickr_updater/
 rebrickr_options.db
 textures/
 bricksDict_dump.py
+bricksculpt_framework.py
