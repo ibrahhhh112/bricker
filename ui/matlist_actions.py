@@ -29,7 +29,7 @@ from .matlist_utils import *
 
 
 # ui list item actions
-class Bricker_matlist_actions(bpy.types.Operator):
+class BRICKER_OT_matlist_actions(bpy.types.Operator):
     bl_idname = "bricker.mat_list_action"
     bl_label = "Mat Slots List Action"
 

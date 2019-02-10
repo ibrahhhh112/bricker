@@ -29,11 +29,10 @@ props = bpy.props
 
 # Addon imports
 from ..functions import *
-from .delete_model import BrickerDelete
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 
-class BrickerApplyMaterial(bpy.types.Operator):
+class BRICKER_OT_apply_material(bpy.types.Operator):
     """Apply specified material to all bricks"""
     bl_idname = "bricker.apply_material"
     bl_label = "Apply Material"
@@ -96,7 +95,7 @@ class BrickerApplyMaterial(bpy.types.Operator):
                 return
             # apply random material
             if self.action == "RANDOM":
-                BrickerApplyMaterial.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
+                self.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
             # apply custom or internal material
             else:
                 # set matName
@@ -144,6 +143,8 @@ class BrickerApplyMaterial(bpy.types.Operator):
         # initialize variables
         lastSplitModel = cm.lastSplitModel
         randomMatSeed = cm.randomMatSeed
+        brick = bricks[0]
+        lastMatSlots = list(brick.material_slots.keys())
         # apply a random material to each brick
         if lastSplitModel:
             for i, brick in enumerate(bricks):

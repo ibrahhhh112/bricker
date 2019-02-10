@@ -31,7 +31,7 @@ from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 
 
-class setExposure(Operator):
+class BRICKER_OT_set_exposure(Operator):
     """Set exposure of bricks to correct insideness calculation (consider setting ‘Advanced > Insideness Ray Cast Direction’ to ‘XYZ’ instead)"""
     bl_idname = "bricker.set_exposure"
     bl_label = "Set Exposure"
@@ -59,7 +59,7 @@ class setExposure(Operator):
         try:
             scn = bpy.context.scene
             selected_objects = bpy.context.selected_objects
-            active_obj = scn.objects.active
+            active_obj = bpy.context.active_object
             initial_active_obj_name = active_obj.name if active_obj else ""
             objsToSelect = []
 

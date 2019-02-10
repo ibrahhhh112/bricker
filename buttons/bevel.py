@@ -30,7 +30,7 @@ props = bpy.props
 from ..functions import *
 
 
-class BrickerBevel(bpy.types.Operator):
+class BRICKER_OT_bevel(bpy.types.Operator):
     """Bevel brick edges and corners for added realism"""
     bl_idname = "bricker.bevel"
     bl_label = "Bevel Bricks"
@@ -63,7 +63,7 @@ class BrickerBevel(bpy.types.Operator):
             # get bricks to bevel
             bricks = getBricks()
             # create or remove bevel
-            BrickerBevel.runBevelAction(bricks, cm, action, setBevel=True)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm, action, setBevel=True)
         except:
             bricker_handle_exception()
         return{"FINISHED"}
@@ -75,10 +75,10 @@ class BrickerBevel(bpy.types.Operator):
     def runBevelAction(bricks, cm, action="ADD", setBevel=False):
         """ chooses whether to add or remove bevel """
         if action == "REMOVE":
-            BrickerBevel.removeBevelMods(bricks)
+            BRICKER_OT_bevel.removeBevelMods(bricks)
             cm.bevelAdded = False
         elif action == "ADD":
-            BrickerBevel.createBevelMods(cm, bricks)
+            BRICKER_OT_bevel.createBevelMods(cm, bricks)
             cm.bevelAdded = True
 
     @classmethod

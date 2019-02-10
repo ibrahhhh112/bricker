@@ -28,14 +28,14 @@ from ..lib.bricksDict import *
 from ..functions import *
 from ..buttons.customize.functions import *
 from ..buttons.customize.undo_stack import *
-from ..buttons.delete_model import BrickerDelete
+from ..buttons.delete_model import BRICKER_OT_delete_model
 from ..lib.Brick import Bricks
 from ..lib.bricksDict.functions import getDictKey
 
 
 class OBJECT_OT_delete_override(Operator):
     """OK?"""
-    bl_idname = "bricker.delete"
+    bl_idname = "object.delete1"
     bl_label = "Delete"
     bl_options = {'REGISTER'}
 
@@ -201,7 +201,6 @@ class OBJECT_OT_delete_override(Operator):
                 self.deleteBrickObject(obj, update_model, use_global)
             elif not obj.protected:
                 obj_users_scene = len(obj.users_scene)
-                scn.objects.unlink(obj)
                 if use_global or obj_users_scene == 1:
                     bpy.data.objects.remove(obj, do_unlink=True)
             else:
@@ -268,11 +267,10 @@ class OBJECT_OT_delete_override(Operator):
                     cm = cmCur
                     break
         if cm and update_model:
-            BrickerDelete.runFullDelete(cm=cm)
-            scn.objects.active.select = False
+            BRICKER_OT_delete_model.runFullDelete(cm=cm)
+            bpy.context.active_object.select = False
         else:
             obj_users_scene = len(obj.users_scene)
-            scn.objects.unlink(obj)
             if use_global or obj_users_scene == 1:
                 bpy.data.objects.remove(obj, do_unlink=True)
 

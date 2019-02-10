@@ -33,7 +33,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class drawAdjacent(Operator):
+class BRICKER_OT_draw_adjacent(Operator):
     """Draw new brick(s) adjacent to active brick"""
     bl_idname = "bricker.draw_adjacent"
     bl_label = "Draw Adjacent Bricks"
@@ -46,7 +46,7 @@ class drawAdjacent(Operator):
     def poll(self, context):
         """ ensures operator can execute (if not, returns False) """
         scn = bpy.context.scene
-        active_obj = scn.objects.active
+        active_obj = bpy.context.active_object
         # check active object is not None
         if active_obj is None:
             return False
@@ -75,7 +75,7 @@ class drawAdjacent(Operator):
             # get fresh copy of self.bricksDict
             self.bricksDict, _ = getBricksDict(cm=cm)
             # initialize vars
-            obj = scn.objects.active
+            obj = bpy.context.active_object
             initial_active_obj_name = obj.name
             keysToMerge = []
             updateHasCustomObjs(cm, targetType)
@@ -116,7 +116,7 @@ class drawAdjacent(Operator):
                 setCurBrickVal(self.bricksDict, curLoc)
 
             # attempt to merge created bricks
-            keysToUpdate = mergeBricks.mergeBricks(self.bricksDict, keysToMerge, cm, targetType=targetType)
+            keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, keysToMerge, cm, targetType=targetType)
 
             # if bricks created on top or bottom, set exposure of original brick
             if self.zPos or self.zNeg:
@@ -144,7 +144,7 @@ class drawAdjacent(Operator):
             self.undo_stack = UndoStack.get_instance()
             self.orig_undo_stack_length = self.undo_stack.getLength()
             scn, cm, _ = getActiveContextInfo()
-            obj = scn.objects.active
+            obj = bpy.context.active_object
             dictKey = getDictKey(obj.name)
             cm.customized = True
 
@@ -240,18 +240,18 @@ class drawAdjacent(Operator):
     @staticmethod
     def toggleBrick(cm, n, bricksDict, adjDKLs, adjBricksCreated, dimensions, adjacent_loc, dictKey, dictLoc, objSize, targetType, side, brickNum, keysToMerge, temporaryBrick=False, addBrick=True):
         # if brick height is 3 and 'Plates' in cm.brickType
-        newBrickHeight = drawAdjacent.getNewBrickHeight(targetType)
+        newBrickHeight = BRICKER_OT_draw_adjacent.getNewBrickHeight(targetType)
         checkTwoMoreAbove = "PLATES" in cm.brickType and newBrickHeight == 3
         dirBool = None
 
-        adjacent_key, adjBrickD = drawAdjacent.getBrickD(bricksDict, adjacent_loc)
+        adjacent_key, adjBrickD = BRICKER_OT_draw_adjacent.getBrickD(bricksDict, adjacent_loc)
 
         # get duplicate of nearest_intersection tuple
         ni = bricksDict[dictKey]["near_intersection"]
         ni = tuple(ni) if type(ni) in [tuple, list] else ni
         # if key doesn't exist in bricksDict, create it
         if not adjBrickD:
-            co = drawAdjacent.getNewCoord(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
+            co = BRICKER_OT_draw_adjacent.getNewCoord(cm, bricksDict, dictKey, dictLoc, adjacent_key, adjacent_loc, dimensions)
             bricksDict[adjacent_key] = createBricksDictEntry(
                 name=              'Bricker_%(n)s_brick__%(adjacent_key)s' % locals(),
                 loc=               adjacent_loc,
@@ -270,7 +270,7 @@ class drawAdjacent(Operator):
             # if attempting to add brick
             if addBrick:
                 # reset direction bool if no bricks could be added
-                if not drawAdjacent.isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side):
+                if not BRICKER_OT_draw_adjacent.isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side):
                     dirBool = [side, False]
                 return {"val":False, "dirBool":dirBool, "report_type":"INFO", "msg":"Brick already exists in the following location: %(adjacent_key)s" % locals()}
             # if attempting to remove brick
@@ -301,7 +301,7 @@ class drawAdjacent(Operator):
                     newKey = listToStr((x0, y0, z0 + z))
                     # if brick drawn in next loc and not just rerunning based on new direction selection
                     if (newKey in bricksDict and bricksDict[newKey]["draw"] and
-                        (not drawAdjacent.isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side) or
+                        (not BRICKER_OT_draw_adjacent.isBrickAlreadyCreated(adjDKLs, adjBricksCreated, brickNum, side) or
                          curType not in getBrickTypes(height=3)) and not
                          (z == 2 and curType in getBrickTypes(height=1) and targetType not in getBrickTypes(height=1))):
                         # reset values at failed location, in case brick was previously drawn there

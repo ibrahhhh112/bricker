@@ -32,7 +32,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class mergeBricks(Operator):
+class BRICKER_OT_merge_bricks(Operator):
     """Merge selected bricks (auto-converts brick type to 'BRICK' or 'PLATE')"""
     bl_idname = "bricker.merge_bricks"
     bl_label = "Merge Bricks"
@@ -86,7 +86,7 @@ class mergeBricks(Operator):
                     delete(bpy.data.objects.get(obj_name))
 
                 # run self.mergeBricks
-                keysToUpdate = mergeBricks.mergeBricks(bricksDict, allSplitKeys, cm, anyHeight=True)
+                keysToUpdate = BRICKER_OT_merge_bricks.mergeBricks(bricksDict, allSplitKeys, cm, anyHeight=True)
 
                 # draw modified bricks
                 drawUpdatedBricks(cm, bricksDict, keysToUpdate)

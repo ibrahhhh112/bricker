@@ -53,7 +53,7 @@ def handle_animation(scn):
                 if brick.hide == onCurF:
                     brick.hide = not onCurF
                     brick.hide_render = not onCurF
-                if scn.objects.active and scn.objects.active.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
+                if bpy.context.active_object and bpy.context.active_object.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
                     select(brick, active=True)
                 # prevent bricks from being selected on frame change
                 elif brick.select:
@@ -112,7 +112,7 @@ def handle_selections(scn):
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
-                    scn.Bricker_last_active_object_name = scn.objects.active.name
+                    scn.Bricker_last_active_object_name = bpy.context.active_object.name
             elif cm.animated:
                 cf = scn.frame_current
                 if cf > cm.stopFrame:
@@ -122,7 +122,7 @@ def handle_selections(scn):
                 g = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if g is not None and len(g.objects) > 0:
                     select(list(g.objects), active=True, only=True)
-                    scn.Bricker_last_active_object_name = scn.objects.active.name
+                    scn.Bricker_last_active_object_name = bpy.context.active_object.name
                 else:
                     scn.objects.active = None
                     deselectAll()
@@ -136,27 +136,27 @@ def handle_selections(scn):
                     deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
-    elif scn.objects.active and scn.Bricker_last_active_object_name != scn.objects.active.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and scn.objects.active.type == "MESH":
-        scn.Bricker_last_active_object_name = scn.objects.active.name
+elif bpy.context.active_object and scn.Bricker_last_active_object_name != bpy.context.active_object.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and bpy.context.active_object.type == "MESH":
+        scn.Bricker_last_active_object_name = bpy.context.active_object.name
         beginningString = "Bricker_"
-        if scn.objects.active.name.startswith(beginningString):
+        if bpy.context.active_object.name.startswith(beginningString):
             usingSource = False
-            frameLoc = scn.objects.active.name.rfind("_bricks")
+            frameLoc = bpy.context.active_object.name.rfind("_bricks")
             if frameLoc == -1:
-                frameLoc = scn.objects.active.name.rfind("_brick_")
+                frameLoc = bpy.context.active_object.name.rfind("_brick_")
                 if frameLoc == -1:
-                    frameLoc = scn.objects.active.name.rfind("_parent")
+                    frameLoc = bpy.context.active_object.name.rfind("_parent")
             if frameLoc != -1:
-                scn.Bricker_active_object_name = scn.objects.active.name[len(beginningString):frameLoc]
+                scn.Bricker_active_object_name = bpy.context.active_object.name[len(beginningString):frameLoc]
         else:
             usingSource = True
-            scn.Bricker_active_object_name = scn.objects.active.name
+            scn.Bricker_active_object_name = bpy.context.active_object.name
         for i,cm in enumerate(scn.cmlist):
             if getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
             scn.Bricker_last_cmlist_index = scn.cmlist_index
-            active_obj = scn.objects.active
+            active_obj = bpy.context.active_object
             if active_obj.isBrick:
                 # adjust scn.active_brick_detail based on active brick
                 x0, y0, z0 = strToList(getDictKey(active_obj.name))

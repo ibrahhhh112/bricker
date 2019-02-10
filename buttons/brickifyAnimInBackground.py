@@ -27,16 +27,14 @@ from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BrickerApplyMaterial
-from .delete_model import BrickerDelete
-from .bevel import BrickerBevel
+from .bevel import BRICKER_OT_bevel
 from .cache import *
 from .brickify import *
 from ..lib.bricksDict import *
 from ..functions import *
 
 
-class BrickerBrickifyAnimInBackground(bpy.types.Operator):
+class BRICKER_OT_brickify_anim_in_background(bpy.types.Operator):
     """ Create brick sculpture from source object mesh """
     bl_idname = "bricker.brickify_anim_in_background"
     bl_label = "Create/Update Brick Model from Source Object"

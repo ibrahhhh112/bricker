@@ -27,7 +27,7 @@ from ..functions import *
 from ..ui.cmlist_actions import *
 
 
-class bakeModel(bpy.types.Operator):
+class BRICKER_OT_bake_model(bpy.types.Operator):
     """Convert model from Bricker model to standard Blender object (applies transformation and clears Bricker data associated with the model; source object will be lost)"""
     bl_idname = "bricker.bake_model"
     bl_label = "Bake Model"
@@ -73,6 +73,6 @@ class bakeModel(bpy.types.Operator):
             bpy.data.groups.remove(brickGroup, do_unlink=True)
         # remove current cmlist index
         cm.modelCreated = False
-        cmlist_actions.removeItem(self, scn.cmlist_index)
+        CMLIST_OT_list_action.removeItem(self, scn.cmlist_index)
         scn.cmlist_index = -1
         return{"FINISHED"}

@@ -31,7 +31,7 @@ from ..lib.Brick import *
 from ..lib.abs_plastic_materials import *
 
 
-class exportLdraw(Operator):
+class BRICKER_OT_export_ldraw(Operator):
     """Export active brick model to ldraw file"""
     bl_idname = "bricker.export_ldraw"
     bl_label = "Export to Ldraw File"

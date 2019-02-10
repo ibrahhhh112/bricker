@@ -46,7 +46,6 @@ from .buttons import *
 from .buttons.customize import *
 from .operators import *
 from .lib import *
-# from .lib.rigid_body_props import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 from . import addon_updater_ops
 

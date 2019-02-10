@@ -49,7 +49,7 @@ def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCr
     # add bevel if it was previously added
     if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)
-        BrickerBevel.runBevelAction(bricks, cm)
+        BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
 
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
@@ -125,7 +125,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     items = []
     legalBS = bpy.props.Bricker_legal_brick_sizes
     scn = bpy.context.scene
-    objs = bpy.context.selected_objects if by == "SELECTION" else [scn.objects.active]
+    objs = bpy.context.selected_objects if by == "SELECTION" else [bpy.context.active_object]
     objNamesD, bricksDicts = createObjNamesAndBricksDictsDs(objs)
     invalidItems = []
     for cm_id in objNamesD.keys():

@@ -29,7 +29,7 @@ from .matlist_utils import *
 
 
 # Create custom property group
-class Bricker_CreatedModels(bpy.types.PropertyGroup):
+class BRICKER_UL_created_models(bpy.types.PropertyGroup):
     # CMLIST ITEM SETTINGS
     name = StringProperty(update=uniquifyName)
     id = IntProperty()
@@ -638,7 +638,6 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
     materialApplied = BoolProperty(default=False)
     armature = BoolProperty(default=False)
     zStep = IntProperty(default=3)
-    # rigid_body = BoolProperty(default=False)
     customized = BoolProperty(default=True)
     brickSizesUsed = StringProperty(default="")  # list of brickSizes used separated by | (e.g. '5,4,3|7,4,5|8,6,5')
     brickTypesUsed = StringProperty(default="")  # list of brickTypes used separated by | (e.g. 'PLATE|BRICK|STUD')

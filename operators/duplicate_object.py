@@ -28,9 +28,9 @@ from bpy.props import *
 from ..functions import *
 from ..ui.cmlist_actions import *
 
-class duplicate_override(bpy.types.Operator):
+class OBJECT_OT_duplicate_override(bpy.types.Operator):
     """Duplicate selected objects (Bricker object duplicates will baked)"""
-    bl_idname = "bricker.duplicate"
+    bl_idname = "object.duplicate"
     bl_label = "Duplicate Objects"
     bl_options = {"REGISTER", "INTERNAL"}
 
@@ -87,14 +87,14 @@ class duplicate_override(bpy.types.Operator):
             parent_clear(newBrickerObjs)
 
 
-class BRICKER_OT_duplicate_move(bpy.types.Operator):
+class OBJECT_OT_duplicate_move_override(bpy.types.Operator):
     """Duplicate and Move Object"""
-    bl_idname = "bricker.duplicate_move"
+    bl_idname = "object.duplicate_move"
     bl_label = "Duplicate and Move Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     def invoke(self, context, event):
-        bpy.ops.bricker.duplicate('INVOKE_DEFAULT')
+        bpy.ops.object.duplicate('INVOKE_DEFAULT')
         return bpy.ops.transform.translate('INVOKE_DEFAULT')
 
 

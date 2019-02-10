@@ -51,11 +51,11 @@ class bricksculpt_tools:
         if self.layerSolod is not None and nextLoc[2] not in range(self.layerSolod, self.layerSolod + 3 // cm.zStep):
             return
         # draw brick at nextLoc location
-        nextKey, adjBrickD = drawAdjacent.getBrickD(self.bricksDict, nextLoc)
+        nextKey, adjBrickD = BRICKER_OT_draw_adjacent.getBrickD(self.bricksDict, nextLoc)
         if not adjBrickD or self.bricksDict[nextKey]["val"] == 0:
             self.adjDKLs = getAdjDKLs(cm, self.bricksDict, curKey, self.obj)
             # add brick at nextKey location
-            status = drawAdjacent.toggleBrick(cm, n, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMergeOnCommit, temporaryBrick=True)
+            status = BRICKER_OT_draw_adjacent.toggleBrick(cm, n, self.bricksDict, self.adjDKLs, [[False]], self.dimensions, nextLoc, curKey, curLoc, objSize, self.brickType, 0, 0, self.keysToMergeOnCommit, temporaryBrick=True)
             if not status["val"]:
                 self.report({status["report_type"]}, status["msg"])
             self.addedBricks.append(self.bricksDict[nextKey]["name"])
@@ -138,7 +138,7 @@ class bricksculpt_tools:
                 # split up bricks
                 Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnRelease)
                 # merge bricks after they've been split
-                mergedKeys = mergeBricks.mergeBricks(self.bricksDict, self.keysToMergeOnRelease, cm, anyHeight=True)
+                mergedKeys = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, self.keysToMergeOnRelease, cm, anyHeight=True)
                 self.allUpdatedKeys += mergedKeys
                 # draw merged bricks
                 drawUpdatedBricks(cm, self.bricksDict, mergedKeys, action="merging bricks", selectCreated=False, tempBrick=True)
@@ -209,7 +209,7 @@ class bricksculpt_tools:
             # split up bricks
             Bricks.splitAll(self.bricksDict, cm.zStep, keys=self.keysToMergeOnCommit)
             # merge split bricks
-            mergedKeys = mergeBricks.mergeBricks(self.bricksDict, self.keysToMergeOnCommit, cm, targetType="BRICK" if cm.brickType == "BRICKS AND PLATES" else self.brickType, anyHeight=cm.brickType == "BRICKS AND PLATES")
+            mergedKeys = BRICKER_OT_merge_bricks.mergeBricks(self.bricksDict, self.keysToMergeOnCommit, cm, targetType="BRICK" if cm.brickType == "BRICKS AND PLATES" else self.brickType, anyHeight=cm.brickType == "BRICKS AND PLATES")
         else:
             mergedKeys = self.keysToMergeOnCommit
         # remove 1x1 bricks merged into another brick

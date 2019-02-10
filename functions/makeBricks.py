@@ -285,11 +285,11 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
         # end progress bars
         updateProgressBars(printStatus, cursorStatus, 1, 0, "Linking to Scene", end=True)
     else:
-        m = bpy.data.meshes.new("newMesh")
-        allMeshes.to_mesh(m)
         name = 'Bricker_%(n)s_bricks' % locals()
         if frameNum is not None:
             name = "%(name)s_f_%(frameNum)s" % locals()
+        m = bpy.data.meshes.new(name)
+        allMeshes.to_mesh(m)
         allBricksObj = bpy.data.objects.get(name)
         if allBricksObj:
             allBricksObj.data = m

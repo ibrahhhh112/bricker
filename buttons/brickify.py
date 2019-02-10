@@ -29,9 +29,8 @@ from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BrickerApplyMaterial
-from .delete_model import BrickerDelete
-from .bevel import BrickerBevel
+from .delete_model import BRICKER_OT_delete_model
+from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
 from ..lib.JobManager import *
@@ -198,7 +197,7 @@ class BrickerBrickify(bpy.types.Operator):
 
         # clear cache if updating from previous version
         if createdWithUnsupportedVersion(cm) and "UPDATE" in self.action:
-            Caches.clearCache(cm)
+            BRICKER_OT_clear_cache.clearCache(cm)
             cm.matrixIsDirty = True
 
         # make sure matrix really is dirty
@@ -282,7 +281,7 @@ class BrickerBrickify(bpy.types.Operator):
         # delete old bricks if present
         if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
             # skip source, dupes, and parents
-            trans_and_anim_data = BrickerDelete.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
+            trans_and_anim_data = BRICKER_OT_delete_model.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
         else:
             storeTransformData(cm, None)
             trans_and_anim_data = []
@@ -363,7 +362,7 @@ class BrickerBrickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="MODEL")
-            BrickerBevel.runBevelAction(bricks, cm)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
         # set active frame to original active frame
         if self.action != "CREATE" and scn.frame_current != self.origFrame:
@@ -392,7 +391,7 @@ class BrickerBrickify(bpy.types.Operator):
                 return {"FINISHED"}
 
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
-            Caches.clearCache(cm, brick_mesh=False)
+            BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=False)
 
         if cm.splitModel:
             cm.splitModel = False
@@ -403,7 +402,7 @@ class BrickerBrickify(bpy.types.Operator):
             if self.updatedFramesOnly:
                 # preserve duplicates, parents, and bricks for frames that haven't changed
                 preservedFrames = [cm.startFrame, cm.stopFrame]
-            BrickerDelete.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
+            BRICKER_OT_delete_model.cleanUp("ANIMATION", skipDupes=not self.updatedFramesOnly, skipParents=not self.updatedFramesOnly, preservedFrames=preservedFrames, source_name=self.source.name)
 
         # get parent object
         self.parent0 = bpy.data.objects.get(Bricker_parent_on)
@@ -524,7 +523,7 @@ class BrickerBrickify(bpy.types.Operator):
         # add bevel if it was previously added
         if cm.bevelAdded:
             bricks = getBricks(cm, typ="ANIM")
-            BrickerBevel.runBevelAction(bricks, cm)
+            BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
     @staticmethod
     def createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=True, cm=None, curFrame=None, sceneCurFrame=None, bricksDict=None, keys="ALL", clearExistingGroup=True, selectCreated=False, printStatus=True, tempBrick=False, redraw=False, origSource=None):
@@ -765,12 +764,6 @@ class BrickerBrickify(bpy.types.Operator):
             # duplicate source for current frame
             sourceDup = duplicate(self.source, link_to_scene=True)
             sourceDup.name = "Bricker_" + source_name + "_f_" + str(curFrame)
-            # # apply rigid body transform data
-            # if cm.rigid_body:
-            #     select(sourceDup, active=True, only=True)
-            #     bpy.ops.object.visual_transform_apply()
-            #     bpy.ops.rigidbody.object_remove()
-            #     scn.update()
             # remove modifiers and constraints
             for mod in sourceDup.modifiers:
                 sourceDup.modifiers.remove(mod)

@@ -41,7 +41,7 @@ def getModelType(cm):
     return modelType
 
 
-class BrickerDelete(bpy.types.Operator):
+class BRICKER_OT_delete_model(bpy.types.Operator):
     """Delete brickified model (restores original source object)"""
     bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
@@ -196,7 +196,7 @@ class BrickerDelete(bpy.types.Operator):
                 except KeyError:
                     pass
 
-        Caches.clearCache(cm, brick_mesh=False)
+        BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=False)
 
         # Scale brick height according to scale value applied to source
         cm.brickHeight = cm.brickHeight * cm.transformScale
@@ -228,11 +228,6 @@ class BrickerDelete(bpy.types.Operator):
         # reset source properties
         source.name = n
         source.cmlist_id = -1
-        # # restore rigid body settings
-        # if cm.rigid_body:
-        #     select(source, active=True)
-        #     bpy.ops.rigidbody.object_add()
-        #     retrieveRigidBodySettings(source)
 
     @classmethod
     def cleanDupes(cls, cm, n, preservedFrames, modelType):
@@ -326,9 +321,7 @@ class BrickerDelete(bpy.types.Operator):
                     cls.updateAnimationData(bricks, trans_and_anim_data)
                 last_percent = 0
                 # remove objects
-                unhide(bricks)
-                select(bricks, only=True)
-                bpy.ops.object.delete()
+                delete(bricks)
                 bpy.data.groups.remove(brickGroup, do_unlink=True)
             cm.modelCreated = False
         elif modelType == "ANIMATION":

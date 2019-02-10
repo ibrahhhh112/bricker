@@ -31,7 +31,7 @@ from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 
 
-class redrawBricks(Operator):
+class BRICKER_OT_redraw_bricks(Operator):
     """redraw selected bricks from bricksDict"""
     bl_idname = "bricker.redraw_bricks"
     bl_label = "Redraw Bricks"
@@ -55,7 +55,7 @@ class redrawBricks(Operator):
         try:
             scn = bpy.context.scene
             selected_objects = bpy.context.selected_objects
-            active_obj = scn.objects.active
+            active_obj = bpy.context.active_object
             initial_active_obj_name = active_obj.name if active_obj else ""
             objsToSelect = []
 
