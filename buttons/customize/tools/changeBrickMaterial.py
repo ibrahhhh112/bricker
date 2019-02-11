@@ -32,7 +32,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class BRICKER_OT_change_material(Operator):
+class BRICKER_OT_change_brick_material(Operator):
     """Change material for selected bricks"""
     bl_idname = "bricker.change_brick_material"
     bl_label = "Change Material"

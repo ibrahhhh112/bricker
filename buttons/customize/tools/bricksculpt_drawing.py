@@ -120,7 +120,7 @@ class bricksculpt_drawing:
     def draw_callback_preview(self, context):
         bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
         try:    self.draw_preview()
-        except: handle_exception()
+        except: bricker_handle_exception()
         bgl.glPopAttrib()                           # restore OpenGL attributes
 
     # def draw_callback_postview(self, context):
@@ -130,13 +130,13 @@ class bricksculpt_drawing:
     #     # self.drawing.line_width(1)
     #     bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
     #     try:    self.draw_postview()
-    #     except: handle_exception()
+    #     except: bricker_handle_exception()
     #     bgl.glPopAttrib()                           # restore OpenGL attributes
 
     def draw_callback_postpixel(self, context):
         bgl.glPushAttrib(bgl.GL_ALL_ATTRIB_BITS)    # save OpenGL attributes
         try:    self.draw_postpixel()
-        except: handle_exception()
+        except: bricker_handle_exception()
         bgl.glPopAttrib()                           # restore OpenGL attributes
 
     def draw_callback_cover(self, context):
@@ -196,28 +196,30 @@ class bricksculpt_drawing:
         # draw instructions text
         if self.mode == "DRAW":
             text = "Click & drag to add bricks"
-            self.draw_text_2d(text, position=(50, 250))
+            self.draw_text_2d(text, position=(50, 280))
             text = "+'ALT' to remove"
-            self.draw_text_2d(text, position=(50, 220))
+            self.draw_text_2d(text, position=(50, 250))
             text = "+'SHIFT' to cut"
-            self.draw_text_2d(text, position=(50, 190))
+            self.draw_text_2d(text, position=(50, 220))
             dtext = "*" + dtext[1:]
         elif self.mode == "MERGE/SPLIT":
             text = "Click & drag to merge bricks"
-            self.draw_text_2d(text, position=(50, 250))
+            self.draw_text_2d(text, position=(50, 280))
             text = "+'ALT' to split horizontally"
-            self.draw_text_2d(text, position=(50, 220))
+            self.draw_text_2d(text, position=(50, 250))
             text = "+'SHIFT' to split vertically (only works if brick type is 'Bricks and Plates')"
-            self.draw_text_2d(text, position=(50, 190))
+            self.draw_text_2d(text, position=(50, 220))
             mtext = "*" + mtext[1:]
         elif self.mode == "PAINT":
             scn = bpy.context.scene
             mat = scn.cmlist[self.cm_idx].paintbrushMat
             text = "Painting with Material: " + (mat.name if mat is not None else "None")
-            self.draw_text_2d(text, position=(50, 220))
+            self.draw_text_2d(text, position=(50, 250))
             text = "Click & drag to paint bricks with target material"
-            self.draw_text_2d(text, position=(50, 190))
+            self.draw_text_2d(text, position=(50, 220))
             ptext = "*" + ptext[1:]
+        text = "'CTRL' to solo layer" if self.layerSolod is None else "'CTRL' to un-solo layer"
+        self.draw_text_2d(text, position=(50, 190))
         text = "'RETURN' to commit changes"
         self.draw_text_2d(text, position=(50, 160))
         # ...api_current/bpy.types.Area.html?highlight=bpy.types.area

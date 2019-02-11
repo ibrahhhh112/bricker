@@ -37,7 +37,7 @@ classes = (
     addon_updater_ops.OBJECT_OT_addon_updater_ignore,
     addon_updater_ops.OBJECT_OT_addon_updater_end_background,
     # bricker/buttons
-    addAbsToMatObj.BRICKER_OT_add_abs_to_mat_bbj,
+    addAbsToMatObj.BRICKER_OT_add_abs_to_mat_obj,
     bake.BRICKER_OT_bake_model,
     bevel.BRICKER_OT_bevel,
     brickify.BRICKER_OT_brickify,
@@ -49,7 +49,7 @@ classes = (
     redrawCustomBricks.BRICKER_OT_redraw_custom_bricks,
     revertSettings.BRICKER_OT_revert_settings,
     # bricker/buttons/customize
-    initialize.BRICKER_OT_initialize_undo_stack,
+    initialize.BRICKER_OT_initialize,
     BRICKER_OT_change_material,
     BRICKER_OT_change_type,
     BRICKER_OT_draw_adjacent,
@@ -68,7 +68,7 @@ classes = (
     # bricker/operators
     delete_object.OBJECT_OT_delete_override,
     duplicate_object.OBJECT_OT_duplicate_override,
-    duplicate_object.OBJECT_OT_duplicate_move,
+    duplicate_object.OBJECT_OT_duplicate_move_override,
     # move_to_layer.OBJECT_OT_move_to_layer_override,
     # move_to_layer.OBJECT_OT_move_to_layer,
     # bricker/ui
@@ -88,13 +88,13 @@ classes = (
     BRICKER_PT_matrix_details,
     BRICKER_PT_export,
     # bricker/ui/ (cmlist)
-    BRICKER_OT_cmlist_actions,
-    BRICKER_OT_copy_settings_to_others,
-    BRICKER_OT_copy_settings,
-    BRICKER_OT_paste_settings,
-    BRICKER_OT_select_bricks,
-    BRICKER_UL_cmlist_items,
-    BRICKER_UL_created_models,
+    CMLIST_OT_list_action,
+    CMLIST_OT_copy_settings_to_others,
+    CMLIST_OT_copy_settings,
+    CMLIST_OT_paste_settings,
+    CMLIST_OT_select_bricks,
+    CMLIST_UL_items,
+    CMLIST_UL_properties,
     # bricker/ui/ (matlist)
     BRICKER_OT_matlist_actions,
     MATERIAL_UL_matslots_example,

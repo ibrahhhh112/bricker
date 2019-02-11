@@ -47,11 +47,10 @@ from .buttons import *
 from .buttons.customize import *
 from .operators import *
 from .lib import *
-# from .lib.rigid_body_props import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 from . import addon_updater_ops
 from .ui.timers import *
-from .ui.cmlist_attrs import BRICKER_UL_created_models
+from .ui.cmlist_attrs import CMLIST_UL_properties
 from .ui.other_property_groups import *
 from .lib import keymaps, preferences, classesToRegister
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
@@ -105,18 +104,16 @@ def register():
     #     default=False)
     # bpy.types.VIEW3D_HT_header.append(Bricker_snap_button)
 
-    # handle the keymap
+    # other things (UI List)
+    Scene.cmlist = CollectionProperty(type=CMLIST_UL_properties)
+    Scene.cmlist_index = IntProperty(default=-1)
+
+    # handle the keymaps
     wm = bpy.context.window_manager
-    # Note that in background mode (no GUI available), keyconfigs are not available either, so we have
-    # to check this to avoid nasty errors in background case.
-    if wm.keyconfigs.addon:
+    if wm.keyconfigs.addon: # check this to avoid errors in background case
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
         keymaps.addKeymaps(km)
         addon_keymaps.append(km)
-
-    # other things (UI List)
-    Scene.cmlist = CollectionProperty(type=BRICKER_UL_created_models)
-    Scene.cmlist_index = IntProperty(default=-1)
 
     # register app handlers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
@@ -155,6 +152,12 @@ def unregister():
     bpy.app.handlers.load_pre.remove(clear_bfm_cache)
     bpy.app.handlers.frame_change_pre.remove(handle_animation)
 
+    # handle the keymaps
+    wm = bpy.context.window_manager
+    for km in addon_keymaps:
+        wm.keyconfigs.addon.keymaps.remove(km)
+    addon_keymaps.clear()
+
     del Scene.cmlist_index
     del Scene.cmlist
     # bpy.types.VIEW3D_HT_header.remove(Bricker_snap_button)
@@ -178,12 +181,6 @@ def unregister():
     del bpy.props.bricker_initialized
     del bpy.props.bricker_preferences
     del bpy.props.bricker_version
-
-    # handle the keymaps
-    wm = bpy.context.window_manager
-    for km in addon_keymaps:
-        wm.keyconfigs.addon.keymaps.remove(km)
-    addon_keymaps.clear()
 
     for cls in reversed(classesToRegister.classes):
         bpy.utils.unregister_class(cls)

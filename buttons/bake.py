@@ -72,6 +72,6 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
             bpy.data.collections.remove(brickColl, do_unlink=True)
         # remove current cmlist index
         cm.modelCreated = False
-        BRICKER_OT_cmlist_actions.removeItem(self, scn.cmlist_index)
+        CMLIST_OT_list_action.removeItem(self, scn.cmlist_index)
         scn.cmlist_index = -1
         return{"FINISHED"}

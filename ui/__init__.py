@@ -35,9 +35,8 @@ from .matlist_window import *
 from .matlist_actions import *
 from ..lib.bricksDict import *
 from ..lib.Brick.test_brick_generators import *
-from ..buttons.delete_model import BRICKER_OT_delete_model
+from ..lib.caches import cacheExists
 from ..buttons.revertSettings import *
-from ..buttons.cache import *
 from ..buttons.customize.tools.bricksculpt import *
 from ..functions import *
 
@@ -63,7 +62,7 @@ class BRICKER_MT_specials(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("cmlist.copy_to_others", icon="COPY_ID", text="Copy Settings to Others")
+        layout.operator("cmlist.copy_settings_to_others", icon="COPY_ID", text="Copy Settings to Others")
         layout.operator("cmlist.copy_settings", icon="COPYDOWN", text="Copy Settings")
         layout.operator("cmlist.paste_settings", icon="PASTEDOWN", text="Paste Settings")
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_OFF", text="Select Bricks").deselect = False
@@ -102,7 +101,7 @@ class BRICKER_PT_brick_models(Panel):
         # draw UI list and list actions
         rows = 2 if len(scn.cmlist) < 2 else 4
         row = layout.row()
-        row.template_list("BRICKER_UL_cmlist_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
+        row.template_list("CMLIST_UL_items", "", scn, "cmlist", scn, "cmlist_index", rows=rows)
 
         col = row.column(align=True)
         col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ADD").action = 'ADD'
@@ -505,7 +504,7 @@ class BRICKER_PT_customize_model(Panel):
             col.label(text="Model must be updated to customize:")
             col.operator("bricker.brickify", text="Update Model", icon="FILE_REFRESH").splitBeforeUpdate = False
             return
-        if not BRICKER_OT_caches.cacheExists(cm):
+        if not cacheExists(cm):
             layout.label(text="Matrix not cached!")
             col = layout.column(align=True)
             col.label(text="Model must be updated to customize:")
@@ -696,7 +695,7 @@ class BRICKER_PT_brick_types(Panel):
                 col1 = split.column(align=True)
                 col1.prop_search(cm, prop, scn, "objects", text="")
                 col1 = split.column(align=True)
-                col1.operator("bricker.redraw_custom", icon="FILE_REFRESH", text="").target_prop = prop
+                col1.operator("bricker.redraw_custom_bricks", icon="FILE_REFRESH", text="").target_prop = prop
 
 
 class BRICKER_PT_merge_settings(Panel):
@@ -774,7 +773,7 @@ class BRICKER_PT_materials(Panel):
             if brick_materials_installed():
                 if bpy.context.scene.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
                     row = col.row(align=True)
-                    row.label(text="Switch to '' or 'Eevee' for Brick materials")
+                    row.label(text="Switch to 'Cycles' or 'Eevee' for Brick materials")
                 elif not brick_materials_loaded():
                     row = col.row(align=True)
                     row.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
@@ -861,7 +860,7 @@ class BRICKER_PT_materials(Panel):
                     rows = 5 if numMats > 5 else (numMats if numMats > 2 else 2)
                     split = col.split(align=True, factor=0.85)
                     col1 = split.column(align=True)
-                    col1.template_list("MATERIAL_UL_matslots_example", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
+                    col1.template_list("MATERIAL_UL_matslots", "", matObj, "material_slots", matObj, "active_material_index", rows=rows)
                     col1 = split.column(align=True)
                     col1.operator("bricker.mat_list_action", icon='REMOVE', text="").action = 'REMOVE'
                     col1.scale_y = 1 + rows
@@ -1096,7 +1095,7 @@ class BRICKER_PT_advanced(Panel):
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
         row = col.row(align=True)
-        row.label("Other:")
+        row.label(text="Other:")
         row = col.row(align=True)
         row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
@@ -1135,7 +1134,7 @@ class BRICKER_PT_matrix_details(Panel):
         if matrixReallyIsDirty(cm):
             layout.label(text="Matrix is dirty!")
             return
-        if not BRICKER_OT_caches.cacheExists(cm):
+        if not cacheExists(cm):
             layout.label(text="Matrix not cached!")
             return
 

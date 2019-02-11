@@ -32,7 +32,7 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class BRICKER_OT_change_type(Operator):
+class BRICKER_OT_change_brick_type(Operator):
     """Change brick type of active brick"""
     bl_idname = "bricker.change_brick_type"
     bl_label = "Change Brick Type"
@@ -144,7 +144,7 @@ class BRICKER_OT_change_type(Operator):
         scn = bpy.context.scene
         legalBrickSizes = bpy.props.Bricker_legal_brick_sizes
         # get original active and selected objects
-        active_obj = bpy.context.object
+        active_obj = bpy.context.active_object
         initial_active_obj_name = active_obj.name if active_obj else ""
         selected_objects = bpy.context.selected_objects
         objNamesToSelect = []

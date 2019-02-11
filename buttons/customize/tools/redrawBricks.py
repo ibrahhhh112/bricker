@@ -55,7 +55,7 @@ class BRICKER_OT_redraw_bricks(Operator):
         try:
             scn = bpy.context.scene
             selected_objects = bpy.context.selected_objects
-            active_obj = bpy.context.object
+            active_obj = bpy.context.active_object
             initial_active_obj_name = active_obj.name if active_obj else ""
             objsToSelect = []
 

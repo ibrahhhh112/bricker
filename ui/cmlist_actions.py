@@ -29,7 +29,7 @@ from .cmlist_utils import *
 
 
 # ui list item actions
-class BRICKER_OT_cmlist_actions(bpy.types.Operator):
+class CMLIST_OT_list_action(bpy.types.Operator):
     bl_idname = "cmlist.list_action"
     bl_label = "Brick Model List Action"
 
@@ -88,7 +88,7 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
     @staticmethod
     def addItem():
         scn = bpy.context.scene
-        active_object = bpy.context.object
+        active_object = bpy.context.active_object
         # if active object isn't on visible layer, don't set it as default source for new model
         if active_object and not isObjVisibleInViewport(active_object):
             active_object = None
@@ -173,8 +173,8 @@ class BRICKER_OT_cmlist_actions(bpy.types.Operator):
 
 
 # copy settings from current index to all other indices
-class BRICKER_OT_copy_settings_to_others(bpy.types.Operator):
-    bl_idname = "cmlist.copy_to_others"
+class CMLIST_OT_copy_settings_to_others(bpy.types.Operator):
+    bl_idname = "cmlist.copy_settings_to_others"
     bl_label = "Copy Settings to Other Brick Models"
     bl_description = "Copies the settings from the current model to all other Brick Models"
 
@@ -200,7 +200,7 @@ class BRICKER_OT_copy_settings_to_others(bpy.types.Operator):
 
 
 # copy settings from current index to memory
-class BRICKER_OT_copy_settings(bpy.types.Operator):
+class CMLIST_OT_copy_settings(bpy.types.Operator):
     bl_idname = "cmlist.copy_settings"
     bl_label = "Copy Settings from Current Brick Model"
     bl_description = "Stores the ID of the current model for pasting"
@@ -223,7 +223,7 @@ class BRICKER_OT_copy_settings(bpy.types.Operator):
 
 
 # paste settings from index in memory to current index
-class BRICKER_OT_paste_settings(bpy.types.Operator):
+class CMLIST_OT_paste_settings(bpy.types.Operator):
     bl_idname = "cmlist.paste_settings"
     bl_label = "Paste Settings to Current Brick Model"
     bl_description = "Pastes the settings from stored model ID to the current index"
@@ -249,7 +249,7 @@ class BRICKER_OT_paste_settings(bpy.types.Operator):
 
 
 # select bricks from current model
-class BRICKER_OT_select_bricks(bpy.types.Operator):
+class CMLIST_OT_select_bricks(bpy.types.Operator):
     bl_idname = "cmlist.select_bricks"
     bl_label = "Select All Bricks in Current Brick Model"
     bl_description = "Select all bricks in the current model"
@@ -284,7 +284,7 @@ class BRICKER_OT_select_bricks(bpy.types.Operator):
 # draw
 # -------------------------------------------------------------------
 
-class BRICKER_UL_cmlist_items(UIList):
+class CMLIST_UL_items(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # Make sure your code supports all 3 layout types

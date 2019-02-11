@@ -108,7 +108,7 @@ class OBJECT_OT_move_to_layer_override(Operator):
 
 class OBJECT_OT_move_to_layer(bpy.types.Operator):
     """Move to Layer"""
-    bl_idname = "bricker.move_to_layer"
+    bl_idname = "object.move_to_layer"
     bl_label = "Move to Layer"
     bl_options = {'REGISTER', 'UNDO'}
 

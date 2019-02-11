@@ -35,7 +35,7 @@ from ..lib.bricksDict.functions import getDictKey
 
 class OBJECT_OT_delete_override(Operator):
     """OK?"""
-    bl_idname = "bricker.delete"
+    bl_idname = "object.delete1"
     bl_label = "Delete"
     bl_options = {'REGISTER'}
 
@@ -270,7 +270,7 @@ class OBJECT_OT_delete_override(Operator):
                     break
         if cm and update_model:
             BRICKER_OT_delete_model.runFullDelete(cm=cm)
-            deselect(bpy.context.object)
+            deselect(bpy.context.active_object)
         else:
             obj_users_scene = len(obj.users_scene)
             if use_global or obj_users_scene == 1:

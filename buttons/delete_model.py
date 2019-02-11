@@ -181,7 +181,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 except KeyError:
                     pass
 
-        BRICKER_OT_caches.clearCache(cm, brick_mesh=False)
+        BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=False)
 
         # Scale brick height according to scale value applied to source
         cm.brickHeight = cm.brickHeight * cm.transformScale
@@ -296,9 +296,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     cls.updateAnimationData(bricks, trans_and_anim_data)
                 last_percent = 0
                 # remove objects
-                unhide(bricks)
-                select(bricks, only=True)
-                bpy.ops.object.delete()
+                delete(bricks)
                 bpy.data.collections.remove(cm.collection, do_unlink=True)
             cm.modelCreated = False
         elif modelType == "ANIMATION":

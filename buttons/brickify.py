@@ -29,7 +29,6 @@ from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BRICKER_OT_apply_material
 from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
@@ -208,7 +207,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # clear cache if updating from previous version
         if createdWithUnsupportedVersion(cm) and "UPDATE" in self.action:
-            BRICKER_OT_caches.clearCache(cm)
+            BRICKER_OT_clear_cache.clearCache(cm)
             cm.matrixIsDirty = True
 
         # make sure matrix really is dirty
@@ -411,7 +410,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return {"FINISHED"}
 
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
-            BRICKER_OT_caches.clearCache(cm, brick_mesh=False)
+            BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=False)
 
         if cm.splitModel:
             cm.splitModel = False
@@ -795,12 +794,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # duplicate source for current frame
             sourceDup = duplicate(self.source, link_to_scene=True)
             sourceDup.name = "Bricker_" + source_name + "_f_" + str(curFrame)
-            # # apply rigid body transform data
-            # if cm.rigid_body:
-            #     select(sourceDup, active=True, only=True)
-            #     bpy.ops.object.visual_transform_apply()
-            #     bpy.ops.rigidbody.object_remove()
-            #     scn.update()
             # remove modifiers and constraints
             for mod in sourceDup.modifiers:
                 sourceDup.modifiers.remove(mod)
