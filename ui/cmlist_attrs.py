@@ -29,7 +29,7 @@ from .matlist_utils import *
 
 
 # Create custom property group
-class BRICKER_UL_created_models(bpy.types.PropertyGroup):
+class CMLIST_UL_properties(bpy.types.PropertyGroup):
     # CMLIST ITEM SETTINGS
     name = StringProperty(update=uniquifyName)
     id = IntProperty()
