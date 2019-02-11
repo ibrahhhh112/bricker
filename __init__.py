@@ -97,7 +97,7 @@ def register():
     # bpy.types.VIEW3D_HT_header.append(Bricker_snap_button)
 
     # other things (UI List)
-    Scene.cmlist = CollectionProperty(type=Bricker_CreatedModels)
+    Scene.cmlist = CollectionProperty(type=CMLIST_UL_properties)
     Scene.cmlist_index = IntProperty(default=-1)
 
     # handle the keymaps

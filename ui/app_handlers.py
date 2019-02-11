@@ -136,7 +136,7 @@ def handle_selections(scn):
                     deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
-elif bpy.context.active_object and scn.Bricker_last_active_object_name != bpy.context.active_object.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and bpy.context.active_object.type == "MESH":
+    elif bpy.context.active_object and scn.Bricker_last_active_object_name != bpy.context.active_object.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and bpy.context.active_object.type == "MESH":
         scn.Bricker_last_active_object_name = bpy.context.active_object.name
         beginningString = "Bricker_"
         if bpy.context.active_object.name.startswith(beginningString):
