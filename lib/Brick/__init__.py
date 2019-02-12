@@ -185,6 +185,6 @@ def makeLogoVariations(dimensions, size, brickType, direction, all_vars, logo, l
                 m1.transform(Matrix.Translation((x * xyOffset - gap.x, y * xyOffset - gap.y, zOffset)))
                 # add transformed mesh to bm mesh
                 bms[i].from_mesh(m1)
-                bpy.data.meshes.remove(m1, do_unlink=True)
-        bpy.data.meshes.remove(m0, do_unlink=True)
+                bpy.data.meshes.remove(m1)
+        bpy.data.meshes.remove(m0)
     return bms

@@ -291,9 +291,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                         continue
                 except ValueError:
                     continue
-            m = parent.data
             bpy.data.objects.remove(parent, do_unlink=True)
-            bpy.data.meshes.remove(m, do_unlink=True)
         return brickLoc, brickRot, brickScl
 
     def updateAnimationData(objs, trans_and_anim_data):

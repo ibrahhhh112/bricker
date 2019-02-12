@@ -54,88 +54,6 @@ def centerMeshOrigin(m, dimensions, size):
     m.transform(Matrix.Translation(-Vector(center)))
 
 
-def safeUnlink(obj, protect=True):
-    scn = bpy.context.scene
-    try:
-        scn.objects.unlink(obj)
-    except RuntimeError:
-        pass
-    obj.protected = protect
-    obj.use_fake_user = True
-
-
-def safeLink(obj, protect=False):
-    scn = bpy.context.scene
-    scn.objects.link(obj)
-    obj.protected = protect
-    obj.use_fake_user = False
-
-
-def getBoundsBF(obj):
-    """ brute force method for obtaining object bounding box """
-    # initialize min and max
-    min = Vector((math.inf, math.inf, math.inf))
-    max = Vector((-math.inf, -math.inf, -math.inf))
-    # calculate min and max verts
-    for v in obj.data.vertices:
-        if v.co.x > max.x:
-            max.x = v.co.x
-        elif v.co.x < min.x:
-            min.x = v.co.x
-        if v.co.y > max.y:
-            max.y = v.co.y
-        elif v.co.y < min.y:
-            min.y = v.co.y
-        if v.co.z > max.z:
-            max.z = v.co.z
-        elif v.co.z < min.z:
-            min.z = v.co.z
-    # set up bounding box list of coord lists
-    bound_box = [list(min),
-                 [min.x, min.y, min.z],
-                 [min.x, min.y, max.z],
-                 [min.x, max.y, max.z],
-                 [min.x, max.y, min.z],
-                 [max.x, min.y, min.z],
-                 [max.y, min.y, max.z],
-                 list(max),
-                 [max.x, max.y, min.z]]
-    return bound_box
-
-
-def bounds(obj, local=False, use_adaptive_domain=True):
-    """
-    returns object details with the following subattribute Vectors:
-
-    .max : maximum value of object
-    .min : minimum value of object
-    .mid : midpoint value of object
-    .dist: distance min to max
-
-    """
-
-    local_coords = getBoundsBF(obj) if is_smoke(obj) and is_adaptive(obj) and not use_adaptive_domain else obj.bound_box[:]
-    om = obj.matrix_world
-
-    if not local:
-        worldify = lambda p: om * Vector(p[:])
-        coords = [worldify(p).to_tuple() for p in local_coords]
-    else:
-        coords = [p[:] for p in local_coords]
-
-    rotated = zip(*coords[::-1])
-    getMax = lambda i: max([co[i] for co in coords])
-    getMin = lambda i: min([co[i] for co in coords])
-
-    info = lambda: None
-    info.max = Vector((getMax(0), getMax(1), getMax(2)))
-    info.min = Vector((getMin(0), getMin(1), getMin(2)))
-    info.mid = (info.min + info.max) / 2
-    info.dist = info.max - info.min
-
-    return info
-
-
 def getAnimAdjustedFrame(frame, startFrame, stopFrame):
     if frame < startFrame:
         curFrame = startFrame
@@ -144,27 +62,6 @@ def getAnimAdjustedFrame(frame, startFrame, stopFrame):
     else:
         curFrame = frame
     return curFrame
-
-def setObjOrigin(obj, loc):
-    l, r, s = obj.matrix_world.decompose()
-    l_mat = Matrix.Translation(l)
-    r_mat = r.to_matrix().to_4x4()
-    s_mat_x = Matrix.Scale(s.x, 4, Vector((1, 0, 0)))
-    s_mat_y = Matrix.Scale(s.y, 4, Vector((0, 1, 0)))
-    s_mat_z = Matrix.Scale(s.z, 4, Vector((0, 0, 1)))
-    s_mat = s_mat_x * s_mat_y * s_mat_z
-    m = obj.data
-    m.transform(Matrix.Translation((obj.location-loc) * l_mat * r_mat * s_mat.inverted()))
-    obj.location = loc
-
-
-# def setOriginToObjOrigin(toObj, fromObj=None, fromLoc=None, deleteFromObj=False):
-#     assert fromObj or fromLoc
-#     setObjOrigin(toObj, fromObj.matrix_world.to_translation().to_tuple() if fromObj else fromLoc)
-#     if fromObj and deleteFromObj:
-#         m = fromObj.data
-#         bpy.data.objects.remove(fromObj, do_unlink=True)
-#         bpy.data.meshes.remove(m)
 
 
 def getBricks(cm=None, typ=None):
@@ -305,18 +202,6 @@ def getZStep(cm):
     return 1 if flatBrickType(cm.brickType) else 3
 
 
-def isUnique(lst):
-    return np.unique(lst).size == len(lst)
-
-
-def gammaCorrect(rgba, val):
-    r, g, b, a = rgba
-    r = math.pow(r, val)
-    g = math.pow(g, val)
-    b = math.pow(b, val)
-    return [r, g, b, a]
-
-
 def getKeysDict(bricksDict, keys=None):
     """ get dictionary of bricksDict keys based on z value """
     keys = keys or list(bricksDict.keys())
@@ -450,24 +335,6 @@ def legalBrickSize(size, type):
      return size[:2] in bpy.props.Bricker_legal_brick_sizes[size[2]][type]
 
 
-def get_override(area_type, region_type):
-    for area in bpy.context.screen.areas:
-        if area.type == area_type:
-            for region in area.regions:
-                if region.type == region_type:
-                    override = {'area': area, 'region': region}
-                    return override
-    #error message if the area or region wasn't found
-    raise RuntimeError("Wasn't able to find", region_type," in area ", area_type,
-                        "\n Make sure it's open while executing script.")
-
-
-def getSpace():
-    scr = bpy.context.window.screen
-    v3d = [area for area in scr.areas if area.type == 'VIEW_3D'][0]
-    return v3d.spaces[0]
-
-
 def getExportPath(fn, ext, basePath, frame=-1, subfolder=False):
     # TODO: support PC with os.path.join instead of strings and support backslashes
     path = os.path.dirname(basePath)
@@ -516,23 +383,6 @@ def shortenName(string:str, max_len:int=30):
         return string[:math.ceil(max_len * 0.65)] + str(hash_str(string))[:math.floor(max_len * 0.35)]
 
 
-def is_smoke(ob):
-    if ob is None:
-        return False
-    for mod in ob.modifiers:
-        if mod.type == "SMOKE" and mod.domain_settings and mod.show_viewport:
-            return True
-    return False
-
-
-def is_adaptive(ob):
-    if ob is None:
-        return False
-    for mod in ob.modifiers:
-        if mod.type == "SMOKE" and mod.domain_settings and mod.domain_settings.use_adaptive_domain:
-            return True
-    return False
-
 def customValidObject(cm, targetType="Custom 0", idx=None):
     for i, customInfo in enumerate([[cm.hasCustomObj1, cm.customObject1], [cm.hasCustomObj2, cm.customObject2], [cm.hasCustomObj3, cm.customObject3]]):
         hasCustomObj, customObj = customInfo
@@ -574,58 +424,12 @@ def updateHasCustomObjs(cm, typ):
         cm.hasCustomObj3 = True
 
 
-def getSaturationMatrix(s:float):
-    """ returns saturation matrix from saturation value """
-    sr = (1 - s) * 0.3086  # or 0.2125
-    sg = (1 - s) * 0.6094  # or 0.7154
-    sb = (1 - s) * 0.0820  # or 0.0721
-    return Matrix(((sr + s, sr, sr), (sg, sg + s, sg), (sb, sb, sb + s)))
-
-
 def getBrickMats(materialType, cm_id):
     brick_mats = []
     if materialType == "RANDOM":
         matObj = getMatObject(cm_id, typ="RANDOM")
         brick_mats = list(matObj.data.materials.keys())
     return brick_mats
-
-
-def transformToWorld(vec, mat, junk_bme=None):
-    # decompose matrix
-    loc = mat.to_translation()
-    rot = mat.to_euler()
-    scale = mat.to_scale()[0]
-    # apply rotation
-    if rot != Euler((0, 0, 0), "XYZ"):
-        junk_bme = bmesh.new() if junk_bme is None else junk_bme
-        v1 = junk_bme.verts.new(vec)
-        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.x, 3, 'X'))
-        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.y, 3, 'Y'))
-        bmesh.ops.rotate(junk_bme, verts=[v1], cent=-loc, matrix=Matrix.Rotation(rot.z, 3, 'Z'))
-        vec = v1.co
-    # apply scale
-    vec = vec * scale
-    # apply translation
-    vec += loc
-    return vec
-
-
-def transformToLocal(vec, mat, junk_bme=None):
-    # decompose matrix
-    loc = mat.to_translation()
-    rot = mat.to_euler()
-    scale = mat.to_scale()[0]
-    # apply scale
-    vec = vec / scale
-    # apply rotation
-    if rot != Euler((0, 0, 0), "XYZ"):
-        junk_bme = bmesh.new() if junk_bme is None else junk_bme
-        v1 = junk_bme.verts.new(vec)
-        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.z, 3, 'Z'))
-        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.y, 3, 'Y'))
-        bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
-        vec = v1.co
-    return vec
 
 
 def bricker_handle_exception():

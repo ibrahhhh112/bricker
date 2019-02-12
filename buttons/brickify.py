@@ -92,7 +92,7 @@ class BrickerBrickify(bpy.types.Operator):
             elif self.JobManager.jobs_complete():
                 self.finishAnimation()
                 self.report({"INFO"}, "Brickify Animation complete")
-                stopWatch("Total Time Elapsed", self.start_time, 2)
+                stopwatch("Total Time Elapsed", self.start_time, 2)
                 return {"FINISHED"}
         return {"PASS_THROUGH"}
 
@@ -131,7 +131,7 @@ class BrickerBrickify(bpy.types.Operator):
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
-            stopWatch("Total Time Elapsed", self.start_time, 2)
+            stopwatch("Total Time Elapsed", self.start_time, 2)
             return {"FINISHED"}
 
     def cancel(self, context):
@@ -475,14 +475,11 @@ class BrickerBrickify(bpy.types.Operator):
         p_name = "%(Bricker_parent_on)s_f_%(curFrame)s" % locals()
         parent = bpy.data.objects.get(p_name)
         if parent is None:
-            m = bpy.data.meshes.new("%(p_name)s_mesh" % locals())
-            parent = bpy.data.objects.new(p_name, m)
+            parent = bpy.data.objects.new(p_name, None)
             parent.location = source_details.mid - parent0.location
             parent.parent = parent0
-            # TODO: is it necessary to update this? Perhaps just set use_fake_user to True...
-            safeLink(parent)
-            scn.update()
-            safeUnlink(parent)
+            parent.use_fake_user = True
+            parent.update_tag()  # TODO: is it necessary to update this?
 
         # create new bricks
         try:
@@ -795,8 +792,7 @@ class BrickerBrickify(bpy.types.Operator):
 
     @staticmethod
     def getNewParent(Bricker_parent_on, loc):
-        m = bpy.data.meshes.new(Bricker_parent_on + "_mesh")
-        parent = bpy.data.objects.new(Bricker_parent_on, m)
+        parent = bpy.data.objects.new(Bricker_parent_on, None)
         parent.location = loc
         parent.use_fake_user = True
         return parent
