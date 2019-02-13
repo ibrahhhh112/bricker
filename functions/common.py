@@ -681,7 +681,6 @@ def root_path():
 
 
 def splitpath(path):
-    print(os.path.splitpath(path))
     folders = []
     while 1:
         path, folder = os.path.split(path)
@@ -690,7 +689,6 @@ def splitpath(path):
         else:
             if path != "": folders.append(path)
             break
-    print(folders[::-1])
     return folders[::-1]
 
 def apply_modifiers(obj, settings="PREVIEW"):
