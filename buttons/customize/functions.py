@@ -65,7 +65,7 @@ def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
         try:
             adjBrickVals.append(bricksDict[k]["val"])
         except KeyError:
-            adjKeys.remove(k)
+            remove_item(adjKeys, k)
     return adjKeys, adjBrickVals
 
 
@@ -297,7 +297,7 @@ def removeUnusedFromList(cm, brickType="NULL", brickSize="NULL", selectedSomethi
     lst = (cm.brickTypesUsed if brickType != "NULL" else cm.brickSizesUsed).split("|")
     # remove unused item
     if item in lst:
-        lst.remove(item)
+        remove_item(lst, item)
     # convert bTU back to string of sizes split by '|'
     newLst = listToStr(lst, separate_by="|")
     # store new list to current cmlist item
