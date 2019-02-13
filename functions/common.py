@@ -400,30 +400,28 @@ def setActiveObj(obj:Object, scene:Scene=None):
     scene.objects.active = obj
 
 
-def select(objList, active:bool=False, deselect:bool=False, only:bool=False, scene:Scene=None):
+def select(objList, active:bool=False, only:bool=False):
     """ selects objs in list (deselects the rest if 'only') """
     # confirm objList is a list of objects
     objList = confirmIter(objList)
     # deselect all if selection is exclusive
-    if only and not deselect:
-        deselectAll()
+    if only: deselectAll()
     # select/deselect objects in list
     for obj in objList:
-        if obj is not None:
-            obj.select = not deselect
+        if obj is not None and not obj.select:
+            obj.select = True
     # set active object
-    if active:
-        setActiveObj(objList[0], scene=scene)
+    if active: setActiveObj(objList[0])
 
 
-# def deselect(objList, scene:Scene=None):
-#     """ selects objs in list and deselects the rest """
-#     # confirm objList is a list of objects
-#     objList = confirmIter(objList)
-#     # select/deselect objects in list
-#     for obj in objList:
-#         if obj is not None:
-#             obj.select = False
+def deselect(objList):
+    """ deselects objs in list """
+    # confirm objList is a list of objects
+    objList = confirmList(objList)
+    # select/deselect objects in list
+    for obj in objList:
+        if obj is not None and obj.select:
+            obj.select = False
 
 
 def delete(objs):
