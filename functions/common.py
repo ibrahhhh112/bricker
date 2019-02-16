@@ -618,22 +618,22 @@ def update_progress(job_title:str, progress:float):
     sys.stdout.flush()
 
 
-def apply_transform(obj:Object):
-    """ efficiently apply object transformation """
-    # select(obj, active=True, only=True)
-    # bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+def apply_transform(obj:Object, location:bool=True, rotation:bool=True, scale:bool=True):
     loc, rot, scale = obj.matrix_world.decompose()
     obj.matrix_world = Matrix.Identity(4)
     m = obj.data
     s_mat_x = Matrix.Scale(scale.x, 4, Vector((1, 0, 0)))
     s_mat_y = Matrix.Scale(scale.y, 4, Vector((0, 1, 0)))
     s_mat_z = Matrix.Scale(scale.z, 4, Vector((0, 0, 1)))
-    m.transform(s_mat_x * s_mat_y * s_mat_z)
-    m.transform(rot.to_matrix().to_4x4())
-    m.transform(Matrix.Translation(loc))
+    if scale:    m.transform(s_mat_x * s_mat_y * s_mat_z)
+    else:        obj.scale = scale
+    if rotation: m.transform(rot.to_matrix().to_4x4())
+    else:        obj.rotation_euler = rot.to_euler()
+    if location: m.transform(Matrix.Translation(loc))
+    else:        obj.location = loc
 
 
-def parent_clear(objs, apply_transform=True):
+def parent_clear(objs, apply_transform:bool=True):
     """ efficiently clear parent """
     # select(objs, active=True, only=True)
     # bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
