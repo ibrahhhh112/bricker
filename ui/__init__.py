@@ -849,7 +849,9 @@ class MaterialsPanel(Panel):
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
                 col.label(nodeNamesStr)
-            if cm.colorSnap == "RGB" and not brick_materials_loaded():
+            if cm.colorSnap == "RGB" and not brick_materials_loaded() and Bricker_developer_mode > 0:
+                if noUV:
+                    col = layout.column(align=True)
                 col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")
             # if cm.colorSnap == "RGB" or (cm.useUVMap and len(obj.data.uv_layers) > 0 and cm.colorSnap == "NONE"):
             #     if scn.render.engine in ["CYCLES", "octane"]:
