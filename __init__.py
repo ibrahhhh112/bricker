@@ -27,7 +27,7 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 1  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 
@@ -47,7 +47,7 @@ from .operators import *
 from .lib import *
 # from .lib.rigid_body_props import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
-from . import addon_updater_ops
+# from . import addon_updater_ops
 
 # store keymaps here to access after registration
 addon_keymaps = []
@@ -123,13 +123,13 @@ def register():
     bpy.app.handlers.load_post.append(safe_unlink_parent)
     bpy.app.handlers.load_post.append(handle_upconversion)
 
-    # addon updater code and configurations
-    addon_updater_ops.register(bl_info)
+    # # addon updater code and configurations
+    # addon_updater_ops.register(bl_info)
 
 
 def unregister():
-    # addon updater unregister
-    addon_updater_ops.unregister()
+    # # addon updater unregister
+    # addon_updater_ops.unregister()
 
     # unregister app handlers
     bpy.app.handlers.load_post.remove(handle_upconversion)

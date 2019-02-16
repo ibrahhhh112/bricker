@@ -37,9 +37,7 @@ from ..buttons.delete import BrickerDelete
 from ..buttons.revertSettings import *
 from ..buttons.cache import *
 from ..functions import *
-
-# updater import
-from .. import addon_updater_ops
+# from .. import addon_updater_ops
 
 
 def settingsCanBeDrawn():
@@ -83,12 +81,12 @@ class BrickModelsPanel(Panel):
         layout = self.layout
         scn = context.scene
 
-        # Call to check for update in background
-        # Internally also checks to see if auto-check enabled
-        # and if the time interval has passed
-        addon_updater_ops.check_for_update_background()
-        # draw auto-updater update box
-        addon_updater_ops.update_notice_box_ui(self, context)
+        # # Call to check for update in background
+        # # Internally also checks to see if auto-check enabled
+        # # and if the time interval has passed
+        # addon_updater_ops.check_for_update_background()
+        # # draw auto-updater update box
+        # addon_updater_ops.update_notice_box_ui(self, context)
 
         # if blender version is before 2.78, ask user to upgrade Blender
         if bversion() < '002.078.00':
@@ -1033,13 +1031,13 @@ class AdvancedPanel(Panel):
         layout = self.layout
         scn, cm, n = getActiveContextInfo()
 
-        # Alert user that update is available
-        if addon_updater_ops.updater.update_ready:
-            col = layout.column(align=True)
-            col.scale_y = 0.7
-            col.label("Bricker update available!", icon="INFO")
-            col.label("Install from Bricker addon prefs")
-            layout.separator()
+        # # Alert user that update is available
+        # if addon_updater_ops.updater.update_ready:
+        #     col = layout.column(align=True)
+        #     col.scale_y = 0.7
+        #     col.label("Bricker update available!", icon="INFO")
+        #     col.label("Install from Bricker addon prefs")
+        #     layout.separator()
 
         col = layout.column(align=True)
         row = col.row(align=True)
