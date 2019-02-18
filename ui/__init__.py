@@ -849,7 +849,7 @@ class MaterialsPanel(Panel):
                 else:
                     nodeNamesStr = "'Diffuse' or 'Principled' node"
                 col.label(nodeNamesStr)
-            if cm.colorSnap == "RGB" and not brick_materials_loaded() and Bricker_developer_mode > 0:
+            if cm.colorSnap == "RGB" and not brick_materials_loaded() and bpy.props.Bricker_developer_mode > 0:
                 if noUV:
                     col = layout.column(align=True)
                 col.operator("abs.append_materials", text="Import Brick Materials", icon="IMPORT")

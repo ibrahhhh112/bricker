@@ -183,6 +183,9 @@ class BrickerBrickify(bpy.types.Operator):
         self.brickerAddonPath = dirname(dirname(abspath(__file__)))
         self.jobs = list()
         self.cm = cm
+        # set abs plastic material details
+        scn.abs_uv_scale = 0.4
+        scn.abs_fingerprints = 0.75
 
     #############################################
     # class methods

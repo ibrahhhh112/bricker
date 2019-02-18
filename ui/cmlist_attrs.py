@@ -513,7 +513,7 @@ class Bricker_CreatedModels(bpy.types.PropertyGroup):
         name="UV Unwrap",
         description="Create a Smart UV Project for the blocks automatically",
         update=dirtyBricks,
-        default=False)
+        default=True)
     # BEVEL SETTINGS
     bevelWidth = FloatProperty(
         name="Bevel Width",
