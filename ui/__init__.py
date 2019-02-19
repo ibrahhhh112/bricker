@@ -105,7 +105,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
         col = row.column(align=True)
         col.operator("cmlist.list_action" if bpy.props.bricker_initialized else "bricker.initialize", text="", icon="ZOOMIN").action = 'ADD'
         col.operator("cmlist.list_action", icon='ZOOMOUT', text="").action = 'REMOVE'
-        col.menu("Bricker_specials_menu", icon='DOWNARROW_HLT', text="")
+        col.menu("BRICKER_MT_specials_menu", icon='DOWNARROW_HLT', text="")
         if len(scn.cmlist) > 1:
             col.separator()
             col.operator("cmlist.list_action", icon='TRIA_UP', text="").action = 'UP'
