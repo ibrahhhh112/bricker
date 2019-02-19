@@ -329,7 +329,7 @@ class BrickerBrickify(bpy.types.Operator):
         parentLoc = sourceDup_details.mid
         if parent is None:
             parent = self.getNewParent(Bricker_parent_on, parentLoc)
-            cm.parent_name = parent.name
+            cm.parent_obj = parent
         parent["loc_diff"] = self.source.location - parentLoc
         self.createdObjects.append(parent.name)
 
@@ -408,7 +408,7 @@ class BrickerBrickify(bpy.types.Operator):
         self.parent0 = bpy.data.objects.get(Bricker_parent_on)
         if self.parent0 is None:
             self.parent0 = self.getNewParent(Bricker_parent_on, self.source.location)
-            cm.parent_name = self.parent0.name
+            cm.parent_obj = self.parent0
         self.createdObjects.append(self.parent0.name)
 
         # begin drawing status to cursor

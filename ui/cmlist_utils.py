@@ -91,14 +91,12 @@ def updateParentExposure(self, context):
     scn, cm, _ = getActiveContextInfo()
     if not (cm.modelCreated or cm.animated):
         return
-    if cm.exposeParent:
-        parentOb = bpy.data.objects.get(cm.parent_name)
-        if parentOb:
+    parentOb = cm.parent_obj
+    if parentOb:
+        if cm.exposeParent:
             safeLink(parentOb, protect=True)
             select(parentOb, active=True, only=True)
-    else:
-        parentOb = bpy.data.objects.get(cm.parent_name)
-        if parentOb:
+        else:
             try:
                 safeUnlink(parentOb)
             except RuntimeError:
@@ -110,7 +108,7 @@ def updateModelScale(self, context):
     if not (cm.modelCreated or cm.animated):
         return
     _, _, s = getTransformData(cm)
-    parentOb = bpy.data.objects.get(cm.parent_name)
+    parentOb = cm.parent_obj
     if parentOb:
         parentOb.scale = Vector(s) * cm.transformScale
 

@@ -56,7 +56,10 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         name="Apply to source",
         description="Apply transformations to source object when Brick Model is deleted",
         default=True)
-    parent_name = StringProperty(default="")
+    parent_obj = PointerProperty(
+        type=bpy.types.Object,
+        name="Parent Object",
+        description="Name of the parent object used for model transformations")
     exposeParent = BoolProperty(
         name="Show Manipulator",
         description="Expose the parent object for this brick model for viewport manipulation",
