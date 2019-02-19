@@ -67,13 +67,13 @@ class BasicMenu(bpy.types.Menu):
         layout.operator("cmlist.select_bricks", icon="RESTRICT_SELECT_ON", text="Deselect Bricks").deselect = True
 
 
-class BrickModelsPanel(Panel):
+class VIEW3D_PT_bricker_brick_models(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Brick Models"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_brick_models"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Brick Models"
+    bl_idname      = "VIEW3D_PT_bricker_brick_models"
+    bl_context     = "objectmode"
 
     @classmethod
     def poll(self, context):
@@ -239,13 +239,13 @@ def is_baked(mod):
     return mod.point_cache.is_baked is not False
 
 
-class AnimationPanel(Panel):
+class VIEW3D_PT_bricker_animation(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Animation"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_animation"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Animation"
+    bl_idname      = "VIEW3D_PT_bricker_animation"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -304,13 +304,13 @@ class AnimationPanel(Panel):
                 row.prop(cm, "backProcTimeout")
 
 
-class ModelTransformPanel(Panel):
+class VIEW3D_PT_bricker_model_transform(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Model Transform"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_model_transform"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Model Transform"
+    bl_idname      = "VIEW3D_PT_bricker_model_transform"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -356,13 +356,13 @@ class ModelTransformPanel(Panel):
         layout.prop(cm, "transformScale")
 
 
-class ModelSettingsPanel(Panel):
+class VIEW3D_PT_bricker_model_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Model Settings"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_model_settings"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Model Settings"
+    bl_idname      = "VIEW3D_PT_bricker_model_settings"
+    bl_context     = "objectmode"
 
     @classmethod
     def poll(self, context):
@@ -454,13 +454,13 @@ class ModelSettingsPanel(Panel):
         #     # row.operator("scene.make_closed_mesh", text="Make Single Closed Mesh", icon="EDIT")
 
 
-class CustomizeModel(Panel):
+class VIEW3D_PT_bricker_customize(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Customize Model"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_customize_model"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Customize Model"
+    bl_idname      = "VIEW3D_PT_bricker_customize"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -591,13 +591,13 @@ class CustomizeModel(Panel):
         # row.operator("bricker.redraw_bricks")
 
 
-class SmokeSettingsPanel(Panel):
+class VIEW3D_PT_bricker_smoke_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Smoke Settings"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_smoke_settings"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Smoke Settings"
+    bl_idname      = "VIEW3D_PT_bricker_smoke_settings"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -642,13 +642,13 @@ class SmokeSettingsPanel(Panel):
             row.prop(cm, "flameIntensity", text="Intensity")
 
 
-class BrickTypesPanel(Panel):
+class VIEW3D_PT_bricker_brick_types(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Brick Types"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_brick_types"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Brick Types"
+    bl_idname      = "VIEW3D_PT_bricker_brick_types"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -695,13 +695,13 @@ class BrickTypesPanel(Panel):
                 col1.operator("bricker.redraw_custom_bricks", icon="FILE_REFRESH", text="").target_prop = prop
 
 
-class MergeSettingsPanel(Panel):
+class VIEW3D_PT_bricker_merge_settings(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Merge Settings"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_merge_settings"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Merge Settings"
+    bl_idname      = "VIEW3D_PT_bricker_merge_settings"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -737,13 +737,13 @@ class MergeSettingsPanel(Panel):
                 row.prop(cm, "offsetBrickLayers")
 
 
-class MaterialsPanel(Panel):
+class VIEW3D_PT_bricker_materials(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Materials"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_materials"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Materials"
+    bl_idname      = "VIEW3D_PT_bricker_materials"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
     # COMPAT_ENGINES = {"CYCLES", "BLENDER_RENDER"}
 
@@ -922,13 +922,13 @@ class MaterialsPanel(Panel):
 
 
 
-class DetailingPanel(Panel):
+class VIEW3D_PT_bricker_detailing(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Detailing"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_detailing"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Detailing"
+    bl_idname      = "VIEW3D_PT_bricker_detailing"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -1004,13 +1004,13 @@ class DetailingPanel(Panel):
             row.operator("bricker.bevel", text="Bevel bricks", icon="MOD_BEVEL")
 
 
-class SupportsPanel(Panel):
+class VIEW3D_PT_bricker_supports(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Supports"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_supports"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Supports"
+    bl_idname      = "VIEW3D_PT_bricker_supports"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -1046,13 +1046,13 @@ class SupportsPanel(Panel):
         #     row.label(text="(Source is NOT single closed mesh)")
 
 
-class AdvancedPanel(Panel):
+class VIEW3D_PT_bricker_advanced(Panel):
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Advanced"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_advanced"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Advanced"
+    bl_idname      = "VIEW3D_PT_bricker_advanced"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -1101,14 +1101,14 @@ class AdvancedPanel(Panel):
             col.operator("bricker.test_brick_generators", text="Test Brick Generators", icon="OUTLINER_OB_MESH")
 
 
-class BrickDetailsPanel(Panel):
+class VIEW3D_PT_bricker_brick_details(Panel):
     """ Display Matrix details for specified brick location """
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Brick Details"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_brick_details"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Brick Details"
+    bl_idname      = "VIEW3D_PT_bricker_brick_details"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
@@ -1183,14 +1183,14 @@ class BrickDetailsPanel(Panel):
             row = col.row(align=True)
             row.label(text=str(brickD[key]))
 
-class ExportPanel(Panel):
+class VIEW3D_PT_bricker_export(Panel):
     """ Export Bricker Model """
     bl_space_type  = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label       = "Bake/Export"
-    bl_idname      = "VIEW3D_PT_tools_Bricker_export"
-    bl_context     = "objectmode"
     bl_category    = "Bricker"
+    bl_label       = "Bake/Export"
+    bl_idname      = "VIEW3D_PT_bricker_export"
+    bl_context     = "objectmode"
     bl_options     = {"DEFAULT_CLOSED"}
 
     @classmethod
