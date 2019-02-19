@@ -53,8 +53,8 @@ def settingsCanBeDrawn():
     return True
 
 
-class BasicMenu(bpy.types.Menu):
-    bl_idname      = "Bricker_specials_menu"
+class BRICKER_MT_specials_menu(bpy.types.Menu):
+    bl_idname      = "BRICKER_MT_specials_menu"
     bl_label       = "Select"
 
     def draw(self, context):
