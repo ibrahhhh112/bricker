@@ -25,10 +25,10 @@ import bpy
 from ..functions import *
 
 
-class BrickerUVUnwrap(bpy.types.Operator):
+class BRICKER_OT_uv_unwrap(bpy.types.Operator):
     """ Create Smart UV Project for bricks """
-    bl_idname = "bricker.unwrap_model"
-    bl_label = "Create Smart UV Project for bricks"
+    bl_idname = "bricker.uv_unwrap"
+    bl_label = "Create Smart UV Project for Bricks"
     bl_options = {"REGISTER", "UNDO"}
 
     ################################################

@@ -32,8 +32,8 @@ from ....lib.Brick.legal_brick_sizes import *
 from ....functions import *
 
 
-class changeBrickType(Operator):
-    """change brick type of active brick"""
+class BRICKER_OT_change_brick_type(Operator):
+    """Change brick type of active brick"""
     bl_idname = "bricker.change_brick_type"
     bl_label = "Change Brick Type"
     bl_options = {"REGISTER", "UNDO"}
@@ -144,7 +144,7 @@ class changeBrickType(Operator):
         scn = bpy.context.scene
         legalBrickSizes = bpy.props.Bricker_legal_brick_sizes
         # get original active and selected objects
-        active_obj = scn.objects.active
+        active_obj = bpy.context.active_object
         initial_active_obj_name = active_obj.name if active_obj else ""
         selected_objects = bpy.context.selected_objects
         objNamesToSelect = []
@@ -164,7 +164,6 @@ class changeBrickType(Operator):
             brickType = cm.brickType
             brickHeight = cm.brickHeight
             gap = cm.gap
-            zStep = getZStep(cm)
 
             # iterate through names of selected objects
             for obj_name in self.objNamesD[cm_id]:
@@ -205,16 +204,16 @@ class changeBrickType(Operator):
 
                 # update height of brick if necessary, and update dictionary accordingly
                 if flatBrickType(brickType):
-                    dimensions = Bricks.get_dimensions(brickHeight, zStep, gap)
+                    dimensions = Bricks.get_dimensions(brickHeight, cm.zStep, gap)
                     size = updateBrickSizeAndDict(dimensions, getSourceName(cm), bricksDict, size, dictKey, dictLoc, curHeight=size[2], targetType=targetBrickType)
 
                 # check if brick spans 3 matrix locations
                 bAndPBrick = flatBrickType(brickType) and size[2] == 3
 
                 # verify exposure above and below
-                brickLocs = getLocsInBrick(bricksDict, size, zStep, dictKey, dictLoc)
+                brickLocs = getLocsInBrick(bricksDict, size, cm.zStep, dictKey, dictLoc)
                 for curLoc in brickLocs:
-                    bricksDict = verifyBrickExposureAboveAndBelow(scn, zStep, curLoc, bricksDict, decriment=3 if bAndPBrick else 1)
+                    bricksDict = verifyBrickExposureAboveAndBelow(scn, cm.zStep, curLoc, bricksDict, decriment=3 if bAndPBrick else 1)
                     # add bricks to keysToUpdate
                     keysToUpdate += [getParentKey(bricksDict, listToStr((x0 + x, y0 + y, z0 + z))) for z in (-1, 0, 3 if bAndPBrick else 1) for y in range(size[1]) for x in range(size[0])]
                 objNamesToSelect += [bricksDict[listToStr(loc)]["name"] for loc in brickLocs]

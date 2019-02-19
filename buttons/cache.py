@@ -29,7 +29,7 @@ from ..lib.caches import *
 from ..functions import *
 
 
-class Caches(bpy.types.Operator):
+class BRICKER_OT_clear_cache(bpy.types.Operator):
     """Clear brick mesh and matrix cache (Model customizations will be lost)"""
     bl_idname = "bricker.clear_cache"
     bl_label = "Clear Cache"
@@ -47,9 +47,6 @@ class Caches(bpy.types.Operator):
     def execute(self, context):
         try:
             self.clearCaches()
-            scn, cm, _ = getActiveContextInfo()
-            self.undo_stack.iterateStates(cm)
-            cm.matrixIsDirty = True
         except:
             bricker_handle_exception()
 
@@ -59,8 +56,11 @@ class Caches(bpy.types.Operator):
     # initialization method
 
     def __init__(self):
+        scn, cm, _ = getActiveContextInfo()
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('clear_cache')
+        self.undo_stack.iterateStates(cm)
+        cm.matrixIsDirty = True
 
     #############################################
     # class methods
@@ -83,10 +83,4 @@ class Caches(bpy.types.Operator):
         """clear all caches in cmlist"""
         scn = bpy.context.scene
         for cm in scn.cmlist:
-            Caches.clearCache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)
-
-    @staticmethod
-    def cacheExists(cm=None):
-        """check if light or deep matrix cache exists for cmlist item"""
-        cm = cm or getActiveContextInfo()[1]
-        return bricker_bfm_cache.get(cm.id) is not None or cm.BFMCache != ""
+            BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=brick_mesh, light_matrix=light_matrix, deep_matrix=deep_matrix)

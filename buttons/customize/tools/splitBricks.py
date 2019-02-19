@@ -31,7 +31,7 @@ from ....lib.bricksDict.functions import getDictKey
 from ....functions import *
 
 
-class splitBricks(Operator):
+class BRICKER_OT_split_bricks(Operator):
     """Split selected bricks into 1x1 bricks"""
     bl_idname = "bricker.split_bricks"
     bl_label = "Split Brick(s)"
@@ -147,15 +147,14 @@ class splitBricks(Operator):
                     # get size of current brick (e.g. [2, 4, 1])
                     brickSize = bricksDict[dictKey]["size"]
                     bricksDict[dictKey]["type"] = "BRICK" if brickSize == 3 else "PLATE"
-                    zStep = getZStep(cm)  # get zStep after brick type set
 
                     # skip 1x1 bricks
-                    if brickSize[0] + brickSize[1] + brickSize[2] / zStep == 3:
+                    if brickSize[0] + brickSize[1] + brickSize[2] / cm.zStep == 3:
                         continue
 
                     if self.vertical or self.horizontal:
                         # split the bricks in the matrix and set size of active brick's bricksDict entries to 1x1x[lastZSize]
-                        splitKeys = Bricks.split(bricksDict, dictKey, zStep, cm.brickType, loc=dictLoc, v=self.vertical, h=self.horizontal)
+                        splitKeys = Bricks.split(bricksDict, dictKey, cm.zStep, cm.brickType, loc=dictLoc, v=self.vertical, h=self.horizontal)
                         # append new splitKeys to keysToUpdate
                         keysToUpdate += splitKeys
                     else:

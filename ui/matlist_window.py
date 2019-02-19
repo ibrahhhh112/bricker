@@ -25,7 +25,7 @@ import bpy
 # NONE!
 
 
-class MATERIAL_UL_matslots_example(bpy.types.UIList):
+class MATERIAL_UL_matslots(bpy.types.UIList):
     # The draw_item function is called for each item of the collection that is visible in the list.
     #   data is the RNA object containing the collection,
     #   item is the current drawn item of the collection,

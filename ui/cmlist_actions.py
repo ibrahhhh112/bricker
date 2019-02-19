@@ -29,7 +29,7 @@ from .cmlist_utils import *
 
 
 # ui list item actions
-class cmlist_actions(bpy.types.Operator):
+class CMLIST_OT_list_action(bpy.types.Operator):
     bl_idname = "cmlist.list_action"
     bl_label = "Brick Model List Action"
 
@@ -88,7 +88,7 @@ class cmlist_actions(bpy.types.Operator):
     @staticmethod
     def addItem():
         scn = bpy.context.scene
-        active_object = scn.objects.active
+        active_object = bpy.context.active_object
         # if active object isn't on visible layer, don't set it as default source for new model
         if active_object:
             objVisible = False
@@ -141,12 +141,13 @@ class cmlist_actions(bpy.types.Operator):
         item.startFrame = scn.frame_start
         item.stopFrame = scn.frame_end
         # create new matObj for current cmlist id
-        matObjNames = ["Bricker_{}_RANDOM_mats".format(i), "Bricker_{}_ABS_mats".format(i)]
-        for n in matObjNames:
-            matObj = bpy.data.objects.get(n)
-            if matObj is None:
-                matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                getSafeScn().objects.link(matObj)
+        # matObjNames = ["Bricker_{}_RANDOM_mats".format(i), "Bricker_{}_ABS_mats".format(i)]
+        # for n in matObjNames:
+        #     matObj = bpy.data.objects.get(n)
+        #     if matObj is None:
+        #         matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
+        #         getSafeScn().objects.link(matObj)
+        createMatObjs(i)
         obj = bpy.data.objects.get("Six-Sided Cube (high)")
         if obj is None:
             loadBlockModel()
@@ -162,11 +163,7 @@ class cmlist_actions(bpy.types.Operator):
             if len(scn.cmlist) - 1 == scn.cmlist_index:
                 scn.cmlist_index -= 1
             # remove matObj for current cmlist id
-            matObjNames = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
-            for n in matObjNames:
-                matObj = bpy.data.objects.get(n)
-                if matObj is not None:
-                    bpy.data.objects.remove(matObj, True)
+            removeMatObjs(cm.id)
             scn.cmlist.remove(idx)
             if scn.cmlist_index == -1 and len(scn.cmlist) > 0:
                 scn.cmlist_index = 0
@@ -193,8 +190,8 @@ class cmlist_actions(bpy.types.Operator):
 
 
 # copy settings from current index to all other indices
-class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
-    bl_idname = "cmlist.copy_to_others"
+class CMLIST_OT_copy_settings_to_others(bpy.types.Operator):
+    bl_idname = "cmlist.copy_settings_to_others"
     bl_label = "Copy Settings to Other Brick Models"
     bl_description = "Copies the settings from the current model to all other Brick Models"
 
@@ -220,7 +217,7 @@ class Bricker_Uilist_copySettingsToOthers(bpy.types.Operator):
 
 
 # copy settings from current index to memory
-class Bricker_Uilist_copySettings(bpy.types.Operator):
+class CMLIST_OT_copy_settings(bpy.types.Operator):
     bl_idname = "cmlist.copy_settings"
     bl_label = "Copy Settings from Current Brick Model"
     bl_description = "Stores the ID of the current model for pasting"
@@ -243,7 +240,7 @@ class Bricker_Uilist_copySettings(bpy.types.Operator):
 
 
 # paste settings from index in memory to current index
-class Bricker_Uilist_pasteSettings(bpy.types.Operator):
+class CMLIST_OT_paste_settings(bpy.types.Operator):
     bl_idname = "cmlist.paste_settings"
     bl_label = "Paste Settings to Current Brick Model"
     bl_description = "Pastes the settings from stored model ID to the current index"
@@ -269,7 +266,7 @@ class Bricker_Uilist_pasteSettings(bpy.types.Operator):
 
 
 # select bricks from current model
-class Bricker_Uilist_selectBricks(bpy.types.Operator):
+class CMLIST_OT_select_bricks(bpy.types.Operator):
     bl_idname = "cmlist.select_bricks"
     bl_label = "Select All Bricks in Current Brick Model"
     bl_description = "Select all bricks in the current model"
@@ -297,7 +294,7 @@ class Bricker_Uilist_selectBricks(bpy.types.Operator):
 # draw
 # -------------------------------------------------------------------
 
-class Bricker_UL_cmlist_items(UIList):
+class CMLIST_UL_items(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # Make sure your code supports all 3 layout types

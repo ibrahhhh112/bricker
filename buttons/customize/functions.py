@@ -31,24 +31,25 @@ from ...lib.Brick.legal_brick_sizes import *
 from .undo_stack import *
 
 
-def drawUpdatedBricks(cm, bricksDict, keysToUpdate, selectCreated=True):
+def drawUpdatedBricks(cm, bricksDict, keysToUpdate, action="redrawing", selectCreated=True, tempBrick=False):
     if len(keysToUpdate) == 0: return
     if not isUnique(keysToUpdate): raise ValueError("keysToUpdate cannot contain duplicate values")
-    print("[Bricker] redrawing...")
+    if action is not None:
+        print("[Bricker] %(action)s..." % locals())
     # get arguments for createNewBricks
     source = cm.source_obj
     source_details, dimensions = getDetailsAndBounds(source, cm)
     n = source.name
     Bricker_parent_on = "Bricker_%(n)s_parent" % locals()
     parent = bpy.data.objects.get(Bricker_parent_on)
-    logo_details, refLogo = BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
+    logo_details, refLogo = [None, None] if tempBrick else BrickerBrickify.getLogo(bpy.context.scene, cm, dimensions)
     action = "UPDATE_MODEL"
     # actually draw the bricks
-    BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, redraw=True)
+    BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, cm=cm, bricksDict=bricksDict, keys=keysToUpdate, clearExistingGroup=False, selectCreated=selectCreated, printStatus=False, tempBrick=tempBrick, redraw=True)
     # add bevel if it was previously added
-    if cm.bevelAdded:
+    if cm.bevelAdded and not tempBrick:
         bricks = getBricks(cm)
-        BrickerBevel.runBevelAction(bricks, cm)
+        BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
 
 def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
@@ -65,7 +66,7 @@ def getAdjKeysAndBrickVals(bricksDict, loc=None, key=None):
         try:
             adjBrickVals.append(bricksDict[k]["val"])
         except KeyError:
-            adjKeys.remove(k)
+            remove_item(adjKeys, k)
     return adjKeys, adjBrickVals
 
 
@@ -90,6 +91,11 @@ def verifyBrickExposureAboveAndBelow(scn, zStep, origLoc, bricksDict, decriment=
     # double check exposure of bricks above/below new adjacent brick
     for dictLoc in dictLocs:
         k = listToStr(dictLoc)
+        junk1 = k not in bricksDict
+        try:
+            junk2 = bricksDict[k]
+        except:
+            pass
         if k not in bricksDict:
             continue
         parent_key = k if bricksDict[k]["parent"] == "self" else bricksDict[k]["parent"]
@@ -119,7 +125,7 @@ def getAvailableTypes(by="SELECTION", includeSizes=[]):
     items = []
     legalBS = bpy.props.Bricker_legal_brick_sizes
     scn = bpy.context.scene
-    objs = bpy.context.selected_objects if by == "SELECTION" else [scn.objects.active]
+    objs = bpy.context.selected_objects if by == "SELECTION" else [bpy.context.active_object]
     objNamesD, bricksDicts = createObjNamesAndBricksDictsDs(objs)
     invalidItems = []
     for cm_id in objNamesD.keys():
@@ -258,7 +264,6 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             continue
         bricksDict = bricksDicts[cm_id]
         selectedSomething = False
-        zStep = getZStep(cm)
 
         for obj_name in objNamesD[cm_id]:
             # get dict key details of current obj
@@ -266,7 +271,7 @@ def selectBricks(objNamesD, bricksDicts, brickSize="NULL", brickType="NULL", all
             dictLoc = getDictLoc(bricksDict, dictKey)
             siz = bricksDict[dictKey]["size"]
             typ = bricksDict[dictKey]["type"]
-            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=zStep)
+            onShell = isOnShell(bricksDict, dictKey, loc=dictLoc, zStep=cm.zStep)
 
             # get current brick object
             curObj = bpy.data.objects.get(obj_name)
@@ -293,7 +298,7 @@ def removeUnusedFromList(cm, brickType="NULL", brickSize="NULL", selectedSomethi
     lst = (cm.brickTypesUsed if brickType != "NULL" else cm.brickSizesUsed).split("|")
     # remove unused item
     if item in lst:
-        lst.remove(item)
+        remove_item(lst, item)
     # convert bTU back to string of sizes split by '|'
     newLst = listToStr(lst, separate_by="|")
     # store new list to current cmlist item
@@ -301,3 +306,43 @@ def removeUnusedFromList(cm, brickType="NULL", brickSize="NULL", selectedSomethi
         cm.brickSizesUsed = newLst
     else:
         cm.brickTypesUsed = newLst
+
+
+def getAdjDKLs(cm, bricksDict, dictKey, obj):
+    # initialize vars for self.adjDKLs setup
+    x,y,z = getDictLoc(bricksDict, dictKey)
+    objSize = bricksDict[dictKey]["size"]
+    sX, sY, sZ = objSize[0], objSize[1], objSize[2] // cm.zStep
+    adjDKLs = [[],[],[],[],[],[]]
+    # initialize ranges
+    rgs = [range(x, x + sX),
+           range(y, y + sY),
+           range(z, z + sZ)]
+    # set up self.adjDKLs
+    adjDKLs[0] += [[x + sX, y0, z0] for z0 in rgs[2] for y0 in rgs[1]]
+    adjDKLs[1] += [[x - 1, y0, z0]  for z0 in rgs[2] for y0 in rgs[1]]
+    adjDKLs[2] += [[x0, y + sY, z0] for z0 in rgs[2] for x0 in rgs[0]]
+    adjDKLs[3] += [[x0, y - 1, z0]  for z0 in rgs[2] for x0 in rgs[0]]
+    adjDKLs[4] += [[x0, y0, z + sZ] for y0 in rgs[1] for x0 in rgs[0]]
+    adjDKLs[5] += [[x0, y0, z - 1]  for y0 in rgs[1] for x0 in rgs[0]]
+    return adjDKLs
+
+
+def installBrickSculpt():
+    if not hasattr(bpy.props, "bricksculpt_module_name"):
+        return False
+    addonsPath = bpy.utils.user_resource('SCRIPTS', "addons")
+    Bricker = bpy.props.bricker_module_name
+    BrickSculpt = bpy.props.bricksculpt_module_name
+    bricksculptPathOld = "%(addonsPath)s/%(BrickSculpt)s/bricksculpt_framework.py" % locals()
+    bricksculptPathNew = "%(addonsPath)s/%(Bricker)s/buttons/customize/tools/bricksculpt_framework.py" % locals()
+    fOld = open(bricksculptPathOld, "r")
+    fNew = open(bricksculptPathNew, "w")
+    # write META commands
+    lines = fOld.readlines()
+    fNew.truncate(0)
+    print(lines)
+    fNew.writelines(lines)
+    fOld.close()
+    fNew.close()
+    return True

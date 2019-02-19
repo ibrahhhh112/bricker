@@ -29,11 +29,11 @@ from ...functions import *
 from ...ui.cmlist_actions import *
 
 
-class InitializeUndoStack(Operator):
+class BRICKER_OT_initialize(Operator):
     """ initializes undo stack for changes to the BFM cache """
     bl_category = "Bricker"
     bl_idname = "bricker.initialize"
-    bl_label = "Initialize Undo Stack"
+    bl_label = "Initialize Bricker"
     bl_space_type  = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
@@ -48,6 +48,9 @@ class InitializeUndoStack(Operator):
 
     def modal(self, context, event):
         scn = bpy.context.scene
+        if self.stop:
+            self.cancel(context)
+            return {"CANCELLED"}
         if not self.undo_stack.isUpdating() and not brickerRunningBlockingOp() and scn.cmlist_index != -1:
             global python_undo_state
             cm = scn.cmlist[scn.cmlist_index]
@@ -56,18 +59,17 @@ class InitializeUndoStack(Operator):
             # handle undo
             elif python_undo_state[cm.id] > cm.blender_undo_state:
                 self.undo_stack.undo_pop()
-                tag_redraw_areas()
+                tag_redraw_areas("VIEW_3D")
             # handle redo
             elif python_undo_state[cm.id] < cm.blender_undo_state:
                 self.undo_stack.redo_pop()
-                tag_redraw_areas()
+                tag_redraw_areas("VIEW_3D")
         return {"PASS_THROUGH"}
 
     def execute(self, context):
-        # self.ui.start()
         # add new scn.cmlist item
         if self.action == "ADD":
-            cmlist_actions.addItem()
+            CMLIST_OT_list_action.addItem()
         for cm in context.scene.cmlist:
             cm.customObject1 = bpy.data.objects.get("Six-Sided Cube (high)")
         # run modal
@@ -75,18 +77,18 @@ class InitializeUndoStack(Operator):
         return {"RUNNING_MODAL"}
 
     def cancel(self, context):
-        # self.ui.end()
         pass
 
     ################################################
     # initialization method
 
     def __init__(self):
+        scn = bpy.context.scene
         self.undo_stack = UndoStack.get_instance()
+        self.stop = False
         bpy.props.bricker_initialized = True
         if self.action == "NONE":
             self.report({"INFO"}, "Bricker initialized")
-        # self.ui = Bricker_UI.get_instance()
 
     ###################################################
     # class variables
@@ -98,6 +100,13 @@ class InitializeUndoStack(Operator):
         ),
         default="NONE"
     )
+
+    ################################################
+    # class methods
+
+    @staticmethod
+    def killModal():
+        self.stop = True
 
     ################################################
     # event handling functions

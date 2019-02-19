@@ -28,6 +28,7 @@ from ..functions import *
 from ..lib.bricksDict import lightToDeepCache, deepToLightCache, getDictKey
 from ..lib.caches import bricker_bfm_cache
 from ..buttons.customize.tools import *
+from ..buttons.customize.undo_stack import *
 
 
 def brickerRunningBlockingOp():
@@ -52,7 +53,7 @@ def handle_animation(scn):
                 if brick.hide == onCurF:
                     brick.hide = not onCurF
                     brick.hide_render = not onCurF
-                if scn.objects.active and scn.objects.active.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
+                if bpy.context.active_object and bpy.context.active_object.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
                     select(brick, active=True)
                 # prevent bricks from being selected on frame change
                 elif brick.select:
@@ -111,7 +112,7 @@ def handle_selections(scn):
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
-                    scn.Bricker_last_active_object_name = scn.objects.active.name
+                    scn.Bricker_last_active_object_name = bpy.context.active_object.name
             elif cm.animated:
                 cf = scn.frame_current
                 if cf > cm.stopFrame:
@@ -121,7 +122,7 @@ def handle_selections(scn):
                 g = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if g is not None and len(g.objects) > 0:
                     select(list(g.objects), active=True, only=True)
-                    scn.Bricker_last_active_object_name = scn.objects.active.name
+                    scn.Bricker_last_active_object_name = bpy.context.active_object.name
                 else:
                     scn.objects.active = None
                     deselectAll()
@@ -135,27 +136,27 @@ def handle_selections(scn):
                     deselectAll()
                     break
     # if active object changes, open Brick Model settings for active object
-    elif scn.objects.active and scn.Bricker_last_active_object_name != scn.objects.active.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and scn.objects.active.type == "MESH":
-        scn.Bricker_last_active_object_name = scn.objects.active.name
+    elif bpy.context.active_object and scn.Bricker_last_active_object_name != bpy.context.active_object.name and len(scn.cmlist) > 0 and (scn.cmlist_index == -1 or scn.cmlist[scn.cmlist_index].source_obj is not None) and bpy.context.active_object.type == "MESH":
+        scn.Bricker_last_active_object_name = bpy.context.active_object.name
         beginningString = "Bricker_"
-        if scn.objects.active.name.startswith(beginningString):
+        if bpy.context.active_object.name.startswith(beginningString):
             usingSource = False
-            frameLoc = scn.objects.active.name.rfind("_bricks")
+            frameLoc = bpy.context.active_object.name.rfind("_bricks")
             if frameLoc == -1:
-                frameLoc = scn.objects.active.name.rfind("_brick_")
+                frameLoc = bpy.context.active_object.name.rfind("_brick_")
                 if frameLoc == -1:
-                    frameLoc = scn.objects.active.name.rfind("_parent")
+                    frameLoc = bpy.context.active_object.name.rfind("_parent")
             if frameLoc != -1:
-                scn.Bricker_active_object_name = scn.objects.active.name[len(beginningString):frameLoc]
+                scn.Bricker_active_object_name = bpy.context.active_object.name[len(beginningString):frameLoc]
         else:
             usingSource = True
-            scn.Bricker_active_object_name = scn.objects.active.name
+            scn.Bricker_active_object_name = bpy.context.active_object.name
         for i,cm in enumerate(scn.cmlist):
-            if createdWithUnsupportedVersion(cm) or getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
+            if getSourceName(cm) != scn.Bricker_active_object_name or (usingSource and cm.modelCreated):
                 continue
             scn.cmlist_index = i
             scn.Bricker_last_cmlist_index = scn.cmlist_index
-            active_obj = scn.objects.active
+            active_obj = bpy.context.active_object
             if active_obj.isBrick:
                 # adjust scn.active_brick_detail based on active brick
                 x0, y0, z0 = strToList(getDictKey(active_obj.name))
@@ -202,6 +203,12 @@ def clear_bfm_cache(dummy):
 
 # pull dicts from deep cache to light cache on load
 @persistent
+def reset_undo_stack(scene):
+    # reset undo stack
+    undo_stack = UndoStack.get_instance(reset=True)
+
+
+@persistent
 def handle_loading_to_light_cache(dummy):
     deepToLightCache(bricker_bfm_cache)
     # verify caches loaded properly
@@ -247,13 +254,18 @@ def safe_unlink_parent(dummy):
 
 @persistent
 def handle_upconversion(dummy):
-    # update storage scene name
+    # remove storage scene
+    sto_scn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
+    if sto_scn is not None:
+        for obj in sto_scn.objects:
+            obj.use_fake_user = True
+        bpy.data.scenes.remove(sto_scn)
     for scn in bpy.data.scenes:
+        # update cmlist indices to reflect updates to Bricker
         for cm in scn.cmlist:
             if createdWithUnsupportedVersion(cm):
                 # normalize cm.version
-                if cm.version[1] == ",":
-                    cm.version = cm.version.replace(", ", ".")
+                cm.version = cm.version.replace(", ", ".")
                 # convert from v1_0 to v1_1
                 if int(cm.version[2]) < 1:
                     cm.brickWidth = 2 if cm.maxBrickScale2 > 1 else 1
@@ -274,47 +286,37 @@ def handle_upconversion(dummy):
                 # convert from v1_3 to v1_4
                 if int(cm.version[2]) < 4:
                     # update "_frame_" to "_f_" in brick and group names
-                    n = getSourceName(cm)
+                    n = cm.source_name
                     Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
                     if cm.animated:
                         for i in range(cm.lastStartFrame, cm.lastStopFrame + 1):
                             Bricker_bricks_curF_gn = Bricker_bricks_gn + "_frame_" + str(i)
                             bGroup = bpy.data.groups.get(Bricker_bricks_curF_gn)
-                            if bGroup is None:
-                                continue
-                            bGroup.name = rreplace(bGroup.name, "frame", "f")
-                            for obj in bGroup.objects:
-                                obj.name = rreplace(obj.name, "frame", "f")
+                            if bGroup is not None:
+                                bGroup.name = rreplace(bGroup.name, "frame", "f")
+                                for obj in bGroup.objects:
+                                    obj.name = rreplace(obj.name, "combined_frame" if "combined_frame" in obj.name else "frame", "f")
                     elif cm.modelCreated:
                         bGroup = bpy.data.groups.get(Bricker_bricks_gn)
                         if bGroup is not None:
-                            bGroup.name = rreplace(bGroup.name, "frame", "f")
                             for obj in bGroup.objects:
-                                obj.name = rreplace(obj.name, "frame", "f")
-                    # rename storage scene
+                                if obj.name.endswith("_combined"):
+                                    obj.name = obj.name[:-9]
+                    # remove old storage scene
                     sto_scn_old = bpy.data.scenes.get("Bricker_storage (DO NOT RENAME)")
-                    sto_scn_new = getSafeScn()
                     if sto_scn_old is not None:
                         for obj in sto_scn_old.objects:
                             if obj.name.startswith("Bricker_refLogo"):
-                                bpy.data.objects.remove(obj, True)
+                                bpy.data.objects.remove(obj, do_unlink=True)
                             else:
-                                try:
-                                    sto_scn_new.objects.link(obj)
-                                except RuntimeError:
-                                    pass
+                                obj.use_fake_user = True
                         bpy.data.scenes.remove(sto_scn_old)
                     # create "Bricker_cm.id_mats" object for each cmlist idx
-                    matObjNames = ["Bricker_{}_RANDOM_mats".format(cm.id), "Bricker_{}_ABS_mats".format(cm.id)]
-                    for n in matObjNames:
-                        matObj = bpy.data.objects.get(n)
-                        if matObj is None:
-                            matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
-                            sto_scn_new.objects.link(matObj)
+                    createMatObjs(cm.id)
                     # update names of Bricker source objects
-                    old_source = bpy.data.objects.get(getSourceName(cm) + " (DO NOT RENAME)")
+                    old_source = bpy.data.objects.get(cm.source_name + " (DO NOT RENAME)")
                     if old_source is not None:
-                        old_source = cm.source_obj
+                        old_source.name = cm.source_name
                     # transfer dist offset values to new prop locations
                     if cm.distOffsetX != -1:
                         cm.distOffset = (cm.distOffsetX, cm.distOffsetY, cm.distOffsetZ)
@@ -323,6 +325,14 @@ def handle_upconversion(dummy):
                     cm.logoType = cm.logoDetail
                     cm.matrixIsDirty = True
                     cm.matrixLost = True
+                    remove_groups = list()
+                    for group in bpy.data.groups:
+                        if group.name.startswith("Bricker_") and (group.name.endswith("_parent") or group.name.endswith("_dupes")):
+                            remove_groups.append(group)
+                    for group in remove_groups:
+                        bpy.data.groups.remove(group)
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
+                    for cm in scn.cmlist:
+                        cm.zStep = getZStep(cm)

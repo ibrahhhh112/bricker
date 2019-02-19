@@ -27,9 +27,10 @@ bl_info = {
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary and access to safe scene, 2 for testBrickGenerators button
+developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary, 2 for testBrickGenerators button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
+# NOTE: Copy contents from 'bricksculpt_tools_backup' to 'bricksculpt_tools'
 
 # System imports
 # NONE!
@@ -45,7 +46,6 @@ from .buttons import *
 from .buttons.customize import *
 from .operators import *
 from .lib import *
-# from .lib.rigid_body_props import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 # from . import addon_updater_ops
 
@@ -62,15 +62,13 @@ def register():
     bpy.props.bricker_initialized = False
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
+    bpy.props.running_bricksculpt_tool = False
 
     Object.protected = BoolProperty(name='protected', default=False)
     Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)
     Object.isBrick = BoolProperty(name='Is Brick', default=False)
     Object.cmlist_id = IntProperty(name='Custom Model ID', description="ID of cmlist entry to which this object refers", default=-1)
     Material.num_averaged = IntProperty(name='Colors Averaged', description="Number of colors averaged together", default=0)
-
-    # # backup rigid body settings
-    # bpy.types.Object.rigid_body_settings = PointerProperty(type=Bricker_RigidBodySettings)
 
     WindowManager.Bricker_runningBlockingOperation = BoolProperty(default=False)
 
@@ -98,18 +96,16 @@ def register():
     #     default=False)
     # bpy.types.VIEW3D_HT_header.append(Bricker_snap_button)
 
-    # handle the keymap
+    # other things (UI List)
+    Scene.cmlist = CollectionProperty(type=CMLIST_UL_properties)
+    Scene.cmlist_index = IntProperty(default=-1)
+
+    # handle the keymaps
     wm = bpy.context.window_manager
-    # Note that in background mode (no GUI available), keyconfigs are not available either, so we have
-    # to check this to avoid nasty errors in background case.
-    if wm.keyconfigs.addon:
+    if wm.keyconfigs.addon: # check this to avoid errors in background case
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
         keymaps.addKeymaps(km)
         addon_keymaps.append(km)
-
-    # other things (UI List)
-    Scene.cmlist = CollectionProperty(type=Bricker_CreatedModels)
-    Scene.cmlist_index = IntProperty(default=-1)
 
     # register app handlers
     bpy.app.handlers.frame_change_pre.append(handle_animation)
@@ -122,6 +118,7 @@ def register():
     bpy.app.handlers.save_post.append(safe_unlink_parent)
     bpy.app.handlers.load_post.append(safe_unlink_parent)
     bpy.app.handlers.load_post.append(handle_upconversion)
+    bpy.app.handlers.load_post.append(reset_undo_stack)
 
     # # addon updater code and configurations
     # addon_updater_ops.register(bl_info)
@@ -132,6 +129,7 @@ def unregister():
     # addon_updater_ops.unregister()
 
     # unregister app handlers
+    bpy.app.handlers.load_post.remove(reset_undo_stack)
     bpy.app.handlers.load_post.remove(handle_upconversion)
     bpy.app.handlers.load_post.remove(safe_unlink_parent)
     bpy.app.handlers.save_post.remove(safe_unlink_parent)
@@ -142,6 +140,12 @@ def unregister():
     bpy.app.handlers.scene_update_pre.remove(prevent_user_from_viewing_storage_scene)
     bpy.app.handlers.scene_update_pre.remove(handle_selections)
     bpy.app.handlers.frame_change_pre.remove(handle_animation)
+
+    # handle the keymaps
+    wm = bpy.context.window_manager
+    for km in addon_keymaps:
+        wm.keyconfigs.addon.keymaps.remove(km)
+    addon_keymaps.clear()
 
     del Scene.cmlist_index
     del Scene.cmlist
@@ -159,18 +163,12 @@ def unregister():
     del Object.isBrick
     del Object.isBrickifiedObject
     del Object.protected
+    del bpy.props.running_bricksculpt_tool
     del bpy.props.Bricker_developer_mode
     del bpy.props.bricker_undoUpdating
     del bpy.props.bricker_initialized
     del bpy.props.bricker_preferences
     del bpy.props.bricker_version
-    del bpy.props.bricker_module_name
-
-    # handle the keymaps
-    wm = bpy.context.window_manager
-    for km in addon_keymaps:
-        wm.keyconfigs.addon.keymaps.remove(km)
-    addon_keymaps.clear()
 
     bpy.utils.unregister_module(__name__)
 

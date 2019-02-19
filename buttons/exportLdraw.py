@@ -31,8 +31,8 @@ from ..lib.Brick import *
 from ..lib.abs_plastic_materials import *
 
 
-class exportLdraw(Operator):
-    """export bricksDict to ldraw file"""
+class BRICKER_OT_export_ldraw(Operator):
+    """Export active brick model to ldraw file"""
     bl_idname = "bricker.export_ldraw"
     bl_label = "Export to Ldraw File"
     bl_options = {"REGISTER", "UNDO"}
@@ -61,7 +61,6 @@ class exportLdraw(Operator):
         # initialize vars
         legalBricks = getLegalBricks()
         absMatCodes = getAbsPlasticMatCodes()
-        zStep = getZStep(cm)
         for frame in range(cm.startFrame, cm.stopFrame + 1) if cm.animated else [-1]:
             path, errorMsg = getExportPath(n, ".ldr", cm.exportPath, frame=frame, subfolder=cm.animated)
             if errorMsg is not None:
@@ -106,9 +105,9 @@ class exportLdraw(Operator):
                     idx += 1 if size[1] > size[0] else 0
                     matrix = matrices[idx]
                     # get coordinate for brick in Ldraw units
-                    co = self.blendToLdrawUnits(cm, bricksDict, zStep, key, idx)
+                    co = self.blendToLdrawUnits(cm, bricksDict, cm.zStep, key, idx)
                     # get color code of brick
-                    mat = getMaterial(bricksDict, key, size, zStep, cm.materialType, cm.materialName, cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
+                    mat = getMaterial(bricksDict, key, size, cm.zStep, cm.materialType, cm.materialName, cm.randomMatSeed, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, brick_mats=getBrickMats(cm.materialType, cm.id), seedInc=i)
                     mat_name = "" if mat is None else mat.name
                     rgba = bricksDict[key]["rgba"]
                     color = 0

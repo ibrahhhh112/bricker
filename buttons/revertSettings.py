@@ -27,7 +27,7 @@ from bpy.types import Operator
 from ..functions import *
 
 
-class BrickerRevertSettings(Operator):
+class BRICKER_OT_revert_settings(Operator):
     """Revert Matrix settings to save model customizations"""
     bl_idname = "bricker.revert_matrix_settings"
     bl_label = "Revert Matrix Settings"
@@ -66,14 +66,25 @@ class BrickerRevertSettings(Operator):
         cm.distOffset[0] = float(settings[3])
         cm.distOffset[1] = float(settings[4])
         cm.distOffset[2] = float(settings[5])
-        cm.customObject1 = settings[6]
-        cm.customObject2 = settings[7]
-        cm.customObject3 = settings[8]
-        cm.useNormals = str_to_bool(settings[9])
-        cm.insidenessRayCastDir = settings[10]
-        cm.castDoubleCheckRays = str_to_bool(settings[11])
-        cm.brickShell = settings[12]
-        cm.calculationAxes = settings[13]
+        cm.includeTransparency = str_to_bool(settings[6])
+        cm.customObject1 = bpy.data.objects.get(settings[7])
+        cm.customObject2 = bpy.data.objects.get(settings[8])
+        cm.customObject3 = bpy.data.objects.get(settings[9])
+        cm.useNormals = str_to_bool(settings[10])
+        cm.verifyExposure = str_to_bool(settings[11])
+        cm.insidenessRayCastDir = settings[12]
+        cm.castDoubleCheckRays = str_to_bool(settings[13])
+        cm.brickShell = settings[14]
+        cm.calculationAxes = settings[15]
+        if cm.lastIsSmoke:
+            cm.smokeDensity = settings[16]
+            cm.smokeQuality = settings[17]
+            cm.smokeBrightness = settings[18]
+            cm.smokeSaturation = settings[19]
+            cm.flameColor[0] = settings[20]
+            cm.flameColor[1] = settings[21]
+            cm.flameColor[2] = settings[22]
+            cm.flameIntensity = settings[23]
         cm.matrixIsDirty = False
 
     ################################################

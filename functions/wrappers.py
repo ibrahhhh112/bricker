@@ -22,7 +22,7 @@ import time
 import bpy
 
 # Addon imports
-from ..functions.common import stopWatch
+from ..functions.common import stopwatch
 
 
 # https://github.com/CGCookie/retopoflow
@@ -31,7 +31,7 @@ def timed_call(label, precision=2):
         def wrapped(*args, **kwargs):
             time_beg = time.time()
             ret = fn(*args, **kwargs)
-            stopWatch(label, time_beg, precision=precision)
+            stopwatch(label, time_beg, precision=precision)
             return ret
         return wrapped
     return wrapper
@@ -39,18 +39,30 @@ def timed_call(label, precision=2):
 
 # https://github.com/CGCookie/retopoflow
 def blender_version(op, ver):
-    def nop(*args, **kwargs): pass
-    def nop_decorator(fn): return nop
-    def fn_decorator(fn): return fn
+    self = blender_version
+    if not hasattr(self, 'init'):
+        major, minor, rev = bpy.app.version
+        blenderver = '%d.%02d' % (major, minor)
+        self.fns = {}
+        self.ops = {
+            '<': lambda v: blenderver < v,
+            '>': lambda v: blenderver > v,
+            '<=': lambda v: blenderver <= v,
+            '==': lambda v: blenderver == v,
+            '>=': lambda v: blenderver >= v,
+            '!=': lambda v: blenderver != v,
+        }
+        self.init = True
+    update_fn = self.ops[op](ver)
+    fns = self.fns
 
-    major,minor,rev = bpy.app.version
-    blenderver = '%d.%02d' % (major,minor)
-    # dprint('%s %s %s' % (ver, op, blenderver))
-    if   op == '<':  retfn = (blenderver < ver)
-    elif op == '<=': retfn = (blenderver <= ver)
-    elif op == '==': retfn = (blenderver == ver)
-    elif op == '>=': retfn = (blenderver >= ver)
-    elif op == '>':  retfn = (blenderver > ver)
-    elif op == '!=': retfn = (blenderver != ver)
-    else: assert False, 'unhandled op: "%s"' % op
-    return fn_decorator if retfn else nop_decorator
+    def wrapit(fn):
+        n = fn.__name__
+        if update_fn:
+            fns[n] = fn
+
+        def callit(*args, **kwargs):
+            return fns[n](*args, **kwargs)
+
+        return callit
+    return wrapit

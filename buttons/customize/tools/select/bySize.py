@@ -29,7 +29,7 @@ from ....brickify import *
 from .....functions import *
 
 
-class selectBricksBySize(Operator):
+class BRICKER_OT_select_bricks_by_size(Operator):
     """Select bricks of specified size"""
     bl_idname = "bricker.select_bricks_by_size"
     bl_label = "Select Bricks by Size"

@@ -78,7 +78,7 @@ def updateBevel(self, context):
         scn, cm, n = getActiveContextInfo()
         if cm.lastBevelWidth != cm.bevelWidth or cm.lastBevelSegments != cm.bevelSegments or cm.lastBevelProfile != cm.bevelProfile:
             bricks = getBricks()
-            BrickerBevel.createBevelMods(cm, bricks)
+            BRICKER_OT_bevel.createBevelMods(cm, bricks)
             cm.lastBevelWidth = cm.bevelWidth
             cm.lastBevelSegments = cm.bevelSegments
             cm.lastBevelProfile = cm.bevelProfile
@@ -91,14 +91,12 @@ def updateParentExposure(self, context):
     scn, cm, _ = getActiveContextInfo()
     if not (cm.modelCreated or cm.animated):
         return
-    if cm.exposeParent:
-        parentOb = bpy.data.objects.get(cm.parent_name)
-        if parentOb:
+    parentOb = cm.parent_obj
+    if parentOb:
+        if cm.exposeParent:
             safeLink(parentOb, protect=True)
             select(parentOb, active=True, only=True)
-    else:
-        parentOb = bpy.data.objects.get(cm.parent_name)
-        if parentOb:
+        else:
             try:
                 safeUnlink(parentOb)
             except RuntimeError:
@@ -110,7 +108,7 @@ def updateModelScale(self, context):
     if not (cm.modelCreated or cm.animated):
         return
     _, _, s = getTransformData(cm)
-    parentOb = bpy.data.objects.get(cm.parent_name)
+    parentOb = cm.parent_obj
     if parentOb:
         parentOb.scale = Vector(s) * cm.transformScale
 
@@ -157,6 +155,12 @@ def dirtyBuild(self, context):
 def dirtyBricks(self, context):
     scn, cm, _ = getActiveContextInfo()
     cm.bricksAreDirty = True
+
+
+def updateBrickType(self, context):
+    scn, cm, _ = getActiveContextInfo()
+    cm.zStep = getZStep(cm)
+    dirtyMatrix(self, context)
 
 
 def getCMProps():
@@ -209,7 +213,6 @@ def getCMProps():
             "materialName",
             "internalMatName",
             "matShellDepth",
-            "mergeInconsistentMats",
             "randomMatSeed",
             "useUVMap",
             "uvImageName",

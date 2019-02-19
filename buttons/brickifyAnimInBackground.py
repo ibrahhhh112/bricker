@@ -27,16 +27,14 @@ from bpy.props import *
 
 # Addon imports
 from .customize.undo_stack import *
-from .materials import BrickerApplyMaterial
-from .delete import BrickerDelete
-from .bevel import BrickerBevel
+from .bevel import BRICKER_OT_bevel
 from .cache import *
 from .brickify import *
 from ..lib.bricksDict import *
 from ..functions import *
 
 
-class BrickerBrickifyAnimInBackground(bpy.types.Operator):
+class BRICKER_OT_brickify_anim_in_background(bpy.types.Operator):
     """ Create brick sculpture from source object mesh """
     bl_idname = "bricker.brickify_anim_in_background"
     bl_label = "Create/Update Brick Model from Source Object"
@@ -46,7 +44,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
     # Blender Operator methods
 
     def execute(self, context):
-        # update data in safe_scn
+        # get active context info
         scn, cm, n = getActiveContextInfo()
         # run brickify for current frame
         BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
@@ -56,8 +54,7 @@ class BrickerBrickifyAnimInBackground(bpy.types.Operator):
     # initialization method
 
     def __init__(self):
-        # initialize vars
-        self.safe_scn = getSafeScn()
+        pass
 
     #############################################
     # class variables

@@ -41,8 +41,8 @@ def getModelType(cm):
     return modelType
 
 
-class BrickerDelete(bpy.types.Operator):
-    """ Delete Brickified model """
+class BRICKER_OT_delete_model(bpy.types.Operator):
+    """Delete brickified model (restores original source object)"""
     bl_idname = "bricker.delete_model"
     bl_label = "Delete Brickified model from Blender"
     bl_options = {"REGISTER", "UNDO"}
@@ -79,6 +79,7 @@ class BrickerDelete(bpy.types.Operator):
         # push to undo stack
         self.undo_stack = UndoStack.get_instance()
         self.undo_stack.undo_push('delete', affected_ids=[cm.id])
+        self.undo_stack.iterateStates(cm)
 
     #############################################
     # class methods
@@ -145,7 +146,7 @@ class BrickerDelete(bpy.types.Operator):
             pivot_point = bricks[0].matrix_world.to_translation()
 
         if cm.brickifyingInBackground:
-            JobManager = SCENE_OT_job_manager.get_instance(cm.id)
+            JobManager = JobManager.get_instance(cm.id)
             JobManager.kill_all()
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
@@ -195,7 +196,7 @@ class BrickerDelete(bpy.types.Operator):
                 except KeyError:
                     pass
 
-        Caches.clearCache(cm, brick_mesh=False)
+        BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=False)
 
         # Scale brick height according to scale value applied to source
         cm.brickHeight = cm.brickHeight * cm.transformScale
@@ -227,11 +228,6 @@ class BrickerDelete(bpy.types.Operator):
         # reset source properties
         source.name = n
         source.cmlist_id = -1
-        # # restore rigid body settings
-        # if cm.rigid_body:
-        #     select(source, active=True)
-        #     bpy.ops.rigidbody.object_add()
-        #     retrieveRigidBodySettings(source)
 
     @classmethod
     def cleanDupes(cls, cm, n, preservedFrames, modelType):
@@ -295,9 +291,7 @@ class BrickerDelete(bpy.types.Operator):
                         continue
                 except ValueError:
                     continue
-            m = parent.data
-            bpy.data.objects.remove(parent, True)
-            bpy.data.meshes.remove(m, True)
+            bpy.data.objects.remove(parent, do_unlink=True)
         return brickLoc, brickRot, brickScl
 
     def updateAnimationData(objs, trans_and_anim_data):
@@ -325,9 +319,7 @@ class BrickerDelete(bpy.types.Operator):
                     cls.updateAnimationData(bricks, trans_and_anim_data)
                 last_percent = 0
                 # remove objects
-                unhide(bricks)
-                select(bricks, only=True)
-                bpy.ops.object.delete()
+                delete(bricks)
                 bpy.data.groups.remove(brickGroup, do_unlink=True)
             cm.modelCreated = False
         elif modelType == "ANIMATION":

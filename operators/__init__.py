@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __all__ = [
-           "delete",
+           "delete_object",
            "move_to_layer",
-           "duplicate",
+           "duplicate_object",
            ]

@@ -347,8 +347,7 @@ def getDetailsAndBounds(source, cm=None):
     """ returns dimensions and bounds of source object """
     cm = cm or getActiveContextInfo()[1]
     source_details = bounds(source)
-    zStep = getZStep(cm)
-    dimensions = Bricks.get_dimensions(cm.brickHeight, zStep, cm.gap)
+    dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
     return source_details, dimensions
 
 

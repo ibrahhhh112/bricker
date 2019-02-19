@@ -28,8 +28,8 @@ from bpy.types import Operator
 from ..functions import *
 
 
-class exportModelData(Operator):
-    """send bricksDict to external file"""
+class BRICKER_OT_export_model_data(Operator):
+    """send active brick model to external file"""
     bl_idname = "bricker.export_model_data"
     bl_label = "Export Model Data"
     bl_options = {"REGISTER", "UNDO"}
