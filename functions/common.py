@@ -734,7 +734,7 @@ def apply_modifiers(obj, settings="PREVIEW"):
 def safeUnlink(obj, protect=True):
     scn = bpy.context.scene
     try:
-        scn.objects.unlink(obj)
+        scn.collection.objects.unlink(obj)
     except RuntimeError:
         pass
     obj.protected = protect
@@ -743,7 +743,7 @@ def safeUnlink(obj, protect=True):
 
 def safeLink(obj, protect=False):
     scn = bpy.context.scene
-    scn.objects.link(obj)
+    scn.collection.objects.link(obj)
     obj.protected = protect
     obj.use_fake_user = False
 

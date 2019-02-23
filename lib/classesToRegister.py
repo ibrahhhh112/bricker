@@ -41,7 +41,7 @@ classes = (
     bake.BRICKER_OT_bake_model,
     bevel.BRICKER_OT_bevel,
     brickify.BRICKER_OT_brickify,
-    cache.BRICKER_OT_caches,
+    cache.BRICKER_OT_clear_cache,
     delete_model.BRICKER_OT_delete_model,
     exportLdraw.BRICKER_OT_export_ldraw,
     exportModelData.BRICKER_OT_export_model_data,
@@ -50,8 +50,8 @@ classes = (
     revertSettings.BRICKER_OT_revert_settings,
     # bricker/buttons/customize
     initialize.BRICKER_OT_initialize,
-    BRICKER_OT_change_material,
-    BRICKER_OT_change_type,
+    BRICKER_OT_change_brick_material,
+    BRICKER_OT_change_brick_type,
     BRICKER_OT_draw_adjacent,
     BRICKER_OT_merge_bricks,
     BRICKER_OT_redraw_bricks,
@@ -97,7 +97,7 @@ classes = (
     CMLIST_UL_properties,
     # bricker/ui/ (matlist)
     BRICKER_OT_matlist_actions,
-    MATERIAL_UL_matslots_example,
+    MATERIAL_UL_matslots,
     # bricker/ui/ (other_property_groups)
-    BRICKER_UL_collections_tuple
+    BRICKER_UL_collections_tuple,
 )

@@ -1,7 +1,7 @@
 # Pull objects and meshes from source file
 import sys
 scn = bpy.context.scene
-scn.objects.active = None
+scn.collection.objects.active = None
 scn.cmlist_index = cmlist_index
 cm = scn.cmlist[cmlist_index]
 bpy.ops.bricker.brickify_anim_in_background(frame=frame if frame is not None else -1)

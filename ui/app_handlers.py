@@ -126,7 +126,7 @@ def handle_selections(scn):
                     select(list(g.objects), active=True, only=True)
                     scn.Bricker_last_active_object_name = bpy.context.active_object.name
                 else:
-                    scn.objects.active = None
+                    scn.collection.objects.active = None
                     deselectAll()
                     scn.Bricker_last_active_object_name = ""
             else:
@@ -285,7 +285,7 @@ def handle_upconversion(dummy):
     # remove storage scene
     sto_scn = bpy.data.scenes.get("Bricker_storage (DO NOT MODIFY)")
     if sto_scn is not None:
-        for obj in sto_scn.objects:
+        for obj in sto_scn.collection.objects:
             obj.use_fake_user = True
         bpy.data.scenes.remove(sto_scn)
     for scn in bpy.data.scenes:
@@ -353,12 +353,12 @@ def handle_upconversion(dummy):
                     cm.logoType = cm.logoDetail
                     cm.matrixIsDirty = True
                     cm.matrixLost = True
-                    remove_groups = list()
-                    for group in bpy.data.groups:
-                        if group.name.startswith("Bricker_") and (group.name.endswith("_parent") or group.name.endswith("_dupes")):
-                            remove_groups.append(group)
-                    for group in remove_groups:
-                        bpy.data.groups.remove(group)
+                    remove_colls = list()
+                    for coll in bpy.data.collections:
+                        if coll.name.startswith("Bricker_") and (coll.name.endswith("_parent") or coll.name.endswith("_dupes")):
+                            remove_colls.append(coll)
+                    for coll in remove_colls:
+                        bpy.data.collections.remove(coll)
                 # convert from v1_5 to v1_6
                 if int(cm.version[2]) < 6:
                     for cm in scn.cmlist:

@@ -69,7 +69,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
-                    scn.objects.link(bricker_bricks)
+                    scn.collection.objects.link(bricker_bricks)
                     bricker_parent.use_fake_user = True
                     bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0
@@ -269,7 +269,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             self.finishAnimation()
 
         # unlink source from scene
-        if self.source.name in scn.objects.keys():
+        if self.source.name in scn.collection.objects.keys():
             safeUnlink(self.source)
 
         disableRelationshipLines()
@@ -480,9 +480,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
         # get source info to update
         if inBackground:
-            scn.objects.link(source)
+            scn.collection.objects.link(source)
             scn.update()
-            scn.objects.unlink(source)
+            scn.collection.objects.unlink(source)
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
