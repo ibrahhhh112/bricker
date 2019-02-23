@@ -435,7 +435,8 @@ def select(objList, active:bool=False, only:bool=False):
         if obj is not None and not obj.select_get():
             obj.select_set(True)
     # set active object
-    if active: setActiveObj(objList[0])
+    if active:
+        setActiveObj(objList[0])
 
 
 def selectVerts(vertList, only:bool=False):
@@ -815,7 +816,7 @@ def bounds(obj, local:bool=False, use_adaptive_domain:bool=True):
     om = obj.matrix_world
 
     if not local:
-        worldify = lambda p: om * Vector(p[:])
+        worldify = lambda p: om @ Vector(p[:])
         coords = [worldify(p).to_tuple() for p in local_coords]
     else:
         coords = [p[:] for p in local_coords]
