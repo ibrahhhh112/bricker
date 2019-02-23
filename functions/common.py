@@ -19,6 +19,7 @@
 import random
 import sys
 import time
+import math
 import os
 import platform
 import itertools
@@ -27,6 +28,7 @@ import json
 import traceback
 import subprocess
 import hashlib
+import numpy as np
 from math import *
 
 # Blender imports
