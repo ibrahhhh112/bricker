@@ -80,7 +80,7 @@ def handle_selections():
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
                     select(bricks, active=True, only=True)
-                    scn.Bricker_last_active_object_name = obj.name
+                    scn.Bricker_last_active_object_name = obj.name if obj is not None else None
             elif cm.animated:
                 cf = scn.frame_current
                 if cf > cm.stopFrame:
@@ -90,7 +90,7 @@ def handle_selections():
                 cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
                 if len(bpy.data.collections[cn].objects) > 0:
                     select(list(bpy.data.collections[cn].objects), active=True, only=True)
-                    scn.Bricker_last_active_object_name = obj.name
+                    scn.Bricker_last_active_object_name = obj.name if obj is not None else None
             else:
                 select(source, active=True, only=True)
         else:

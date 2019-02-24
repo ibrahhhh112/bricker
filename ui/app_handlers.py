@@ -53,12 +53,10 @@ def handle_animation(scn):
             if curBrickColl.hide_viewport == onCurF:
                 curBrickColl.hide_viewport = not onCurF
                 curBrickColl.hide_render = not onCurF
-            obj = bpy.context.active_object
-            if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
-                select(curBrickColl.objects, active=True)
-            # # prevent bricks from being selected on frame change
-            # elif curBrickColl.select_get():
-            #     curBrickColl.select_set(False)
+            if hasattr(bpy.context, "active_object"):
+                obj = bpy.context.active_object
+                if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
+                    select(curBrickColl.objects, active=True)
 
 
 def isObjVisible(scn, cm, n):

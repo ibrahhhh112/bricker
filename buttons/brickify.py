@@ -69,7 +69,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
                     bricker_parent.use_fake_user = True
-                    bricker_parent.parent = self.parent0
+                    bricker_parent.parent = cm.parent_obj
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_bricks.parent = bricker_parent
                     anim_coll = self.getAnimColl(n)
@@ -423,7 +423,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.parent0 = bpy.data.objects.get(Bricker_parent_on)
         if self.parent0 is None:
             self.parent0 = self.getNewParent(Bricker_parent_on, self.source.location)
-            cm.parent_name = self.parent0.name
+            cm.parent_obj = self.parent0
         self.createdObjects.append(self.parent0.name)
 
         # begin drawing status to cursor
