@@ -75,14 +75,10 @@ def handle_selections():
         scn.Bricker_last_cmlist_index = scn.cmlist_index
         cm, n = getActiveContextInfo()[1:]
         source = cm.source_obj
-        print(1)
         if source and cm.version[:3] != "1_0":
-            print(2)
             if cm.modelCreated:
-                print(3)
                 bricks = getBricks()
                 if bricks and len(bricks) > 0:
-                    print(4)
                     select(bricks, active=True, only=True)
                     scn.Bricker_last_active_object_name = obj.name
             elif cm.animated:

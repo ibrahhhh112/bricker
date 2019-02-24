@@ -29,7 +29,7 @@ from bpy.props import *
 from .customize.undo_stack import *
 from .bevel import BRICKER_OT_bevel
 from .cache import *
-from .brickify import *
+from .brickify import BRICKER_OT_brickify
 from ..lib.bricksDict import *
 from ..functions import *
 
@@ -47,7 +47,7 @@ class BRICKER_OT_brickify_anim_in_background(bpy.types.Operator):
         # get active context info
         scn, cm, n = getActiveContextInfo()
         # run brickify for current frame
-        BrickerBrickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
+        BRICKER_OT_brickify.brickifyCurrentFrame(self.frame, scn.frame_current, "UPDATE_ANIM" if cm.animated else "ANIMATE", cm.source_obj, inBackground=True)
         return {"FINISHED"}
 
     ################################################

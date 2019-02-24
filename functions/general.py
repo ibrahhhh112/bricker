@@ -82,6 +82,23 @@ def getBricks(cm=None, typ=None):
     return bricks
 
 
+def getCollections(cm=None, typ=None):
+    """ get bricks collections in 'cm' model """
+    scn, cm, n = getActiveContextInfo(cm=cm)
+    typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
+    if typ == "MODEL":
+        cn = "Bricker_%(n)s_bricks" % locals()
+        bColls = [bpy.data.collections[cn]]
+    if typ == "ANIM":
+        bColls = list()
+        for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
+            cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
+            bColl = bpy.data.collections.get(cn)
+            if bColl:
+                bColls.append(bColl)
+    return bColls
+
+
 def getMatObject(cm_id, typ="RANDOM"):
     mat_n = cm_id
     Bricker_mat_on = "Bricker_%(mat_n)s_%(typ)s_mats" % locals()

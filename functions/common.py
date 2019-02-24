@@ -735,16 +735,22 @@ def apply_modifiers(obj, settings="PREVIEW"):
 def safeUnlink(obj, protect=True):
     scn = bpy.context.scene
     try:
-        scn.collection.objects.unlink(obj)
+        for coll in obj.users_collection:
+            coll.objects.unlink(obj)
     except RuntimeError:
         pass
     obj.protected = protect
     obj.use_fake_user = True
 
 
-def safeLink(obj, protect=False):
+def safeLink(obj, protect=False, collections=None):
     scn = bpy.context.scene
-    scn.collection.objects.link(obj)
+    collections = collections or [scn.collection]
+    for coll in collections:
+        try:
+            coll.objects.link(obj)
+        except RuntimeError:
+            continue
     obj.protected = protect
     obj.use_fake_user = False
 
@@ -864,9 +870,9 @@ def setObjOrigin(obj, loc):
     s_mat_x = Matrix.Scale(s.x, 4, Vector((1, 0, 0)))
     s_mat_y = Matrix.Scale(s.y, 4, Vector((0, 1, 0)))
     s_mat_z = Matrix.Scale(s.z, 4, Vector((0, 0, 1)))
-    s_mat = s_mat_x * s_mat_y * s_mat_z
+    s_mat = s_mat_x @ s_mat_y @ s_mat_z
     m = obj.data
-    m.transform(Matrix.Translation((obj.location-loc) * l_mat * r_mat * s_mat.inverted()))
+    m.transform(Matrix.Translation((obj.location-loc) @ l_mat @ r_mat @ s_mat.inverted()))
     obj.location = loc
 
 

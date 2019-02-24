@@ -56,7 +56,10 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         name="Apply to source",
         description="Apply transformations to source object when Brick Model is deleted",
         default=True)
-    parent_name: StringProperty(default="")
+    parent_obj: PointerProperty(
+        type=bpy.types.Object,
+        name="Parent Object",
+        description="Name of the parent object to brickified model")
     exposeParent: BoolProperty(
         name="Show Manipulator",
         description="Expose the parent object for this brick model for viewport manipulation",
@@ -602,10 +605,10 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         name="Use Local Orient",
         description="Generate bricks based on local orientation of source object",
         default=False)
-    brickifyInBackground = BoolProperty(
+    brickifyInBackground: BoolProperty(
         name="Brickify in Background",
         description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
-        default=True)
+        default=False)
     # EXPORT SETTINGS
     exportPath: StringProperty(
         name="Export Path",
@@ -678,6 +681,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     version: StringProperty(default="1.0.4")
     # Left over attrs from earlier versions
     source_name: StringProperty(default="")
+    parent_name: StringProperty(default="")
     maxBrickScale1: IntProperty(default=-1)
     maxBrickScale2: IntProperty(default=-1)
     distOffsetX: FloatProperty(default=-1)

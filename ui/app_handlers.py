@@ -275,5 +275,12 @@ def handle_upconversion(dummy):
                 if int(cm.version[2]) < 6:
                     cm.zStep = getZStep(cm)
                     cm.source_obj = bpy.data.objects.get(cm.source_name)
+                    cm.parent_obj = bpy.data.objects.get(cm.parent_name)
                     n = getSourceName(cm)
                     cm.collection = bpy.data.collections.get("Bricker_%(n)s_bricks" % locals())
+            # ensure parent object has no users
+            if cm.parent_obj is not None:
+                # TODO: replace with this line when the function is fixed in 2.8
+                # cm.parent_obj.user_clear()
+                for coll in cm.parent_obj.users_collection:
+                    coll.objects.unlink(cm.parent_obj)

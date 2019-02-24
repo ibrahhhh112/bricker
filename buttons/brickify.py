@@ -74,7 +74,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0
                     cm.numAnimatedFrames += 1
-                    bricker_bricks.hide = frame != scn.frame_current
+                    bricker_bricks.hide_viewport = frame != scn.frame_current
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
                     # print(self.JobManager.get_job_status(job)["stderr"])
@@ -110,7 +110,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     obj = bpy.data.objects.get(n)
                     if obj:
                         bpy.data.objects.remove(obj, do_unlink=True)
-                for cn in self.createdCollections:
+                for cn in getCollections(cm, typ="MODEL" if self.action == "CREATE" else "ANIM"):
                     if cn:
                         bpy.data.collections.remove(cn, do_unlink=True)
                 if self.source:
@@ -126,7 +126,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             cm.brickifyingInBackground = True
             cm.numAnimatedFrames = 0
             # create timer for modal
-            self._timer = wm.event_timer_add(0.5, bpy.context.window)
+            self._timer = wm.event_timer_add(0.5, window=bpy.context.window)
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
@@ -149,7 +149,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.undo_stack.undo_push('brickify', affected_ids=[cm.id])
         # initialize vars
         self.createdObjects = list()
-        self.createdCollections = list()
         self.setAction(cm)
         self.source = cm.source_obj
         self.origFrame = scn.frame_current
@@ -221,15 +220,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if "ANIM" not in self.action:
             final_coll = self.brickifyModel(scn, cm, n, matrixDirty, skipTransAndAnimData)
+            # link final bricks collection to scene collection
+            self.linkBrickCollection(cm, final_coll)
         else:
-            final_coll = self.brickifyAnimation(scn, cm, n, matrixDirty)
+            self.brickifyAnimation(scn, cm, n, matrixDirty)
             cm.animIsDirty = False
 
-        # link final bricks collection to scene collection
-        cm.collection = final_coll
-        for item in self.source.stored_parents:
-            if final_coll.name not in item.collection.children:
-                item.collection.children.link(final_coll)
         # select the bricks object unless it's massive
         if "ANIM" not in self.action and not cm.splitModel:
             obj = final_coll.objects[0]
@@ -269,8 +265,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             self.finishAnimation()
 
         # unlink source from scene
-        if self.source.name in scn.collection.objects.keys():
-            safeUnlink(self.source)
+        safeUnlink(self.source)
 
         disableRelationshipLines()
 
@@ -359,7 +354,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         bColl = bpy.data.collections.get(coll_name)
         if bColl:
-            self.createdCollections.append(bColl)
             # transform bricks to appropriate location
             self.transformBricks(bColl, cm, parent, self.source, sourceDup_details, self.action)
             # apply old animation data to objects
@@ -455,9 +449,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     break
                 self.jobs.append(curJob)
             else:
-                completed = self.brickifyCurrentFrame(curFrame, sceneCurFrame, self.action, self.source)
-                if not completed:
+                success = self.brickifyCurrentFrame(curFrame, sceneCurFrame, self.action, self.source)
+                if not success:
                     break
+
+        # unlink source duplicate
+        for obj in duplicates.values():
+            safeUnlink(obj)
 
         cm.lastStartFrame = cm.startFrame
         cm.lastStopFrame = cm.stopFrame
@@ -488,7 +486,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         source_details, dimensions = getDetailsAndBounds(source)
 
         # update refLogo
-        logo_details, refLogo = BrickerBrickify.getLogo(scn, cm, dimensions)
+        logo_details, refLogo = BRICKER_OT_brickify.getLogo(scn, cm, dimensions)
 
         # set up parent for this layer
         # TODO: Remove these from memory in the delete function, or don't use them at all
@@ -503,7 +501,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create new bricks
         try:
-            coll_name = BrickerBrickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
+            coll_name = BRICKER_OT_brickify.createNewBricks(source, parent, source_details, dimensions, refLogo, logo_details, action, split=cm.splitModel, curFrame=curFrame, clearExistingCollection=False, sceneCurFrame=sceneCurFrame, origSource=origSource, selectCreated=False)
         except KeyboardInterrupt:
             if curFrame != cm.startFrame:
                 wm.progress_end()
@@ -518,7 +516,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # hide obj unless on scene current frame
         showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
         if not showCurObj:
-            obj.hide = True
+            obj.hide_viewport = True
             obj.hide_render = True
         # lock location, rotation, and scale of created bricks
         obj.lock_location = (True, True, True)
@@ -530,6 +528,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         print("completed frame " + str(curFrame))
         print('-'*100)
         return True
+
+    def linkBrickCollection(self, cm, coll):
+        cm.collection = coll
+        for item in self.source.stored_parents:
+            if coll.name not in item.collection.children:
+                item.collection.children.link(coll)
 
     def finishAnimation(self):
         scn, cm, n = getActiveContextInfo(cm=self.cm)
@@ -547,8 +551,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         anim_coll = bpy.data.collections.get(anim_coll_name)
         if anim_coll is None:
             anim_coll = bpy.data.collections.new(anim_coll_name)
-        for cn in self.createdCollections:
+        for cn in getCollections(cm, typ="ANIM"):
             anim_coll.children.link(cn)
+        self.linkBrickCollection(cm, anim_coll)
 
         return anim_coll
 
@@ -815,10 +820,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 update_progress("Applying Modifiers", percent)
         # update progress bar
         update_progress("Applying Modifiers", 1)
-        # unlink source duplicate
         scn.update()
-        for obj in duplicates.values():
-            safeUnlink(obj)
         return duplicates
 
     @staticmethod
