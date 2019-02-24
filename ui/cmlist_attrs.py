@@ -608,7 +608,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     brickifyInBackground: BoolProperty(
         name="Brickify in Background",
         description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
-        default=False)
+        default=True)
     # EXPORT SETTINGS
     exportPath: StringProperty(
         name="Export Path",

@@ -44,22 +44,21 @@ def handle_animation(scn):
             continue
         n = getSourceName(cm)
         for cf in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-            curBricks = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
-            if curBricks is None:
+            curBrickColl = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
+            if curBrickColl is None:
                 continue
             adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
             onCurF = adjusted_frame_current == cf
-            for brick in curBricks.objects:
-                # hide bricks from view and render unless on current frame
-                if brick.hide_viewport == onCurF:
-                    brick.hide_viewport = not onCurF
-                    brick.hide_render = not onCurF
-                obj = bpy.context.active_object
-                if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
-                    select(brick, active=True)
-                # prevent bricks from being selected on frame change
-                elif brick.select_get():
-                    brick.select_set(False)
+            # hide bricks from view and render unless on current frame
+            if curBrickColl.hide_viewport == onCurF:
+                curBrickColl.hide_viewport = not onCurF
+                curBrickColl.hide_render = not onCurF
+            obj = bpy.context.active_object
+            if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:
+                select(curBrickColl.objects, active=True)
+            # # prevent bricks from being selected on frame change
+            # elif curBrickColl.select_get():
+            #     curBrickColl.select_set(False)
 
 
 def isObjVisible(scn, cm, n):

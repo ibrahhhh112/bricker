@@ -296,14 +296,14 @@ class BRICKER_PT_animation(Panel):
                         if totalSkipped > 0:
                             row = col1.row(align=True)
                             row.label(text="Frames %(s)s-%(e)s outside of %(t)s simulation" % locals())
-            # if cm.brickifyInBackground:
-            #     col = layout.column(align=True)
-            #     row = col.row(align=True)
-            #     row.label(text="Background Processing:")
-            #     row = col.row(align=True)
-            #     row.prop(cm, "maxWorkers")
-            #     row = col.row(align=True)
-            #     row.prop(cm, "backProcTimeout")
+            if cm.brickifyInBackground:
+                col = layout.column(align=True)
+                row = col.row(align=True)
+                row.label(text="Background Processing:")
+                row = col.row(align=True)
+                row.prop(cm, "maxWorkers")
+                row = col.row(align=True)
+                row.prop(cm, "backProcTimeout")
 
 
 class BRICKER_PT_model_transform(Panel):
@@ -1095,9 +1095,9 @@ class BRICKER_PT_advanced(Panel):
             row = col.row(align=True)
             row.prop(cm, "useLocalOrient", text="Use Source Local")
         row = col.row(align=True)
-        # row.label(text="Other:")
-        # row = col.row(align=True)
-        # row.prop(cm, "brickifyInBackground")
+        row.label(text="Other:")
+        row = col.row(align=True)
+        row.prop(cm, "brickifyInBackground")
         # draw test brick generator button (for testing purposes only)
         if BRICKER_OT_test_brick_generators.drawUIButton():
             col = layout.column(align=True)

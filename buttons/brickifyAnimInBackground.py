@@ -59,6 +59,6 @@ class BRICKER_OT_brickify_anim_in_background(bpy.types.Operator):
     #############################################
     # class variables
 
-    frame = IntProperty(default=-1)
+    frame: IntProperty(default=-1)
 
     #############################################

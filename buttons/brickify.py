@@ -67,14 +67,15 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 self.JobManager.process_job(job, debug_level=1)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
-                    bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
-                    scn.collection.objects.link(bricker_bricks)
                     bricker_parent.use_fake_user = True
-                    bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0
+                    bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+                    bricker_bricks.parent = bricker_parent
+                    anim_coll = self.getAnimColl(n)
+                    for coll in anim_coll.children:
+                        coll.hide_viewport = frame != scn.frame_current
                     cm.numAnimatedFrames += 1
-                    bricker_bricks.hide_viewport = frame != scn.frame_current
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
                     # print(self.JobManager.get_job_status(job)["stderr"])
@@ -476,11 +477,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn.frame_set(curFrame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
-        # get source info to update
-        if inBackground:
-            scn.collection.objects.link(source)
-            scn.update()
-            scn.collection.objects.unlink(source)
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
@@ -512,12 +508,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return False
 
         # get object with created bricks
-        obj = bpy.data.collections[coll_name].objects[0]
+        cur_frame_coll = bpy.data.collections[coll_name]
+        obj = cur_frame_coll.objects[0]
         # hide obj unless on scene current frame
         showCurObj = (curFrame == cm.startFrame and sceneCurFrame < cm.startFrame) or curFrame == sceneCurFrame or (curFrame == cm.stopFrame and sceneCurFrame > cm.stopFrame)
         if not showCurObj:
-            obj.hide_viewport = True
-            obj.hide_render = True
+            cur_frame_coll.hide_viewport = True
+            cur_frame_coll.hide_render = True
         # lock location, rotation, and scale of created bricks
         obj.lock_location = (True, True, True)
         obj.lock_rotation = (True, True, True)
@@ -535,6 +532,14 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if coll.name not in item.collection.children:
                 item.collection.children.link(coll)
 
+    def getAnimColl(self, n):
+        anim_coll_name = "Bricker_%(n)s_bricks" % locals()
+        anim_coll = bpy.data.collections.get(anim_coll_name)
+        if anim_coll is None:
+            anim_coll = bpy.data.collections.new(anim_coll_name)
+        return anim_coll
+
+
     def finishAnimation(self):
         scn, cm, n = getActiveContextInfo(cm=self.cm)
         wm = bpy.context.window_manager
@@ -547,10 +552,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             BRICKER_OT_bevel.runBevelAction(bricks, cm)
 
         # link animation frames to animation collection
-        anim_coll_name = "Bricker_%(n)s_bricks" % locals()
-        anim_coll = bpy.data.collections.get(anim_coll_name)
-        if anim_coll is None:
-            anim_coll = bpy.data.collections.new(anim_coll_name)
+        anim_coll = self.getAnimColl(n)
         for cn in getCollections(cm, typ="ANIM"):
             anim_coll.children.link(cn)
         self.linkBrickCollection(cm, anim_coll)
