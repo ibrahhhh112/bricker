@@ -769,7 +769,7 @@ class VIEW3D_PT_bricker_materials(Panel):
         if cm.materialType == "CUSTOM":
             col = layout.column(align=True)
             row = col.row(align=True)
-            row.prop_search(cm, "materialName", bpy.data, "materials", text="")
+            row.prop(cm, "customMat", text="")
             if brick_materials_installed():
                 if bpy.context.scene.render.engine not in ("CYCLES", "BLENDER_EEVEE"):
                     row = col.row(align=True)
@@ -809,7 +809,7 @@ class VIEW3D_PT_bricker_materials(Panel):
             row.prop(cm, "useUVMap", text="UV Map")
             if cm.useUVMap:
                 split = row.split(align=True, factor=0.75)
-                split.prop_search(cm, "uvImageName", bpy.data, "images", text="")
+                split.prop(cm, "uvImage", text="")
                 split.operator("image.open", icon="FILEBROWSER", text="")
             if len(obj.data.vertex_colors) > 0:
                 col = layout.column(align=True)
@@ -821,7 +821,7 @@ class VIEW3D_PT_bricker_materials(Panel):
                 row = col.row(align=True)
                 row.label(text="Internal Material:")
                 row = col.row(align=True)
-                row.prop_search(cm, "internalMatName", bpy.data, "materials", text="")
+                row.prop(cm, "internalMat", text="")
                 row = col.row(align=True)
                 row.prop(cm, "matShellDepth")
                 if cm.modelCreated:

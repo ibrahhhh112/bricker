@@ -29,7 +29,7 @@ from ...functions import *
 def updateMaterials(bricksDict, source, curFrame=None):
     """ sets all matNames in bricksDict based on near_face """
     scn, cm, n = getActiveContextInfo()
-    useUVMap = cm.useUVMap and (len(source.data.uv_layers) > 0 or cm.uvImageName != "")
+    useUVMap = cm.useUVMap and (len(source.data.uv_layers) > 0 or cm.uvImage is not None)
     if useUVMap:
         uv_images = getUVImages(source)
         if len(uv_images) == 0:
@@ -41,7 +41,7 @@ def updateMaterials(bricksDict, source, curFrame=None):
     isSmoke = cm.isSmoke
     materialType = cm.materialType
     colorSnap = cm.colorSnap
-    uvImageName = cm.uvImageName
+    uvImage = cm.uvImage
     includeTransparency = cm.includeTransparency
     transWeight = cm.transparentWeight
     sss = cm.colorSnapSubsurface
@@ -70,7 +70,7 @@ def updateMaterials(bricksDict, source, curFrame=None):
             matName = ""
         else:
             ni = Vector(bricksDict[key]["near_intersection"])
-            rgba, matName = getBrickRGBA(scn, source, nf, ni, uv_images, uvImageName)
+            rgba, matName = getBrickRGBA(scn, source, nf, ni, uv_images, uvImage)
 
         if materialType == "SOURCE":
             # get material with snapped RGBA value
@@ -86,7 +86,7 @@ def updateMaterials(bricksDict, source, curFrame=None):
             if rgba is not None:
                 rgba_vals.append(rgba)
         elif materialType == "CUSTOM":
-            matName = cm.materialName
+            matName = cm.customMat.name
         bricksDict[key]["mat_name"] = matName
     return bricksDict
 

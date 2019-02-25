@@ -72,9 +72,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     bricker_parent.parent = cm.parent_obj
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_bricks.parent = bricker_parent
+                    # link animation frames to animation collection and hide if not active
                     anim_coll = self.getAnimColl(n)
-                    for coll in anim_coll.children:
-                        coll.hide_viewport = frame != scn.frame_current
+                    bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+                    adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
+                    bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
+                    anim_coll.children.link(bricker_bricks_coll)
                     cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
@@ -564,7 +567,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # link animation frames to animation collection
         anim_coll = self.getAnimColl(n)
         for cn in getCollections(cm, typ="ANIM"):
-            anim_coll.children.link(cn)
+            if cn.name not in anim_coll.children:
+                anim_coll.children.link(cn)
         self.linkBrickCollection(cm, anim_coll)
 
         return anim_coll
@@ -632,9 +636,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
             return False
         # ensure custom material exists
-        if cm.materialType == "CUSTOM" and cm.materialName != "" and bpy.data.materials.find(cm.materialName) == -1:
-            mn = cm.materialName
-            self.report({"WARNING"}, "Custom material '%(mn)s' could not be found" % locals())
+        if cm.materialType == "CUSTOM" and cm.customMat is None:
+            self.report({"WARNING"}, "Please choose a custom material in the 'Bricker > Materials' tab")
             return False
         if cm.materialType == "SOURCE" and cm.colorSnap == "ABS":
             # ensure ABS Plastic materials are installed
