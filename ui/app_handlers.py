@@ -115,10 +115,10 @@ def handle_selections(scn):
                     scn.Bricker_last_active_object_name = bpy.context.active_object.name
             elif cm.animated:
                 cf = scn.frame_current
-                if cf > cm.stopFrame:
-                    cf = cm.stopFrame
-                elif cf < cm.startFrame:
-                    cf = cm.startFrame
+                if cf > cm.lastStopFrame:
+                    cf = cm.lastStopFrame
+                elif cf < cm.lastStartFrame:
+                    cf = cm.lastStartFrame
                 g = bpy.data.groups.get("Bricker_%(n)s_bricks_f_%(cf)s" % locals())
                 if g is not None and len(g.objects) > 0:
                     select(list(g.objects), active=True, only=True)
