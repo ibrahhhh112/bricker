@@ -40,7 +40,7 @@ from .general import *
 from ..lib.caches import bricker_mesh_cache
 
 
-def drawBrick(cm_id, bricksDict, key, loc, i, parent, dimensions, zStep, brickSize, brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
+def drawBrick(cm_id, bricksDict, key, loc, i, parent, dimensions, zStep, brickSize, brickType, split, lastSplitModel, customObject1, customObject2, customObject3, matDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, customMat, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3):
     brickD = bricksDict[key]
     # check exposure of current [merged] brick
     if brickD["top_exposed"] is None or brickD["bot_exposed"] is None or buildIsDirty:
@@ -49,7 +49,7 @@ def drawBrick(cm_id, bricksDict, key, loc, i, parent, dimensions, zStep, brickSi
         topExposed, botExposed = isBrickExposed(bricksDict, zStep, key)
 
     # get brick material
-    mat = getMaterial(bricksDict, key, brickSize, zStep, materialType, materialName, randomMatSeed, matDirty, brick_mats=brick_mats, seedInc=i)
+    mat = getMaterial(bricksDict, key, brickSize, zStep, materialType, customMat, randomMatSeed, matDirty, brick_mats=brick_mats, seedInc=i)
 
     # set up arguments for brick mesh
     useStud = (topExposed and studDetail != "NONE") or studDetail == "ALL"
@@ -327,14 +327,14 @@ def getBrickData(brickD, rand, dimensions, brickSize, brickType, brickHeight, lo
     return m0
 
 
-def getMaterial(bricksDict, key, size, zStep, materialType, materialName, randomMatSeed, matDirty, brick_mats=None, seedInc=None):
+def getMaterial(bricksDict, key, size, zStep, materialType, customMat, randomMatSeed, matDirty, brick_mats=None, seedInc=None):
     mat = None
     highestVal = 0
     matsL = []
     if bricksDict[key]["custom_mat_name"] and not matDirty:
         mat = bpy.data.materials.get(bricksDict[key]["mat_name"])
     elif materialType == "CUSTOM":
-        mat = bpy.data.materials.get(materialName)
+        mat = customMat
     elif materialType == "SOURCE":
         # get most frequent material in brick size
         keysInBrick = getKeysInBrick(bricksDict, size, zStep, key)

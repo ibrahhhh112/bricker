@@ -584,9 +584,8 @@ class BrickerBrickify(bpy.types.Operator):
         if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
         # ensure custom material exists
-        if cm.materialType == "CUSTOM" and cm.materialName != "" and bpy.data.materials.find(cm.materialName) == -1:
-            mn = cm.materialName
-            self.report({"WARNING"}, "Custom material '%(mn)s' could not be found" % locals())
+        if cm.materialType == "CUSTOM" and cm.customMat is None:
+            self.report({"WARNING"}, "Please choose a custom material in the 'Bricker > Materials' tab")
             return False
         if cm.materialType == "SOURCE" and cm.colorSnap == "ABS":
             # ensure ABS Plastic materials are installed

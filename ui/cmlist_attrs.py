@@ -305,15 +305,15 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
                ("SOURCE", "Use Source Materials", "Apply material based on closest intersecting face")],
         update=dirtyMaterial,
         default="NONE")
-    materialName = StringProperty(
-        name="Material Name",
-        description="Name of the material to apply to all bricks",
-        default="")
-    internalMatName = StringProperty(
-        name="Material Name",
-        description="Name of the material to apply to bricks inside material shell",
-        update=dirtyMaterial,
-        default="")
+    customMat: PointerProperty(
+        type=bpy.types.Material,
+        name="Custom Material",
+        description="Material to apply to all bricks")
+    internalMat: PointerProperty(
+        type=bpy.types.Material,
+        name="Internal Material",
+        description="Material to apply to bricks inside material shell",
+        update=dirtyMaterial)
     matShellDepth = IntProperty(
         name="Shell Material Depth",
         description="Depth to which the outer materials should be applied (1 = Only exposed bricks)",
@@ -340,10 +340,9 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         description="Transfer colors from source UV map (source must be unwrapped)",
         default=True,
         update=dirtyMaterial)
-    uvImageName = StringProperty(
-        name="UV Image",
+    uvImage: PointerProperty(
+        type=bpy.types.Image,
         description="UV Image to use for UV Map color transfer (defaults to active UV if left blank)",
-        default="",
         update=dirtyBuild)
     colorSnap = EnumProperty(
         name="Color Snaping",

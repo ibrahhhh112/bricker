@@ -631,7 +631,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
     bricksDict = {}
     threshold = getThreshold(cm)
     brickType = cm.brickType  # prevents cm.brickType update function from running over and over in for loop
-    uvImageName = cm.uvImageName
+    uvImage = cm.uvImage
     noOffset = vec_round(offset, precision=5) == Vector((0, 0, 0))
     # get uv_texture image and pixels for material calculation
     uv_images = getUVImages(source)
@@ -654,7 +654,7 @@ def makeBricksDict(source, source_details, brickScale, origSource, cursorStatus=
                 norm_dir = getNormalDirection(nn, slopes=True)
                 bType = getBrickType(brickType)
                 flipped, rotated = getFlipRot("" if norm_dir is None else norm_dir[1:])
-                rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uvImageName)
+                rgba = smokeColors[x][y][z] if smokeColors else getUVPixelColor(scn, source, nf, ni if ni is None else Vector(ni), uv_images, uvImage)
                 draw = brickFreqMatrix[x][y][z] >= threshold
                 # create bricksDict entry for current brick
                 bricksDict[bKey] = createBricksDictEntry(

@@ -91,7 +91,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     mergeType = cm.mergeType
     mergeSeed = cm.mergeSeed
     materialType = cm.materialType
-    materialName = cm.materialName
+    customMat = cm.customMat
     randomMatSeed = cm.randomMatSeed
     studDetail = "ALL" if tempBrick else cm.studDetail
     exposedUndersideDetail = "FLAT" if tempBrick else cm.exposedUndersideDetail
@@ -124,7 +124,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     maxBrickHeight = 1 if cm.zStep == 3 else max(legalBricks.keys())
     connectThresh = cm.connectThresh if mergableBrickType(brickType) and mergeType == "RANDOM" else 1
     # set up internal material for this object
-    internalMat = None if len(source.data.materials) == 0 else bpy.data.materials.get(cm.internalMatName) or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
+    internalMat = None if len(source.data.materials) == 0 else cm.internalMat or bpy.data.materials.get("Bricker_%(n)s_internal" % locals()) or bpy.data.materials.new("Bricker_%(n)s_internal" % locals())
     if internalMat is not None and cm.materialType == "SOURCE" and cm.matShellDepth < cm.shellThickness:
         mats.append(internalMat)
     # set number of times to run through all keys
@@ -244,7 +244,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
                 continue
             loc = getDictLoc(bricksDict, k2)
             # create brick based on the current brick info
-            drawBrick(cm_id, bricksDict, k2, loc, i, parent, dimensions, cm.zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, cm.customObject1, cm.customObject2, cm.customObject3, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, materialName, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
+            drawBrick(cm_id, bricksDict, k2, loc, i, parent, dimensions, cm.zStep, bricksDict[k2]["size"], brickType, split, lastSplitModel, cm.customObject1, cm.customObject2, cm.customObject3, cm.materialIsDirty or cm.matrixIsDirty or cm.buildIsDirty, customData, brickScale, bricksCreated, allMeshes, logo, logo_details, mats, brick_mats, internalMat, brickHeight, logoResolution, logoDecimate, loopCut, buildIsDirty, materialType, customMat, randomMatSeed, studDetail, exposedUndersideDetail, hiddenUndersideDetail, randomRot, randomLoc, logoType, logoScale, logoInset, circleVerts, randS1, randS2, randS3)
             # print status to terminal and cursor
             old_percent = updateProgressBars(printStatus, cursorStatus, i/len(bricksDict.keys()), old_percent, "Building")
             i += 1
@@ -308,8 +308,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
         if materialType in ("CUSTOM", "NONE"):
-            mat = bpy.data.materials.get(materialName)
-            setMaterial(allBricksObj, mat)
+            setMaterial(allBricksObj, customMat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
             for mat in mats:
                 setMaterial(allBricksObj, mat, overwrite=False)

@@ -110,7 +110,7 @@ def getUVImages(obj):
     # get list of images to store
     uv_tex_data = getUVTextureData(obj)
     images = [uv_tex.image for uv_tex in uv_tex_data] if uv_tex_data else []
-    images.append(bpy.data.images.get(cm.uvImageName))
+    images.append(cm.uvImage)
     images.append(getFirstImgTexNode(obj))
     images = uniquify1(images)
     # store images
@@ -281,9 +281,9 @@ def verifyImg(im):
     return im if im is not None and im.pixels is not None and len(im.pixels) > 0 else None
 
 
-def getUVImage(scn, obj, face_idx, uvImageName):
+def getUVImage(scn, obj, face_idx, uvImage):
     """ returns UV image (priority to user settings, then face index, then first one found in object """
-    image = verifyImg(bpy.data.images.get(uvImageName))
+    image = verifyImg(uvImage)
     if image is None and obj.data.uv_textures.active:
         image = verifyImg(obj.data.uv_textures.active.data[face_idx].image)
     if image is None:

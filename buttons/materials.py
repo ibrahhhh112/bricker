@@ -98,13 +98,11 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                 self.applyRandomMaterial(scn, cm, context, bricks, bricksDict)
             # apply custom or internal material
             else:
-                # set matName
+                # get material
                 if self.action == "CUSTOM":
-                    matName = cm.materialName
+                    mat = cm.customMat
                 elif self.action == "INTERNAL":
-                    matName = cm.internalMatName
-                # get material from matName
-                mat = bpy.data.materials.get(matName)
+                    mat = cm.internalMat
                 if mat is None: self.report({"WARNING"}, "Specified material doesn't exist")
 
                 for brick in bricks:
