@@ -64,7 +64,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 if scn in self.source.users_scene:
                     break
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job, debug_level=1)
+                self.JobManager.process_job(job, debug_level=3)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
@@ -78,7 +78,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
-                    # print(self.JobManager.get_job_status(job)["stderr"])
                     errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
                     for line in self.JobManager.get_job_status(job)["stderr"]:
                         errormsg += line + "\n"
@@ -101,6 +100,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, _ = getActiveContextInfo()
         wm = bpy.context.window_manager
         wm.Bricker_runningBlockingOperation = True
+        if cm.animated and cm.brickifyInBackground:
+            cm.brickifyingInBackground = True
+            cm.numAnimatedFrames = 0
         try:
             previously_animated = cm.animated
             previously_model_created = cm.modelCreated
@@ -124,8 +126,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             bricker_handle_exception()
         wm.Bricker_runningBlockingOperation = False
         if cm.animated and cm.brickifyInBackground:
-            cm.brickifyingInBackground = True
-            cm.numAnimatedFrames = 0
             # create timer for modal
             self._timer = wm.event_timer_add(0.5, window=bpy.context.window)
             wm.modal_handler_add(self)
@@ -438,6 +438,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
+                cm.numAnimatedFrames += 1
                 continue
             if cm.brickifyInBackground:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_anim_in_background', write to new file with frame specified, store path to file in 'curJob'
@@ -802,6 +803,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             scn.frame_set(curFrame)
             # duplicate source for current frame
             sourceDup = duplicate(self.source, link_to_scene=True)
+            sourceDup.use_fake_user = True
             sourceDup.name = "Bricker_" + source_name + "_f_" + str(curFrame)
             # remove modifiers and constraints
             for mod in sourceDup.modifiers:
