@@ -88,6 +88,7 @@ class BrickerBrickify(bpy.types.Operator):
                     self.jobs.remove(job)
             # cancel if model was deleted before process completed
             if scn in self.source.users_scene:
+                self.cancel(context)
                 return {"CANCELLED"}
             elif self.JobManager.jobs_complete():
                 self.finishAnimation()
