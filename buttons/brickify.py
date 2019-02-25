@@ -477,6 +477,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn.frame_set(curFrame)
         # get duplicated source
         source = bpy.data.objects.get("Bricker_%(n)s_f_%(curFrame)s" % locals())
+        # get source info to update
+        if inBackground and scn not in source.users_scene:
+            scn.collection.objects.link(source)
+            scn.update()
+
 
         # get source_details and dimensions
         source_details, dimensions = getDetailsAndBounds(source)
