@@ -37,6 +37,16 @@ def splitpath(path):
             break
     return folders[::-1]
 
+def bashSafeName(string):
+    # protects against file names that would cause problems with bash calls
+    if string.startswith(".") or string.startswith("-"):
+        string = "_" + string[1:]
+    # replaces problematic characters in shell with underscore '_'
+    chars = "!#$&'()*,;<=>?[]^`{|}~: "
+    for char in list(chars):
+        string = string.replace(char, "_")
+    return string
+
 linesToAddAtBeginning = [
     "import bpy\n",
     # "if bpy.data.filepath == '':\n",
@@ -210,7 +220,7 @@ class JobManager():
         return os.path.splitext(os.path.basename(job))[0]
 
     def get_temp_job_path(self, job:str):
-        return os.path.join(self.temp_path, os.path.basename(job).replace(" ", "_"))
+        return os.path.join(self.temp_path, bashSafeName(os.path.basename(job)))
 
     def get_job_status(self, job:str):
         return self.job_statuses[job]

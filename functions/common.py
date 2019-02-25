@@ -873,3 +873,14 @@ def transformToLocal(vec, mat, junk_bme=None):
         bmesh.ops.rotate(junk_bme, verts=[v1], cent=loc, matrix=Matrix.Rotation(-rot.x, 3, 'X'))
         vec = v1.co
     return vec
+
+
+def bashSafeName(string):
+    # protects against file names that would cause problems with bash calls
+    if string.startswith(".") or string.startswith("-"):
+        string = "_" + string[1:]
+    # replaces problematic characters in shell with underscore '_'
+    chars = "!#$&'()*,;<=>?[]^`{|}~: "
+    for char in list(chars):
+        string = string.replace(char, "_")
+    return string
