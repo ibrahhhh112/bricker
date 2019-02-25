@@ -198,14 +198,11 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
 
     @classmethod
     def cleanSource(cls, cm, n, source, modelType):
-        scn = bpy.context.scene
         # link source to all collections containing Bricker model
         brickColl = cm.collection
         brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
         safeLink(source, collections=brickCollUsers)
-        source.stored_parents.clear()
         # reset source properties
-        source.name = n
         source.cmlist_id = -1
 
     @classmethod

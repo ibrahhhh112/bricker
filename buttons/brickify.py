@@ -187,18 +187,18 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.source.cmlist_id = cm.id
         matrixDirty = matrixReallyIsDirty(cm)
         skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
+
         # store parent collections to source
-        if len(self.source.stored_parents) == 0:
-            # store parent collections of source
-            for cn in self.source.users_collection:
-                self.source.stored_parents.add().collection = cn
+        self.source.stored_parents.clear()
+        if len(self.source.users_collection) > 0:
+            # use parent collections of source
+            linkedColls = self.source.users_collection
         else:
-            # store parent collections of brick collection
-            self.source.stored_parents.clear()
+            # use parent collections of brick collection
             brickColl = cm.collection
-            brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
-            for cn in brickCollUsers:
-                self.source.stored_parents.add().collection = cn
+            linkedColls = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
+        for cn in linkedColls:
+            self.source.stored_parents.add().collection = cn
 
         # # check if source object is smoke simulation domain
         cm.isSmoke = is_smoke(self.source)
