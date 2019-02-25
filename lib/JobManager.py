@@ -247,7 +247,7 @@ class JobManager():
         self.job_processes[job].kill()
 
     def kill_all(self):
-        for job in self.jobs:
+        for job in self.jobs.copy():
             self.cleanup_job(job)
 
     def cleanup_job(self, job):

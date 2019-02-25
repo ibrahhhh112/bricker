@@ -64,7 +64,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 if scn in self.source.users_scene:
                     break
                 frame = int(job.split("__")[-1][:-3])
-                self.JobManager.process_job(job, debug_level=3)
+                self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
@@ -264,6 +264,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if cm.animated and not cm.brickifyInBackground:
             self.finishAnimation()
+        else:
+            anim_coll = self.getAnimColl(n)
+            self.linkBrickCollection(cm, anim_coll)
 
         # unlink source from scene
         safeUnlink(self.source)
