@@ -81,7 +81,7 @@ classes = (
     BRICKER_PT_smoke_settings,
     BRICKER_PT_brick_types,
     BRICKER_PT_merge_settings,
-    BRICKER_PT_customize_model,
+    BRICKER_PT_customize,
     BRICKER_PT_materials,
     BRICKER_PT_detailing,
     BRICKER_PT_supports,

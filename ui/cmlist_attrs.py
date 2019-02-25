@@ -59,7 +59,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     parent_obj: PointerProperty(
         type=bpy.types.Object,
         name="Parent Object",
-        description="Name of the parent object to brickified model")
+        description="Name of the parent object used for model transformations")
     exposeParent: BoolProperty(
         name="Show Manipulator",
         description="Expose the parent object for this brick model for viewport manipulation",

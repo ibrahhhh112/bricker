@@ -35,7 +35,7 @@ from ..lib.bricksDict.functions import getDictKey
 
 class OBJECT_OT_delete_override(Operator):
     """OK?"""
-    bl_idname = "object.delete1"
+    bl_idname = "object.delete"
     bl_label = "Delete"
     bl_options = {'REGISTER'}
 
@@ -112,6 +112,7 @@ class OBJECT_OT_delete_override(Operator):
         # push delete action to undo stack
         if self.undo:
             bpy.ops.ed.undo_push(message="Delete")
+        tag_redraw_areas("VIEW_3D")
 
     def deleteUnprotected(self, context, use_global=False, update_model=True):
         scn = context.scene
