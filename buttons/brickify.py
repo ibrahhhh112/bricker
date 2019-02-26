@@ -64,12 +64,15 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 if scn in self.source.users_scene:
                     break
                 animAction = "ANIM" in self.action
-                frame = int(job.split("__")[-1][:-3]) if animAction else -1
-                reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
+                frame = int(job.split("__")[-1][:-3]) if animAction else None
                 objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
                 self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
-                    self.report({"INFO"}, "Completed%(reportFrameStr)s model '%(n)s'" % locals())
+                    if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
+                    # cache bricksDict
+                    bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
+                    cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
+                    # process retrieved bricker data
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())
                     bricker_parent.use_fake_user = True
                     bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks%(objFrameStr)s" % locals())
@@ -108,6 +111,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     for line in self.JobManager.get_job_status(job)["stderr"]:
                         errormsg += line + "\n"
                     print_exception("Bricker log", errormsg=errormsg)
+                    reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
                     self.report({"WARNING"}, "Dropped%(reportFrameStr)s model '%(n)s'" % locals())
                     tag_redraw_areas("VIEW_3D")
                     if animAction:
@@ -448,7 +452,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
+<<<<<<< HEAD
                 cm.numAnimatedFrames += 1
+=======
+>>>>>>> master
                 continue
             if cm.brickifyInBackground:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'
