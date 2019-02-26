@@ -66,7 +66,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 animAction = "ANIM" in self.action
                 frame = int(job.split("__")[-1][:-3]) if animAction else None
                 objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
-                self.JobManager.process_job(job, debug_level=3)
+                self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
                     if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     # cache bricksDict

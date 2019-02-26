@@ -74,7 +74,6 @@ linesToAddAtEnd = [
     "    os.remove(storagePath)\n",
     "bpy.data.libraries.write(storagePath, set(data_blocks), fake_user=True)\n",
     "data_file = open(storagePath.replace('.blend', '.py'), 'w')\n",
-    "print(json.dumps(python_data))\n"
     "print(json.dumps(python_data), file=data_file)\n",
 ]
 
