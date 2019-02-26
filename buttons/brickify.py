@@ -72,6 +72,18 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     bricker_parent.parent = cm.parent_obj
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_bricks.parent = bricker_parent
+                    for i,mat_slot in enumerate(bricker_bricks.material_slots):
+                        mat = mat_slot.material
+                        origMat = bpy.data.materials.get(mat.name[:-4])
+                        if origMat is not None:
+                            bricker_bricks.material_slots[i].material = origMat
+                            bpy.data.materials.remove(mat)
+                    if scn in bricker_bricks.users_scene:
+                        bricker_bricks.data = bpy.data.meshes.get(bricker_bricks.name + ".001")
+                        new_bricker_bricks = bpy.data.objects.get(bricker_bricks.name + ".001")
+                        bpy.data.objects.remove(new_bricker_bricks)
+                        bpy.data.meshes.remove(bpy.data.meshes.get(bricker_bricks.name))
+                        bricker_bricks.data.name = bricker_bricks.name
                     # link animation frames to animation collection and hide if not active
                     anim_coll = self.getAnimColl(n)
                     bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())

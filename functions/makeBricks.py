@@ -307,8 +307,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
             vertList = [v.index for v in allBricksObj.data.vertices if not v.select]
             vg.add(vertList, 1, "ADD")
         if materialType in ("CUSTOM", "NONE"):
-            mat = customMat
-            setMaterial(allBricksObj, mat)
+            setMaterial(allBricksObj, customMat)
         elif materialType == "SOURCE" or (materialType == "RANDOM" and len(brick_mats) > 0):
             for mat in mats:
                 setMaterial(allBricksObj, mat, overwrite=False)
