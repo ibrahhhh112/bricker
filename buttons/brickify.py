@@ -86,12 +86,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                             if origMat is not None:
                                 brick.material_slots[i].material = origMat
                                 bpy.data.materials.remove(mat)
-                        if scn in brick.users_scene:
-                            brick.data = bpy.data.meshes.get(brick.name + ".001")
-                            new_brick = bpy.data.objects.get(brick.name + ".001")
-                            bpy.data.objects.remove(new_brick)
-                            bpy.data.meshes.remove(bpy.data.meshes.get(brick.name))
-                            brick.data.name = brick.name
+                        safeLink(brick)
                     if animAction:
                         bricker_parent.parent = cm.parent_obj
                         # link animation frames to animation collection and hide if not active
@@ -314,7 +309,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             cm.customized = False
 
         # delete old bricks if present
-        if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
+        if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel or cm.brickifyInBackground):
             # skip source, dupes, and parents
             skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
             bpy.props.trans_and_anim_data = BRICKER_OT_delete_model.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
