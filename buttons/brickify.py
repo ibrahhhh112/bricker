@@ -65,11 +65,10 @@ class BrickerBrickify(bpy.types.Operator):
                     break
                 animAction = "ANIM" in self.action
                 frame = int(job.split("__")[-1][:-3]) if animAction else None
-                reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
                 objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
                 self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
-                    self.report({"INFO"}, "Completed%(reportFrameStr)s model '%(n)s'" % locals())
+                    if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     # cache bricksDict
                     bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
                     cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
@@ -102,7 +101,6 @@ class BrickerBrickify(bpy.types.Operator):
                             brick.hide_render = frame != adjusted_frame_current
                     if animAction:
                         bricker_parent.parent = cm.parent_obj
-                        # incriment numAnimatedFrames and remove job
                         cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
@@ -110,6 +108,7 @@ class BrickerBrickify(bpy.types.Operator):
                     for line in self.JobManager.get_job_status(job)["stderr"]:
                         errormsg += line + "\n"
                     print_exception("Bricker log", errormsg=errormsg)
+                    reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
                     self.report({"WARNING"}, "Dropped%(reportFrameStr)s model '%(n)s'" % locals())
                     tag_redraw_areas("VIEW_3D")
                     if animAction: cm.numAnimatedFrames += 1
