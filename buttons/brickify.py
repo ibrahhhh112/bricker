@@ -86,14 +86,7 @@ class BrickerBrickify(bpy.types.Operator):
                             if origMat is not None:
                                 brick.material_slots[i].material = origMat
                                 bpy.data.materials.remove(mat)
-                        if scn in brick.users_scene:
-                            brick.data = bpy.data.meshes.get(brick.name + ".001")
-                            new_brick = bpy.data.objects.get(brick.name + ".001")
-                            bpy.data.objects.remove(new_brick)
-                            bpy.data.meshes.remove(bpy.data.meshes.get(brick.name))
-                            brick.data.name = brick.name
-                        else:
-                            safeLink(brick)
+                        safeLink(brick)
                         if animAction:
                             # hide obj unless on scene current frame
                             adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
@@ -128,6 +121,9 @@ class BrickerBrickify(bpy.types.Operator):
         scn, cm, _ = getActiveContextInfo()
         wm = bpy.context.window_manager
         wm.Bricker_runningBlockingOperation = True
+        if cm.brickifyInBackground:
+            cm.brickifyingInBackground = True
+            cm.numAnimatedFrames = 0
         try:
             previously_animated = cm.animated
             previously_model_created = cm.modelCreated
@@ -152,8 +148,6 @@ class BrickerBrickify(bpy.types.Operator):
             bricker_handle_exception()
         wm.Bricker_runningBlockingOperation = False
         if cm.brickifyInBackground:
-            cm.brickifyingInBackground = True
-            cm.numAnimatedFrames = 0
             # create timer for modal
             self._timer = wm.event_timer_add(0.5, bpy.context.window)
             wm.modal_handler_add(self)
@@ -306,7 +300,7 @@ class BrickerBrickify(bpy.types.Operator):
             cm.customized = False
 
         # delete old bricks if present
-        if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel):
+        if self.action.startswith("UPDATE") and (matrixDirty or cm.buildIsDirty or cm.lastSplitModel != cm.splitModel or cm.brickifyInBackground):
             # skip source, dupes, and parents
             skipTransAndAnimData = cm.animated or (cm.splitModel or cm.lastSplitModel) and (matrixDirty or cm.buildIsDirty)
             bpy.props.trans_and_anim_data = BRICKER_OT_delete_model.cleanUp("MODEL", skipDupes=True, skipParents=True, skipSource=True, skipTransAndAnimData=skipTransAndAnimData)[4]
@@ -440,6 +434,7 @@ class BrickerBrickify(bpy.types.Operator):
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
+                cm.numAnimatedFrames += 1
                 continue
             if cm.brickifyInBackground:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'

@@ -426,13 +426,15 @@ def deselect(objList):
             obj.select = False
 
 
-def delete(objs):
+def delete(objs, remove_meshes=False):
     """ efficient deletion of objects """
     objs = confirmIter(objs)
     for obj in objs:
         if obj is None:
             continue
+        if remove_meshes: m = obj.data
         bpy.data.objects.remove(obj, do_unlink=True)
+        if remove_meshes and m is not None: bpy.data.meshes.remove(m)
 
 
 def duplicate(obj:Object, linked:bool=False, link_to_scene:bool=False):
