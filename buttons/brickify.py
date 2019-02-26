@@ -69,7 +69,20 @@ class BrickerBrickify(bpy.types.Operator):
                     self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     bricker_bricks = bpy.data.objects.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
-                    scn.objects.link(bricker_bricks)
+                    for i,mat_slot in enumerate(bricker_bricks.material_slots):
+                        mat = mat_slot.material
+                        origMat = bpy.data.materials.get(mat.name[:-4])
+                        if origMat is not None:
+                            bricker_bricks.material_slots[i].material = origMat
+                            bpy.data.materials.remove(mat)
+                    if scn in bricker_bricks.users_scene:
+                        bricker_bricks.data = bpy.data.meshes.get(bricker_bricks.name + ".001")
+                        new_bricker_bricks = bpy.data.objects.get(bricker_bricks.name + ".001")
+                        bpy.data.objects.remove(new_bricker_bricks)
+                        bpy.data.meshes.remove(bpy.data.meshes.get(bricker_bricks.name))
+                        bricker_bricks.data.name = bricker_bricks.name
+                    else:
+                        scn.objects.link(bricker_bricks)
                     bricker_parent.use_fake_user = True
                     bricker_bricks.parent = bricker_parent
                     bricker_parent.parent = self.parent0

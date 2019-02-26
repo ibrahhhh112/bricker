@@ -291,14 +291,14 @@ def getUVImage(scn, obj, face_idx, uvImage):
     return image
 
 
-def getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImageName):
+def getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImage):
     """ get RGBA value for point in UV image at specified face index """
     if face_idx is None:
         return None
     # get closest material using UV map
     face = obj.data.polygons[face_idx]
     # get uv_texture image for face
-    image = getUVImage(scn, obj, face_idx, uvImageName)
+    image = getUVImage(scn, obj, face_idx, uvImage)
     if image is None:
         return None
     # get uv coordinate based on nearest face intersection
@@ -328,14 +328,14 @@ def getMaterialColor(matName):
     return [r, g, b, a]
 
 
-def getBrickRGBA(scn, obj, face_idx, point, uv_images, uvImageName=None):
+def getBrickRGBA(scn, obj, face_idx, point, uv_images, uvImage=None):
     """ returns RGBA value for brick """
     if face_idx is None:
         return None, None
     # get material based on rgba value of UV image at face index
     if uv_images:
         origMatName = ""
-        rgba = getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImageName)
+        rgba = getUVPixelColor(scn, obj, face_idx, point, uv_images, uvImage)
     else:
         # get closest material using material slot of face
         origMatName = getMatAtFaceIdx(obj, face_idx)
