@@ -27,7 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from .cache import *
-from ..lib.JobManager import *
+from ..lib.JobManager import JobManager
 
 
 def getModelType(cm):
@@ -143,11 +143,12 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             pivot_point = p.matrix_world.to_translation()
         else:
             bricks = getBricks()
-            pivot_point = bricks[0].matrix_world.to_translation()
+            pivot_obj = bricks[0] if len(bricks) > 0 else source
+            pivot_point = pivot_obj.matrix_world.to_translation()
 
         if cm.brickifyingInBackground:
-            JobManager = JobManager.get_instance(cm.id)
-            JobManager.kill_all()
+            curJobManager = JobManager.get_instance(cm.id)
+            curJobManager.kill_all()
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
 
@@ -219,10 +220,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         if source not in list(scn.objects):
             safeLink(source)
         # set source layers to brick layers
-        if modelType == "MODEL":
-            bGroup = bpy.data.groups.get(Bricker_bricks_gn)
-        elif modelType == "ANIMATION":
-            bGroup = bpy.data.groups.get(Bricker_bricks_gn + "_f_" + str(cm.lastStartFrame))
+        frame = cm.lastStartFrame
+        bGroup = bpy.data.groups.get(Bricker_bricks_gn + ("_f_%(frame)s" % locals() if modelType == "ANIMATION" else ""))
         if bGroup and len(bGroup.objects) > 0:
             source.layers = list(bGroup.objects[0].layers)
         # reset source properties
@@ -298,7 +297,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         """ add anim data for objs to 'trans_and_anim_data' """
         for obj in objs:
             obj.rotation_mode = "XYZ"
-            trans_and_anim_data.append({"name":obj.name, "loc":obj.location.to_tuple(), "rot":obj.rotation_euler.copy(), "scale":obj.scale.to_tuple(), "action":obj.animation_data.action.copy() if obj.animation_data and obj.animation_data.action else None})
+            trans_and_anim_data.append({"name":obj.name, "loc":obj.location.to_tuple(), "rot":tuple(obj.rotation_euler), "scale":obj.scale.to_tuple(), "action":obj.animation_data.action.copy() if obj.animation_data and obj.animation_data.action else None})
 
     @classmethod
     def cleanBricks(cls, scn, cm, n, preservedFrames, modelType, skipTransAndAnimData):
