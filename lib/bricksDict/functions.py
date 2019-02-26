@@ -328,12 +328,12 @@ def getBrickRGBA(scn, obj, face_idx, point, uv_images, uvImage=None):
     return rgba, origMatName
 
 
-def getDetailsAndBounds(source, cm=None):
-    """ returns dimensions and bounds of source object """
+def getDetailsAndBounds(obj, cm=None):
+    """ returns dimensions and bounds of object """
     cm = cm or getActiveContextInfo()[1]
-    source_details = bounds(source)
+    obj_details = bounds(obj)
     dimensions = Bricks.get_dimensions(cm.brickHeight, cm.zStep, cm.gap)
-    return source_details, dimensions
+    return obj_details, dimensions
 
 
 def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=None, brickSize=[1, 1, 3]):

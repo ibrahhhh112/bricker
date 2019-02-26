@@ -128,7 +128,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             pivot_point = cm.parent_obj.matrix_world.to_translation()
         else:
             bricks = getBricks()
-            pivot_point = bricks[0].matrix_world.to_translation()
+            pivot_obj = bricks[0] if len(bricks) > 0 else source
+            pivot_point = pivot_obj.matrix_world.to_translation()
 
         if cm.brickifyingInBackground:
             JobManager = JobManager.get_instance(cm.id)
@@ -200,7 +201,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
     def cleanSource(cls, cm, n, source, modelType):
         # link source to all collections containing Bricker model
         brickColl = cm.collection
-        brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children]
+        brickCollUsers = [cn for cn in bpy.data.collections if brickColl.name in cn.children] if brickColl is not None else [item.collection for item in source.stored_parents]
         safeLink(source, collections=brickCollUsers)
         # reset source properties
         source.cmlist_id = -1
@@ -272,7 +273,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         """ add anim data for objs to 'trans_and_anim_data' """
         for obj in objs:
             obj.rotation_mode = "XYZ"
-            trans_and_anim_data.append({"name":obj.name, "loc":obj.location.to_tuple(), "rot":obj.rotation_euler.copy(), "scale":obj.scale.to_tuple(), "action":obj.animation_data.action.copy() if obj.animation_data and obj.animation_data.action else None})
+            trans_and_anim_data.append({"name":obj.name, "loc":obj.location.to_tuple(), "rot":tuple(obj.rotation_euler), "scale":obj.scale.to_tuple(), "action":obj.animation_data.action.copy() if obj.animation_data and obj.animation_data.action else None})
 
     @classmethod
     def cleanBricks(cls, scn, cm, n, preservedFrames, modelType, skipTransAndAnimData):

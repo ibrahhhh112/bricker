@@ -70,6 +70,7 @@ def register():
     bpy.props.bricker_undoUpdating = False
     bpy.props.Bricker_developer_mode = developer_mode
     bpy.props.running_bricksculpt_tool = False
+    bpy.props.trans_and_anim_data = []
 
     Object.protected = BoolProperty(name='protected', default=False)
     Object.isBrickifiedObject = BoolProperty(name='Is Brickified Object', default=False)

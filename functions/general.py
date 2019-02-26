@@ -68,12 +68,13 @@ def getBricks(cm=None, typ=None):
     """ get bricks in 'cm' model """
     scn, cm, n = getActiveContextInfo(cm=cm)
     typ = typ or ("MODEL" if cm.modelCreated else "ANIM")
+    bricks = list()
     if typ == "MODEL":
         cn = "Bricker_%(n)s_bricks" % locals()
-        bColl = bpy.data.collections[cn]
-        bricks = list(bColl.objects)
+        bColl = bpy.data.collections.get(cn)
+        if bColl:
+            bricks = list(bColl.objects)
     elif typ == "ANIM":
-        bricks = []
         for cf in range(cm.lastStartFrame, cm.lastStopFrame+1):
             cn = "Bricker_%(n)s_bricks_f_%(cf)s" % locals()
             bColl = bpy.data.collections.get(cn)
