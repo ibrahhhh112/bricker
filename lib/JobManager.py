@@ -75,10 +75,6 @@ linesToAddAtEnd = [
     "bpy.data.libraries.write(storagePath, set(data_blocks), fake_user=True)\n",
     "data_file = open(storagePath.replace('.blend', '.py'), 'w')\n",
     "print(json.dumps(python_data), file=data_file)\n",
-    # "for key in other_data:\n",
-    # "    value = other_data[key]\n",
-    # "    value_str = str(value) if type(value) != str else \"'%(value)s'\" % locals()\n",
-    # "    print('%(key)s = %(value_str)s' % locals(), file=data_file)\n",
 ]
 
 def addLines(job, fullPath, sourceBlendFile, passed_data):
@@ -226,7 +222,8 @@ class JobManager():
         job_status["retrieved_data_blocks"] = data_to
         # retrieve python data stored to temp directory
         dataFileName = self.get_job_name(job) + "_data.py"
-        dumpedDict = open(dataFileName, "r").readline()
+        dataFilePath = os.path.join(self.temp_path, dataFileName)
+        dumpedDict = open(dataFilePath, "r").readline()
         job_status["retrieved_python_data"] = json.loads(dumpedDict) if dumpedDict != "" else {}
 
     @staticmethod

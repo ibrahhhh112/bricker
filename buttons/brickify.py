@@ -67,7 +67,7 @@ class BrickerBrickify(bpy.types.Operator):
                 frame = int(job.split("__")[-1][:-3]) if animAction else None
                 reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
                 objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
-                self.JobManager.process_job(job, debug_level=3)
+                self.JobManager.process_job(job, debug_level=0)
                 if self.JobManager.job_complete(job):
                     self.report({"INFO"}, "Completed%(reportFrameStr)s model '%(n)s'" % locals())
                     # cache bricksDict
@@ -106,7 +106,6 @@ class BrickerBrickify(bpy.types.Operator):
                         cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
                 elif self.JobManager.job_dropped(job):
-                    # print(self.JobManager.get_job_status(job)["stderr"])
                     errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
                     for line in self.JobManager.get_job_status(job)["stderr"]:
                         errormsg += line + "\n"
@@ -355,8 +354,6 @@ class BrickerBrickify(bpy.types.Operator):
         parent = bpy.data.objects.get(Bricker_parent_on)
         # if parent doesn't exist, get parent with new location
         sourceDup_details = bounds(sourceDup)
-        print(sourceDup.location)
-        print(sourceDup_details.mid)
         parentLoc = sourceDup_details.mid
         if parent is None:
             parent = self.getNewParent(Bricker_parent_on, parentLoc)
@@ -443,7 +440,7 @@ class BrickerBrickify(bpy.types.Operator):
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
-                print("skipped frame %(curFrame)s" % locals())
+                "skipped frame %(curFrame)s" % locals())
                 continue
             if cm.brickifyInBackground:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'
@@ -539,9 +536,6 @@ class BrickerBrickify(bpy.types.Operator):
         parent = bpy.data.objects.get("Bricker_%(n)s_parent" % locals())
         sourceDup = bpy.data.objects.get(cm.source_obj.name + "_duplicate")
         sourceDup_details, dimensions = getDetailsAndBounds(sourceDup)
-        print(sourceDup.name)
-        print(sourceDup.location)
-        print(sourceDup_details.mid)
 
         # update refLogo
         logo_details, refLogo = BrickerBrickify.getLogo(scn, cm, dimensions)
