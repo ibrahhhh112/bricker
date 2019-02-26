@@ -222,7 +222,8 @@ class JobManager():
         job_status["retrieved_data_blocks"] = data_to
         # retrieve python data stored to temp directory
         dataFileName = self.get_job_name(job) + "_data.py"
-        dumpedDict = open(dataFileName, "r").readline()
+        dataFilePath = os.path.join(self.temp_path, dataFileName)
+        dumpedDict = open(dataFilePath, "r").readline()
         job_status["retrieved_python_data"] = json.loads(dumpedDict) if dumpedDict != "" else {}
 
     @staticmethod
