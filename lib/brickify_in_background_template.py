@@ -11,8 +11,10 @@ frameStr = "_f_%(frame)s" % locals() if cm.useAnimation else ""
 target_coll = bpy.data.collections.get("Bricker_%(n)s_bricks%(frameStr)s" % locals())
 parent_obj = bpy.data.objects.get("Bricker_%(n)s_parent%(frameStr)s" % locals())
 
-
-
 ### SET 'data_blocks' EQUAL TO LIST OF OBJECT DATA TO BE SEND BACK TO THE BLENDER HOST ###
 
 data_blocks = [target_coll, parent_obj]
+
+### PYTHON DATA TO BE SEND BACK TO THE BLENDER HOST ###
+
+python_data = {"bricksDict":cm.BFMCache}

@@ -523,6 +523,7 @@ def adjustBFM(brickFreqMatrix, matShellDepth, faceIdxMatrix=None, axes=""):
     j = 1
     setNF = True
     for i in range(50):
+        continue
         j = round(j-0.01, 2)
         gotOne = False
         newShellVals = []
@@ -536,6 +537,10 @@ def adjustBFM(brickFreqMatrix, matShellDepth, faceIdxMatrix=None, axes=""):
                            (x, y, z+1),
                            (x, y, z-1))
             for idx in idxsToCheck:
+                # print("*"*25)
+                # print(str(idx))
+                # print(str(len(brickFreqMatrix)), str(len(brickFreqMatrix[0])), str(len(brickFreqMatrix[0][0])))
+                # print("*"*25)
                 curVal = brickFreqMatrix[idx[0]][idx[1]][idx[2]]
                 if curVal == -1:
                     newShellVals.append(idx)

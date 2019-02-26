@@ -27,7 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from .cache import *
-from ..lib.JobManager import *
+from ..lib.JobManager import JobManager
 
 
 def getModelType(cm):
@@ -132,8 +132,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             pivot_point = pivot_obj.matrix_world.to_translation()
 
         if cm.brickifyingInBackground:
-            JobManager = JobManager.get_instance(cm.id)
-            JobManager.kill_all()
+            curJobManager = JobManager.get_instance(cm.id)
+            curJobManager.kill_all()
 
         source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
 

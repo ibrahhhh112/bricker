@@ -33,7 +33,7 @@ from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
-from ..lib.JobManager import *
+from ..lib.JobManager import JobManager
 from ..functions import *
 
 
@@ -273,7 +273,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         cm.materialIsDirty = False
         cm.modelIsDirty = False
         cm.buildIsDirty = False
-        cm.animIsDirty = False
         cm.bricksAreDirty = False
         cm.matrixIsDirty = False
         cm.matrixLost = False
@@ -342,6 +341,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
             # apply transformation data
             apply_transform(sourceDup)
+            sourceDup.animation_data_clear()
             scn.update()
         else:
             # get previously created source duplicate
