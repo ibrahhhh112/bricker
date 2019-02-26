@@ -117,12 +117,12 @@ class BRICKER_OT_apply_material(bpy.types.Operator):
                         brick.material_slots[0].material = mat
                     # update bricksDict mat_name values for split models
                     if lastSplitModel:
-                        bricksDict[brick.name.split("__")[-1]]["mat_name"] = matName
+                        bricksDict[brick.name.split("__")[-1]]["mat_name"] = mat.name
                 # update bricksDict mat_name values for not split models
                 if self.action == "CUSTOM" and not cm.lastSplitModel:
                     for k in bricksDict.keys():
                         if bricksDict[k]["draw"] and bricksDict[k]["parent"] == "self":
-                            bricksDict[k]["mat_name"] = matName
+                            bricksDict[k]["mat_name"] = mat.name
 
         tag_redraw_areas(["VIEW_3D", "PROPERTIES", "NODE_EDITOR"])
         cm.materialIsDirty = False
