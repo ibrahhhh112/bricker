@@ -440,7 +440,7 @@ class BrickerBrickify(bpy.types.Operator):
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
-                "skipped frame %(curFrame)s" % locals())
+                print("skipped frame %(curFrame)s" % locals())
                 continue
             if cm.brickifyInBackground:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'
