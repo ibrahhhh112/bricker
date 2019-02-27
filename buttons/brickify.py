@@ -337,7 +337,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             # send to new mesh
             if not cm.isSmoke:
                 # TODO: use view layer with smoke, not just the first view layer
-                sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
+                sourceDup.data = self.source.to_mesh(bpy.context.depsgraph, True)
             # apply transformation data
             apply_transform(sourceDup)
             sourceDup.animation_data_clear()
@@ -670,6 +670,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
             return False
+        # ensure source is on current view layer
+        if bpy.context.depsgraph.objects.get(source.name) is None:
+            self.report({"WARNING"}, "Source object could not be found in current view layer depsgraph")
+            return False
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.customMat is None:
             self.report({"WARNING"}, "Please choose a custom material in the 'Bricker > Materials' tab")
@@ -714,11 +718,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
                     return False
 
+        # verify Blender file is saved if running in background
+        if cm.brickifyInBackground and bpy.data.filepath == "":
+            self.report({"WARNING"}, "Please save the file first")
+            return False
+
         if self.action in ("ANIMATE", "UPDATE_ANIM"):
-            # verify Blender file is saved
-            if cm.brickifyInBackground and bpy.data.filepath == "":
-                self.report({"WARNING"}, "Please save the file first")
-                return False
             # verify start frame is less than stop frame
             if cm.startFrame > cm.stopFrame:
                 self.report({"ERROR"}, "Start frame must be less than or equal to stop frame (see animation tab below).")
@@ -860,8 +865,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             sourceDup.animation_data_clear()
             # send to new mesh
             if not cm.isSmoke:
-                # TODO: use view layer with smoke, not just the first view layer
-                sourceDup.data = self.source.to_mesh(scn.view_layers[0].depsgraph, True)
+                sourceDup.data = self.source.to_mesh(bpy.context.depsgraph, True)
             # apply transform data
             apply_transform(sourceDup)
             duplicates[curFrame] = sourceDup
