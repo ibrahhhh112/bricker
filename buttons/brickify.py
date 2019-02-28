@@ -86,7 +86,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                             if origMat is not None:
                                 brick.material_slots[i].material = origMat
                                 bpy.data.materials.remove(mat)
-                        safeLink(brick)
                     if animAction:
                         bricker_parent.parent = cm.parent_obj
                         # link animation frames to animation collection and hide if not active
@@ -519,20 +518,21 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return False
 
         # get object with created bricks
-        cur_frame_coll = bpy.data.collections[coll_name]
-        obj = cur_frame_coll.objects[0]
-        # hide obj unless on scene current frame
-        adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.startFrame, cm.stopFrame)
-        cur_frame_coll.hide_viewport = curFrame != adjusted_frame_current
-        cur_frame_coll.hide_render   = curFrame != adjusted_frame_current
-        # lock location, rotation, and scale of created bricks
-        obj.lock_location = (True, True, True)
-        obj.lock_rotation = (True, True, True)
-        obj.lock_scale    = (True, True, True)
+        cur_frame_coll = bpy.data.collections.get(coll_name)
+        if cur_frame_coll is not None:
+            obj = cur_frame_coll.objects[0]
+            # hide obj unless on scene current frame
+            adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.startFrame, cm.stopFrame)
+            cur_frame_coll.hide_viewport = curFrame != adjusted_frame_current
+            cur_frame_coll.hide_render   = curFrame != adjusted_frame_current
+            # lock location, rotation, and scale of created bricks
+            obj.lock_location = (True, True, True)
+            obj.lock_rotation = (True, True, True)
+            obj.lock_scale    = (True, True, True)
 
-        # add bevel if it was previously added
-        if cm.bevelAdded:
-            BRICKER_OT_bevel.runBevelAction([obj], cm)
+            # add bevel if it was previously added
+            if cm.bevelAdded:
+                BRICKER_OT_bevel.runBevelAction([obj], cm)
 
         wm.progress_update(curFrame-cm.startFrame)
         print('-'*100)
@@ -652,7 +652,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             select(bricksCreated)
         # store current bricksDict to cache
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
-        return coll_name
+        return coll_name if bricksCreated else None
 
     def isValid(self, scn, cm, source_name, source):
         """ returns True if brickify action can run, else report WARNING/ERROR and return False """
