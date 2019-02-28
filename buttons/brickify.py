@@ -210,6 +210,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # initialize variables
         self.source.cmlist_id = cm.id
         matrixDirty = matrixReallyIsDirty(cm)
+        if cm.brickifyInBackground:
+            cm.brickifyingInBackground = True
 
         # store parent collections to source
         self.source.stored_parents.clear()
@@ -413,7 +415,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return {"FINISHED"}
 
         if cm.brickifyInBackground:
-            cm.brickifyingInBackground = True
             cm.numAnimatedFrames = 0
             cm.framesToAnimate = (cm.stopFrame - cm.startFrame + 1)
 
