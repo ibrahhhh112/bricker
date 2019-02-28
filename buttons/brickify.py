@@ -126,13 +126,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, _ = getActiveContextInfo()
         wm = bpy.context.window_manager
         wm.Bricker_runningBlockingOperation = True
-        if cm.animated and cm.brickifyInBackground:
-            cm.brickifyingInBackground = True
-            cm.numAnimatedFrames = 0
         try:
             previously_animated = cm.animated
             previously_model_created = cm.modelCreated
-            self.runBrickify(context)
+            success = self.runBrickify(context)
+            if not success: return {"CANCELLED"}
         except KeyboardInterrupt:
             if self.action in ("CREATE", "ANIMATE"):
                 for n in self.createdObjects:
@@ -207,7 +205,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # ensure that Bricker can run successfully
         if not self.isValid(scn, cm, n, self.source):
-            return {"CANCELLED"}
+            return False
 
         # initialize variables
         self.source.cmlist_id = cm.id
@@ -287,6 +285,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         safeUnlink(self.source)
 
         disableRelationshipLines()
+
+        return True
 
     def brickifyModel(self, scn, cm, n, matrixDirty):
         """ create brick model """
@@ -412,6 +412,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             else:
                 return {"FINISHED"}
 
+        if cm.brickifyInBackground:
+            cm.brickifyingInBackground = True
+            cm.numAnimatedFrames = 0
+            cm.framesToAnimate = (cm.stopFrame - cm.startFrame + 1)
+
         if (self.action == "ANIMATE" or cm.matrixIsDirty or cm.animIsDirty) and not self.updatedFramesOnly:
             BRICKER_OT_clear_cache.clearCache(cm, brick_mesh=False)
 
@@ -442,20 +447,22 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         duplicates = self.getDuplicateObjects(scn, cm, n, cm.startFrame, cm.stopFrame)
 
         filename = bpy.path.basename(bpy.data.filepath)[:-6]
+        overwrite_blend = True
         # iterate through frames of animation and generate Brick Model
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
-                cm.numAnimatedFrames += 1
+                cm.framesToAnimate -= 1
                 continue
             if cm.brickifyInBackground:
                 # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'
                 curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s__%(curFrame)s.py" % locals()][0 if sys.platform in ("linux", "linux2", "darwin") else 1:])
                 script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
                 shutil.copyfile(script, curJob)
-                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=curFrame == cm.startFrame)
+                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
                 if not jobAdded: raise Exception("Job for frame '%(curFrame)s' already added" % locals())
                 self.jobs.append(curJob)
+                overwrite_blend = False
             else:
                 success = self.brickifyCurrentFrame(curFrame, self.action)
                 if not success:
@@ -670,10 +677,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
             return False
-        # ensure source is on current view layer
-        if bpy.context.depsgraph.objects.get(source.name) is None:
-            self.report({"WARNING"}, "Source object could not be found in current view layer depsgraph")
-            return False
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.customMat is None:
             self.report({"WARNING"}, "Please choose a custom material in the 'Bricker > Materials' tab")
@@ -689,6 +692,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 matObj = createNewMatObjs(cm.id)[1]
             if len(matObj.data.materials) == 0:
                 self.report({"WARNING"}, "No ABS Plastic Materials found in Materials to be used")
+                return False
+
+        if self.action in ("CREATE", "UPDATE_MODEL"):
+            # ensure source is on current view layer
+            if bpy.context.depsgraph.objects.get(source.name) is None:
+                self.report({"WARNING"}, "Source object could not be found in current view layer depsgraph")
                 return False
 
         brick_coll_name = "Bricker_%(source_name)s_bricks" % locals()
@@ -715,8 +724,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 return False
             # verify source is not a rigid body
             if source.rigid_body is not None and source.rigid_body.type == "ACTIVE":
-                    self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
-                    return False
+                self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
+                return False
 
         # verify Blender file is saved if running in background
         if cm.brickifyInBackground and bpy.data.filepath == "":
