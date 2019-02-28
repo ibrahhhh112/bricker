@@ -634,7 +634,6 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     firstKey: StringProperty(default="")
 
     # Internal Model Properties
-<<<<<<< HEAD
     modelCreated: BoolProperty(default=False)
     brickifyingInBackground: BoolProperty(default=False)
     numAnimatedFrames: IntProperty(default=0)
@@ -653,24 +652,6 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     hasCustomObj1: BoolProperty(default=False)
     hasCustomObj2: BoolProperty(default=False)
     hasCustomObj3: BoolProperty(default=False)
-=======
-    modelCreated = BoolProperty(default=False)
-    brickifyingInBackground = BoolProperty(default=False)
-    numAnimatedFrames = IntProperty(default=0)
-    framesToAnimate = IntProperty(default=0)
-    animated = BoolProperty(default=False)
-    materialApplied = BoolProperty(default=False)
-    armature = BoolProperty(default=False)
-    zStep = IntProperty(default=3)
-    customized = BoolProperty(default=True)
-    brickSizesUsed = StringProperty(default="")  # list of brickSizes used separated by | (e.g. '5,4,3|7,4,5|8,6,5')
-    brickTypesUsed = StringProperty(default="")  # list of brickTypes used separated by | (e.g. 'PLATE|BRICK|STUD')
-    modelCreatedOnFrame = IntProperty(default=-1)
-    isSmoke = BoolProperty(default=False)
-    hasCustomObj1 = BoolProperty(default=False)
-    hasCustomObj2 = BoolProperty(default=False)
-    hasCustomObj3 = BoolProperty(default=False)
->>>>>>> master
 
     # Properties for checking of model needs updating
     animIsDirty: BoolProperty(default=True)
