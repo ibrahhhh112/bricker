@@ -157,7 +157,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                         col.scale_y = 0.75
                         row.label(text="Animating in background...")
                         row = col.row(align=True)
-                        percentage = round(cm.numAnimatedFrames * 100 / (cm.lastStopFrame - cm.lastStartFrame + 1), 3)
+                        percentage = round(cm.numAnimatedFrames * 100 / cm.framesToAnimate, 2)
                         row.label(text=str(percentage) + "% completed")
                     else:
                         row.active = brickifyShouldRun(cm)
