@@ -56,15 +56,15 @@ class OBJECT_OT_delete_override(Operator):
 
     def invoke(self, context, event):
         # Run confirmation popup for delete action
-        confirmation_returned = context.window_manager.invoke_confirm(self, event)
-        if confirmation_returned != {'FINISHED'}:
-            return confirmation_returned
-        else:
-            try:
-                self.runDelete(context)
-            except:
-                bricker_handle_exception()
-            return {'FINISHED'}
+        if self.confirm:
+            confirmation_returned = context.window_manager.invoke_confirm(self, event)
+            if confirmation_returned != {'FINISHED'}:
+                return confirmation_returned
+        try:
+            self.runDelete(context)
+        except:
+            bricker_handle_exception()
+        return {'FINISHED'}
 
     ################################################
     # initialization method
@@ -82,6 +82,7 @@ class OBJECT_OT_delete_override(Operator):
     use_global: BoolProperty(default=False)
     update_model: BoolProperty(default=True)
     undo: BoolProperty(default=True)
+    confirm: BoolProperty(default=True)
 
     ################################################
     # class methods
