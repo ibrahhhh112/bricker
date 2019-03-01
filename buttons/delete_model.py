@@ -312,8 +312,9 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                     if len(bricks) > 0:
                         delete(bricks)
                     bpy.data.collections.remove(brickColl, do_unlink=True)
-            bpy.data.collections.remove(cm.collection, do_unlink=True)
-            cm.animated = False
+            if preservedFrames is None:
+                bpy.data.collections.remove(cm.collection, do_unlink=True)
+                cm.animated = False
         # finish status update
         update_progress("Deleting", 1)
         wm.progress_end()

@@ -638,6 +638,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     brickifyingInBackground: BoolProperty(default=False)
     numAnimatedFrames: IntProperty(default=0)
     framesToAnimate: IntProperty(default=0)
+    stopAnimationProcess: BoolProperty(default=False)
     animated: BoolProperty(default=False)
     materialApplied: BoolProperty(default=False)
     armature: BoolProperty(default=False)

@@ -97,6 +97,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
                         # incriment numAnimatedFrames and remove job
                         cm.numAnimatedFrames += 1
+                        self.completed_frames.append(frame)
                     else:
                         self.linkBrickCollection(cm, bricker_bricks_coll)
                     self.jobs.remove(job)
@@ -111,12 +112,45 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     if animAction:
                         cm.numAnimatedFrames += 1
                     self.jobs.remove(job)
+            # cancel and save finished frames if stopped
+            if cm.stopAnimationProcess:
+                updatedStopFrame = False
+                # set end frame to last consecutive completed frame and toss non-consecutive frames
+                for frame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                    if updatedStopFrame:
+                        # remove frames that cannot be saved
+                        if frame in self.completed_frames:
+                            bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
+                            delete(bricker_parent)
+                            bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+                            delete(bricker_bricks_coll.objects)
+                            bpy.data.collections.remove(bricker_bricks_coll)
+                    elif frame not in self.completed_frames:
+                        # set end frame to last consecutive completed frame
+                        updatedStopFrame = True
+                        cm.lastStopFrame = frame - 1
+                        cm.stopFrame = frame - 1
+                for frame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                    bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+                    # hide obj unless on scene current frame
+                    adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
+                    bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
+                    bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
+                # finish animation and kill running jobs
+                if "ANIM" in self.action:
+                    self.finishAnimation()
+                cm.stopAnimationProcess = False
+                self.cancel(context)
+                return {"CANCELLED"}
             # cancel if model was deleted before process completed
             if scn in self.source.users_scene:
                 self.cancel(context)
                 return {"CANCELLED"}
+            # finish if all jobs completed
             elif self.JobManager.jobs_complete():
-                self.finishAnimation()
+                if "ANIM" in self.action:
+                    self.finishAnimation()
+                cm.brickifyingInBackground = False
                 self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
                 stopwatch("Total Time Elapsed", self.start_time, 2)
                 return {"FINISHED"}
@@ -163,6 +197,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             wm = context.window_manager
             wm.event_timer_remove(self._timer)
             self.JobManager.kill_all()
+            scn, cm, n = getActiveContextInfo()
+            cm.brickifyingInBackground = False
+            print("Background processes for '%(n)s' model killed" % locals())
 
     ################################################
     # initialization method
@@ -183,6 +220,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.JobManager.timeout = cm.backProcTimeout
         self.JobManager.max_workers = cm.maxWorkers
         self.JobManager.max_attempts = 1
+        self.completed_frames = []
         self.brickerAddonPath = dirname(dirname(abspath(__file__)))
         self.jobs = list()
         self.cm = cm
@@ -453,6 +491,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         for curFrame in range(cm.startFrame, cm.stopFrame + 1):
             if self.updatedFramesOnly and cm.lastStartFrame <= curFrame and curFrame <= cm.lastStopFrame:
                 print("skipped frame %(curFrame)s" % locals())
+                self.completed_frames.append(curFrame)
                 cm.framesToAnimate -= 1
                 continue
             if cm.brickifyInBackground:
@@ -594,6 +633,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         anim_coll_name = "Bricker_%(n)s_bricks" % locals()
         anim_coll = bpy.data.collections.get(anim_coll_name)
         if anim_coll is None:
+            print("CREATING")
             anim_coll = bpy.data.collections.new(anim_coll_name)
         return anim_coll
 
@@ -602,7 +642,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, n = getActiveContextInfo(cm=self.cm)
         wm = bpy.context.window_manager
         wm.progress_end()
-        cm.brickifyingInBackground = False
 
         # link animation frames to animation collection
         anim_coll = self.getAnimColl(n)

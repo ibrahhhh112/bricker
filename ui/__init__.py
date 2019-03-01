@@ -156,7 +156,8 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                     row = col.row(align=True)
                     if cm.brickifyingInBackground:
                         col.scale_y = 0.75
-                        row.label(text="Animating in background...")
+                        row.label(text="Animating...")
+                        row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")
                         row = col.row(align=True)
                         percentage = round(cm.numAnimatedFrames * 100 / cm.framesToAnimate, 2)
                         row.label(text=str(percentage) + "% completed")

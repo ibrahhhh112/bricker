@@ -42,6 +42,7 @@ classes = (
     bevel.BRICKER_OT_bevel,
     brickify.BRICKER_OT_brickify,
     brickifyInBackground.BRICKER_OT_brickify_in_background,
+    brickifyInBackground.BRICKER_OT_stop_brickifying_in_background,
     cache.BRICKER_OT_clear_cache,
     delete_model.BRICKER_OT_delete_model,
     exportLdraw.BRICKER_OT_export_ldraw,
