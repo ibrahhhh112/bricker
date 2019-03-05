@@ -413,12 +413,9 @@ def setActiveObj(obj:Object, view_layer:ViewLayer=None):
 
 
 def isObjVisibleInViewport(obj):
-    if obj is None:
-        return False
-    objVisible = True
-    if obj.hide_viewport:
-        objVisible = False
-    else:
+    if obj is None: return False
+    objVisible = not obj.hide_viewport
+    if objVisible:
         for cn in obj.users_collection:
             if cn.hide_viewport:
                 objVisible = False

@@ -120,7 +120,6 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         """ externally callable cleanup function for full delete action (clears everything from memory) """
         scn, cm, n = getActiveContextInfo(cm=cm)
         modelType = getModelType(cm)
-        source = bpy.data.objects.get(n)
         origFrame = scn.frame_current
         scn.frame_set(cm.modelCreatedOnFrame)
         # store pivot point for model
@@ -128,14 +127,14 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             pivot_point = cm.parent_obj.matrix_world.to_translation()
         else:
             bricks = getBricks()
-            pivot_obj = bricks[0] if len(bricks) > 0 else source
+            pivot_obj = bricks[0] if len(bricks) > 0 else cm.source_obj
             pivot_point = pivot_obj.matrix_world.to_translation()
 
         if cm.brickifyingInBackground:
             curJobManager = JobManager.get_instance(cm.id)
             curJobManager.kill_all()
 
-        source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=source is None)
+        source, brickLoc, brickRot, brickScl, _ = cls.cleanUp(modelType, cm=cm, skipSource=cm.source_obj is None)
 
         # select source
         if source is None:
@@ -158,6 +157,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 lastMode = source.rotation_mode
                 source.rotation_mode = "XYZ"
                 # create vert to track original source origin
+                if len(source.data.vertices) == 0: source.data.vertices.add(1)
                 last_co = source.data.vertices[0].co.to_tuple()
                 source.data.vertices[0].co = (0, 0, 0)
                 # set source origin to rotation point for transformed brick object

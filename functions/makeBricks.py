@@ -55,19 +55,6 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
 
     mergeVertical = keys != "ALL" or cm.brickType == "BRICKS AND PLATES"
 
-    # get bricksDict keys in sorted order
-    if keys == "ALL":
-        keys = list(bricksDict.keys())
-    if len(keys) == 0:
-        return None, None
-    # get dictionary of keys based on z value
-    keysDict = getKeysDict(bricksDict, keys)
-    denom = sum([len(keysDict[z0]) for z0 in keysDict.keys()])
-    # store first key to active keys
-    if cm.activeKey[0] == -1 and len(keys) > 0:
-        loc = getDictLoc(bricksDict, keys[0])
-        cm.activeKey = loc
-
     # get brick collection
     coll_name = coll_name or 'Bricker_%(n)s_bricks' % locals()
     bColl = bpy.data.collections.get(coll_name)
@@ -78,6 +65,19 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     elif clearExistingCollection:
         for obj0 in bColl.objects:
             bColl.objects.unlink(obj0)
+
+    # get bricksDict keys in sorted order
+    if keys == "ALL":
+        keys = list(bricksDict.keys())
+    if len(keys) == 0:
+        return False, None
+    # get dictionary of keys based on z value
+    keysDict = getKeysDict(bricksDict, keys)
+    denom = sum([len(keysDict[z0]) for z0 in keysDict.keys()])
+    # store first key to active keys
+    if cm.activeKey[0] == -1 and len(keys) > 0:
+        loc = getDictLoc(bricksDict, keys[0])
+        cm.activeKey = loc
 
     # initialize cmlist attributes (prevents 'update' function from running every time)
     cm_id = cm.id

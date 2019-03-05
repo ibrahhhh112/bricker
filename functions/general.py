@@ -457,18 +457,18 @@ def bricker_handle_exception():
 def createMatObjs(idx):
     """ create new matObjs for current cmlist id """
     matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
-    for n in matObjNames:
-        matObj = bpy.data.objects.get(n)
+    for obj_n in matObjNames:
+        matObj = bpy.data.objects.get(obj_n)
         if matObj is None:
-            matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
+            matObj = bpy.data.objects.new(obj_n, bpy.data.meshes.new(obj_n + "_mesh"))
             matObj.use_fake_user = True
 
 
 def removeMatObjs(idx):
     """ remove matObjs for current cmlist id """
     matObjNames = ["Bricker_{}_RANDOM_mats".format(idx), "Bricker_{}_ABS_mats".format(idx)]
-    for n in matObjNames:
-        matObj = bpy.data.objects.get(n)
+    for obj_n in matObjNames:
+        matObj = bpy.data.objects.get(obj_n)
         if matObj is not None:
             bpy.data.objects.remove(matObj, do_unlink=True)
 

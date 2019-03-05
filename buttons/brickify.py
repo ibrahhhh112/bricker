@@ -58,102 +58,104 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
     def modal(self, context, event):
         if event.type == "TIMER":
-            scn, cm, n = getActiveContextInfo(cm=self.cm)
-            for job in self.jobs.copy():
-                # cancel if model was deleted before process completed
-                if scn in self.source.users_scene:
-                    break
-                animAction = "ANIM" in self.action
-                frame = int(job.split("__")[-1][:-3]) if animAction else None
-                objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
-                self.JobManager.process_job(job, debug_level=0)
-                if self.JobManager.job_complete(job):
-                    if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
-                    # cache bricksDict
-                    bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
-                    cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
-                    # process retrieved bricker data
-                    bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())
-                    bricker_parent.use_fake_user = True
-                    bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks%(objFrameStr)s" % locals())
-                    for brick in bricker_bricks_coll.objects:
-                        brick.parent = bricker_parent
-                        for i,mat_slot in enumerate(brick.material_slots):
-                            mat = mat_slot.material
-                            if mat is None:
-                                continue
-                            origMat = bpy.data.materials.get(mat.name[:-4])
-                            if origMat is not None:
-                                brick.material_slots[i].material = origMat
-                                bpy.data.materials.remove(mat)
-                    if animAction:
-                        bricker_parent.parent = cm.parent_obj
-                        # link animation frames to animation collection and hide if not active
-                        anim_coll = self.getAnimColl(n)
-                        anim_coll.children.link(bricker_bricks_coll)
-                        # hide obj unless on scene current frame
-                        adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
-                        bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
-                        bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
-                        # incriment numAnimatedFrames and remove job
-                        cm.numAnimatedFrames += 1
-                        self.completed_frames.append(frame)
-                    else:
-                        self.linkBrickCollection(cm, bricker_bricks_coll)
-                    self.jobs.remove(job)
-                elif self.JobManager.job_dropped(job):
-                    errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
-                    for line in self.JobManager.get_job_status(job)["stderr"]:
-                        errormsg += line + "\n"
-                    print_exception("Bricker log", errormsg=errormsg)
-                    reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
-                    self.report({"WARNING"}, "Dropped%(reportFrameStr)s model '%(n)s'" % locals())
-                    tag_redraw_areas("VIEW_3D")
-                    if animAction:
-                        cm.numAnimatedFrames += 1
-                    self.jobs.remove(job)
-            # cancel and save finished frames if stopped
-            if cm.stopAnimationProcess:
-                updatedStopFrame = False
-                # set end frame to last consecutive completed frame and toss non-consecutive frames
-                for frame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                    if updatedStopFrame:
-                        # remove frames that cannot be saved
-                        if frame in self.completed_frames:
+            try:
+                scn, cm, n = getActiveContextInfo(cm=self.cm)
+                for job in self.jobs.copy():
+                    # cancel if model was deleted before process completed
+                    if scn in self.source.users_scene:
+                        break
+                    animAction = "ANIM" in self.action
+                    frame = int(job.split("__")[-1]) if animAction else None
+                    objFrameStr = "_f_%(frame)s" % locals() if animAction else ""
+                    self.JobManager.process_job(job, debug_level=0)
+                    if self.JobManager.job_complete(job):
+                        if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
+                        # cache bricksDict
+                        bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
+                        cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
+                        # process retrieved bricker data
+                        bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())
+                        bricker_parent.use_fake_user = True
+                        bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks%(objFrameStr)s" % locals())
+                        for brick in bricker_bricks_coll.objects:
+                            brick.parent = bricker_parent
+                            for i,mat_slot in enumerate(brick.material_slots):
+                                mat = mat_slot.material
+                                if mat is None:
+                                    continue
+                                origMat = bpy.data.materials.get(mat.name[:-4])
+                                if origMat is not None:
+                                    brick.material_slots[i].material = origMat
+                                    bpy.data.materials.remove(mat)
+                        if animAction:
+                            bricker_parent.parent = cm.parent_obj
+                            # link animation frames to animation collection and hide if not active
+                            anim_coll = self.getAnimColl(n)
+                            anim_coll.children.link(bricker_bricks_coll)
+                            # hide obj unless on scene current frame
+                            adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
+                            bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
+                            bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
+                            # incriment numAnimatedFrames and remove job
+                            cm.numAnimatedFrames += 1
+                            self.completed_frames.append(frame)
+                        else:
+                            self.linkBrickCollection(cm, bricker_bricks_coll)
+                        self.jobs.remove(job)
+                    elif self.JobManager.job_dropped(job):
+                        errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
+                        for line in self.JobManager.get_job_status(job)["stderr"]:
+                            errormsg += line + "\n"
+                        print_exception("Bricker log", errormsg=errormsg)
+                        reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
+                        self.report({"WARNING"}, "Dropped%(reportFrameStr)s model '%(n)s'" % locals())
+                        tag_redraw_areas("VIEW_3D")
+                        if animAction:
+                            cm.numAnimatedFrames += 1
+                        self.jobs.remove(job)
+                # cancel and save finished frames if stopped
+                if cm.stopAnimationProcess:
+                    updatedStopFrame = False
+                    # set end frame to last consecutive completed frame and toss non-consecutive frames
+                    for frame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                        if frame not in self.completed_frames and not updatedStopFrame:
+                            # set end frame to last consecutive completed frame
+                            updatedStopFrame = True
+                            cm.lastStopFrame = frame - 1
+                            cm.stopFrame = frame - 1
+                        if frame in self.completed_frames and updatedStopFrame:
+                            # remove frames that cannot be saved
                             bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent_f_%(frame)s" % locals())
                             delete(bricker_parent)
                             bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
                             delete(bricker_bricks_coll.objects)
                             bpy.data.collections.remove(bricker_bricks_coll)
-                    elif frame not in self.completed_frames:
-                        # set end frame to last consecutive completed frame
-                        updatedStopFrame = True
-                        cm.lastStopFrame = frame - 1
-                        cm.stopFrame = frame - 1
-                for frame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
-                    bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
-                    # hide obj unless on scene current frame
-                    adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
-                    bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
-                    bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
-                # finish animation and kill running jobs
-                if "ANIM" in self.action:
-                    self.finishAnimation()
-                cm.stopAnimationProcess = False
-                self.cancel(context)
-                return {"CANCELLED"}
-            # cancel if model was deleted before process completed
-            if scn in self.source.users_scene:
-                self.cancel(context)
-                return {"CANCELLED"}
-            # finish if all jobs completed
-            elif self.JobManager.jobs_complete():
-                if "ANIM" in self.action:
-                    self.finishAnimation()
-                cm.brickifyingInBackground = False
-                self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
-                stopwatch("Total Time Elapsed", self.start_time, 2)
-                return {"FINISHED"}
+                    for frame in range(cm.lastStartFrame, cm.lastStopFrame + 1):
+                        bricker_bricks_coll = bpy.data.collections.get("Bricker_%(n)s_bricks_f_%(frame)s" % locals())
+                        # hide obj unless on scene current frame
+                        adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
+                        bricker_bricks_coll.hide_viewport = frame != adjusted_frame_current
+                        bricker_bricks_coll.hide_render   = frame != adjusted_frame_current
+                    # finish animation and kill running jobs
+                    if "ANIM" in self.action:
+                        self.finishAnimation()
+                    cm.stopAnimationProcess = False
+                    self.cancel(context)
+                    return {"CANCELLED"}
+                # cancel if model was deleted before process completed
+                if scn in self.source.users_scene:
+                    self.cancel(context)
+                    return {"CANCELLED"}
+                # finish if all jobs completed
+                elif self.JobManager.jobs_complete():
+                    if "ANIM" in self.action:
+                        self.finishAnimation()
+                    cm.brickifyingInBackground = False
+                    self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
+                    stopwatch("Total Time Elapsed", self.start_time, 2)
+                    return {"FINISHED"}
+            except:
+                bricker_handle_exception()
         return {"PASS_THROUGH"}
 
     def execute(self, context):
@@ -167,8 +169,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if not success: return {"CANCELLED"}
         except KeyboardInterrupt:
             if self.action in ("CREATE", "ANIMATE"):
-                for n in self.createdObjects:
-                    obj = bpy.data.objects.get(n)
+                for obj_n in self.createdObjects:
+                    obj = bpy.data.objects.get(obj_n)
                     if obj:
                         bpy.data.objects.remove(obj, do_unlink=True)
                 for cn in getCollections(cm, typ="MODEL" if self.action == "CREATE" else "ANIM"):
@@ -193,13 +195,13 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return {"FINISHED"}
 
     def cancel(self, context):
+        wm = context.window_manager
+        wm.event_timer_remove(self._timer)
+        scn, cm, n = getActiveContextInfo()
         if self.JobManager.num_running_jobs() + self.JobManager.num_pending_jobs() > 0:
-            wm = context.window_manager
-            wm.event_timer_remove(self._timer)
             self.JobManager.kill_all()
-            scn, cm, n = getActiveContextInfo()
-            cm.brickifyingInBackground = False
             print("Background processes for '%(n)s' model killed" % locals())
+        cm.brickifyingInBackground = False
 
     ################################################
     # initialization method
@@ -407,19 +409,17 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         # create, transform, and bevel bricks
         if cm.brickifyInBackground:
-            # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file, store path to file in 'curJob'
             filename = bpy.path.basename(bpy.data.filepath)[:-6]
-            curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s.py" % locals()][0 if sys.platform in ("linux", "linux2", "darwin") else 1:])
+            curJob = "%(filename)s__%(n)s.py" % locals()
             script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
-            shutil.copyfile(script, curJob)
-            jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":None, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True)
+            jobAdded = self.JobManager.add_job(curJob, script=script, passed_data={"frame":None, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True)
             if not jobAdded: raise Exception("Job already added")
             self.jobs.append(curJob)
         else:
             bColl = self.brickifyActiveFrame(self.action)
             self.linkBrickCollection(cm, bColl)
             # select the bricks object unless it's massive
-            if not cm.splitModel:
+            if not cm.splitModel and len(bColl.objects) > 0:
                 obj = bColl.objects[0]
                 if len(obj.data.vertices) < 500000:
                     select(obj, active=True)
@@ -495,11 +495,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 cm.framesToAnimate -= 1
                 continue
             if cm.brickifyInBackground:
-                # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'
-                curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s__%(curFrame)s.py" % locals()][0 if sys.platform in ("linux", "linux2", "darwin") else 1:])
+                curJob = "%(filename)s__%(n)s__%(curFrame)s.py" % locals()
                 script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
-                shutil.copyfile(script, curJob)
-                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
+                jobAdded = self.JobManager.add_job(curJob, script=script, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
                 if not jobAdded: raise Exception("Job for frame '%(curFrame)s' already added" % locals())
                 self.jobs.append(curJob)
                 overwrite_blend = False
@@ -567,19 +565,19 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # get object with created bricks
         cur_frame_coll = bpy.data.collections.get(coll_name)
         if cur_frame_coll is not None:
-            obj = cur_frame_coll.objects[0]
             # hide obj unless on scene current frame
             adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.startFrame, cm.stopFrame)
             cur_frame_coll.hide_viewport = curFrame != adjusted_frame_current
             cur_frame_coll.hide_render   = curFrame != adjusted_frame_current
-            # lock location, rotation, and scale of created bricks
-            obj.lock_location = (True, True, True)
-            obj.lock_rotation = (True, True, True)
-            obj.lock_scale    = (True, True, True)
-
-            # add bevel if it was previously added
-            if cm.bevelAdded:
-                BRICKER_OT_bevel.runBevelAction([obj], cm)
+            if len(cur_frame_coll.objects) > 0:
+                obj = cur_frame_coll.objects[0]
+                # lock location, rotation, and scale of created bricks
+                obj.lock_location = (True, True, True)
+                obj.lock_rotation = (True, True, True)
+                obj.lock_scale    = (True, True, True)
+                # add bevel if it was previously added
+                if cm.bevelAdded:
+                    BRICKER_OT_bevel.runBevelAction([obj], cm)
 
         wm.progress_update(curFrame-cm.startFrame)
         print('-'*100)
@@ -633,7 +631,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         anim_coll_name = "Bricker_%(n)s_bricks" % locals()
         anim_coll = bpy.data.collections.get(anim_coll_name)
         if anim_coll is None:
-            print("CREATING")
             anim_coll = bpy.data.collections.new(anim_coll_name)
         return anim_coll
 
@@ -699,7 +696,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             select(bricksCreated)
         # store current bricksDict to cache
         cacheBricksDict(action, cm, bricksDict, curFrame=curFrame)
-        return coll_name if bricksCreated else None
+        return coll_name
 
     def isValid(self, scn, cm, source_name, source):
         """ returns True if brickify action can run, else report WARNING/ERROR and return False """

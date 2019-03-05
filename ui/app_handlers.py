@@ -59,24 +59,6 @@ def handle_animation(scn):
                     select(curBrickColl.objects, active=True)
 
 
-def isObjVisible(scn, cm, n):
-    objVisible = False
-    if cm.modelCreated or cm.animated:
-        cn = "Bricker_%(n)s_bricks" % locals()
-        if collExists(gn) and len(bpy.data.collections[cn].objects) > 0:
-            obj = bpy.data.collections[cn].objects[0]
-        else:
-            obj = None
-    else:
-        obj = cm.source_obj
-    if obj:
-        objVisible = False
-        for i in range(20):
-            if obj.layers[i] and scn.layers[i]:
-                objVisible = True
-    return objVisible, obj
-
-
 def find_3dview_space():
     # Find 3D_View window and its scren space
     area = None

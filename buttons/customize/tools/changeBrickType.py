@@ -229,7 +229,7 @@ class BRICKER_OT_change_brick_type(Operator):
         # select original bricks
         orig_obj = bpy.data.objects.get(initial_active_obj_name)
         if orig_obj is not None: setActiveObj(orig_obj)
-        objsToSelect = [bpy.data.objects.get(n) for n in objNamesToSelect if bpy.data.objects.get(n) is not None]
+        objsToSelect = [bpy.data.objects.get(obj_n) for obj_n in objNamesToSelect if bpy.data.objects.get(obj_n) is not None]
         select(objsToSelect)
         # store current bricksDict to cache when re-run with original brick type so bricksDict is updated
         if not bricksWereGenerated:

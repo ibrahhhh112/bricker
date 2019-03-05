@@ -27,6 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from ..buttons.bevel import *
+from ..lib.JobManager import JobManager
 
 
 def uniquifyName(self, context):
@@ -118,6 +119,13 @@ def updateCircleVerts(self, context):
     if (cm.circleVerts - 2) % 4 == 0:
         cm.circleVerts += 1
     cm.bricksAreDirty = True
+
+
+def updateJobManagerProperties(self, context):
+    scn, cm, _ = getActiveContextInfo()
+    curJobManager = JobManager.get_instance(cm.id)
+    curJobManager.timeout = cm.backProcTimeout
+    curJobManager.max_workers = cm.maxWorkers
 
 
 def dirtyAnim(self, context):
