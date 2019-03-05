@@ -358,12 +358,10 @@ class BrickerBrickify(bpy.types.Operator):
 
         # create, transform, and bevel bricks
         if cm.brickifyInBackground:
-            # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file, store path to file in 'curJob'
             filename = bpy.path.basename(bpy.data.filepath)[:-6]
-            curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s.py" % locals()][0 if sys.platform in ("linux", "linux2", "darwin") else 1:])
+            curJob = "%(filename)s__%(n)s.py" % locals()
             script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
-            shutil.copyfile(script, curJob)
-            jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":None, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True)
+            jobAdded = self.JobManager.add_job(curJob, script=script, passed_data={"frame":None, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True)
             if not jobAdded: raise Exception("Job already added")
             self.jobs.append(curJob)
         else:
@@ -444,11 +442,9 @@ class BrickerBrickify(bpy.types.Operator):
                 cm.framesToAnimate -= 1
                 continue
             if cm.brickifyInBackground:
-                # PULL TEMPLATE SCRIPT FROM 'brickify_in_background_template', write to new file with frame specified, store path to file in 'curJob'
-                curJob = os.path.join(*["/", "tmp", "background_processing", "%(filename)s__%(n)s__%(curFrame)s.py" % locals()][0 if sys.platform in ("linux", "linux2", "darwin") else 1:])
+                curJob = "%(filename)s__%(n)s__%(curFrame)s.py" % locals()
                 script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
-                shutil.copyfile(script, curJob)
-                jobAdded = self.JobManager.add_job(curJob, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
+                jobAdded = self.JobManager.add_job(curJob, script=script, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
                 if not jobAdded: raise Exception("Job for frame '%(curFrame)s' already added" % locals())
                 self.jobs.append(curJob)
                 overwrite_blend = False

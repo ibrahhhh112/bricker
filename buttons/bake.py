@@ -62,7 +62,7 @@ class BRICKER_OT_bake_model(bpy.types.Operator):
             bricks[0].name = "%(n)s_bricks" % locals()
         # delete parent/source/dup
         objsToDelete = [bpy.data.objects.get("Bricker_%(n)s_parent" % locals()),
-                        bpy.data.objects.get(n),
+                        cm.source_obj,
                         bpy.data.objects.get("%(n)s_duplicate" % locals())]
         for obj in objsToDelete:
             bpy.data.objects.remove(obj, do_unlink=True)

@@ -59,7 +59,7 @@ def makeBricks(source, parent, logo, logo_details, dimensions, bricksDict, actio
     if keys == "ALL":
         keys = list(bricksDict.keys())
     if len(keys) == 0:
-        return None, None
+        return False, None
     # get dictionary of keys based on z value
     keysDict = getKeysDict(bricksDict, keys)
     denom = sum([len(keysDict[z0]) for z0 in keysDict.keys()])

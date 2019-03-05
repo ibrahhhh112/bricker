@@ -87,11 +87,13 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         name="Max Worker Instances",
         description="Maximum number of Blender instances allowed to run in background for Bricker calculations (larger numbers are faster at a higher CPU load; 0 for local calculation)",
         min=0, max=24,
+        update=updateJobManagerProperties,
         default=5)
     backProcTimeout = FloatProperty(
         name="Timeout",
         description="Max seconds allowed for each frame's model to calculate (0 for infinite; cancels process if time exceeded)",
         precision=0, min=0,
+        update=updateJobManagerProperties,
         default=0)
 
     # BASIC MODEL SETTINGS
