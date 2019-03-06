@@ -174,7 +174,7 @@ class JobManager():
         if use_blend_file and (not os.path.exists(self.blendfile_paths[job]) or overwrite_blend):
             bpy.ops.wm.save_as_mainfile(filepath=self.blendfile_paths[job], compress=False, copy=True)
         # insert final blend file name to top of files
-        fullPath = str(splitpath(os.path.join(self.temp_path, "%(job)s_data.blend" % locals())))
+        fullPath = str(splitpath(os.path.join(self.temp_path, "{job}_data.blend".format(job=bashSafeName(job)))))
         sourceBlendFile = str(splitpath(bpy.data.filepath))
         # add storage path and additional passed data to lines in job file in READ mode
         lines = addLines(script, fullPath, sourceBlendFile, self.passed_data[job])
@@ -238,18 +238,18 @@ class JobManager():
 
     def retrieve_data(self, job:str):
         # retrieve python data stored to temp directory
-        dataFilePath = os.path.join(self.temp_path, "%(job)s_data.py" % locals())
+        dataFilePath = os.path.join(self.temp_path, "{job}_data.py".format(job=bashSafeName(job)))
         dumpedDict = open(dataFilePath, "r").readline()
         self.retrieved_data[job]["retrieved_python_data"] = json.loads(dumpedDict) if dumpedDict != "" else {}
         # retrieve blend data stored to temp directory
-        fullBlendPath = os.path.join(self.temp_path, "%(job)s_data.blend" % locals())
+        fullBlendPath = os.path.join(self.temp_path, "{job}_data.blend".format(job=bashSafeName(job)))
         with bpy.data.libraries.load(fullBlendPath) as (data_from, data_to):
             for attr in dir(data_to):
                 setattr(data_to, attr, getattr(data_from, attr))
         self.retrieved_data[job]["retrieved_data_blocks"] = data_to
 
-    def get_job_path(self, job:str, hash:str):
-        job_name = bashSafeName(os.path.basename(job))
+    def get_job_path(self, script:str, hash:str):
+        job_name = bashSafeName(os.path.basename(script))
         name, ext = os.path.splitext(job_name)
         new_job_name = "{name}_{hash}{ext}".format(name=name, hash=hash, ext=ext)
         return os.path.join(self.temp_path, new_job_name)
