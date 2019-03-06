@@ -76,6 +76,7 @@ linesToAddAtEnd = [
     "bpy.data.libraries.write(storagePath, set(data_blocks), fake_user=True)\n",
     # write python data to library in temp location 'storagePath'
     "data_file = open(storagePath.replace('.blend', '.py'), 'w')\n",
+    "print(json.dumps(python_data), file=data_file)\n",
 ]
 
 def getElapsedTime(startTime, endTime, precision:int=2):
@@ -250,7 +251,7 @@ class JobManager():
     def get_job_path(self, script:str, hash:str):
         job_name = bashSafeName(os.path.basename(script))
         name, ext = os.path.splitext(job_name)
-        new_job_name = "{name}_{hash}{ext}".format(name=name, hash=hash, ext=ext)
+        new_job_name = "{name}_{hash}{ext}".format(name=name, hash=bashSafeName(hash), ext=ext)
         return os.path.join(self.temp_path, new_job_name)
 
     def get_job_names(self):
