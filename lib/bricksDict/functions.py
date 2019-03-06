@@ -347,8 +347,6 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
         hasCustomObj, customObj = customInfo
         if (i == 0 and cm.brickType == "CUSTOM") or hasCustomObj:
             scn = bpy.context.scene
-            # get custom object
-            customObj = bpy.data.objects[customObjName]
             # duplicate custom object
             customObjName = customObj.name + "_duplicate"
             customObj1 = bpy.data.objects.get(customObjName)
