@@ -25,14 +25,13 @@ import bpy
 from ..functions import *
 from ..lib.abs_plastic_materials import *
 
-
 def addMaterialToList(self, context):
     scn, cm, n = getActiveContextInfo()
     typ = "RANDOM" if cm.materialType == "RANDOM" else "ABS"
     matObj = getMatObject(cm.id, typ=typ)
     numMats = len(matObj.data.materials)
     mat = bpy.data.materials.get(cm.targetMaterial)
-    brick_mats_installed = hasattr(scn, "isBrickMaterialsInstalled") and scn.isBrickMaterialsInstalled
+    brick_mats_installed = brick_materials_installed()
     if mat is None:
         return
     elif mat.name in matObj.data.materials.keys():

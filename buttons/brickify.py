@@ -160,9 +160,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, _ = getActiveContextInfo()
         wm = bpy.context.window_manager
         wm.Bricker_runningBlockingOperation = True
-        # set abs plastic material details
-        scn.abs_uv_scale = 0.4
-        scn.abs_fingerprints = 0.75
         if self.splitBeforeUpdate:
             cm.splitModel = True
         try:
@@ -248,6 +245,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # ensure that Bricker can run successfully
         if not self.isValid(scn, cm, n, self.source):
             return False
+
+        # set abs plastic material details
+        if brick_materials_installed():
+            scn.abs_uv_scale = 0.4
+            scn.abs_fingerprints = 0.75
 
         # initialize variables
         self.source.cmlist_id = cm.id
@@ -759,7 +761,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             return False
         if cm.materialType == "SOURCE" and cm.colorSnap == "ABS":
             # ensure ABS Plastic materials are installed
-            if not hasattr(scn, "isBrickMaterialsInstalled") or not scn.isBrickMaterialsInstalled:
+            if not brick_materials_installed():
                 self.report({"WARNING"}, "ABS Plastic Materials must be installed from Blender Market")
                 return False
             # ensure ABS Plastic materials UI list is populated
