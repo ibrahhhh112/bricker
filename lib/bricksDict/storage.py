@@ -77,9 +77,13 @@ def deepToLightCache(bricker_bfm_cache):
         # make sure there is something to store to light cache
         if cm.BFMCache == "":
             continue
-        bricksDict = json.loads(cm.BFMCache)
-        bricker_bfm_cache[cm.id] = bricksDict
-        numPulledIDs += 1
+        try:
+            bricksDict = json.loads(cm.BFMCache)
+            bricker_bfm_cache[cm.id] = bricksDict
+            numPulledIDs += 1
+        except Exception as e:
+            print("ERROR in deepToLightCache:", e)
+            cm.BFMCache = ""
     if numPulledIDs > 0:
         print("[Bricker] pulled {numKeys} {pluralized_dicts} from deep cache to light cache".format(numKeys=numPulledIDs, pluralized_dicts="dict" if numPulledIDs == 1 else "dicts"))
 
