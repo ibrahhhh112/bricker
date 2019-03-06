@@ -16,18 +16,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name"        : "Bricker",
+    "name"        : "Bricker (Sertan)",
     "author"      : "Christopher Gearhart <chris@bblanimation.com>",
     "version"     : (1, 6, 0),
     "blender"     : (2, 80, 0),
     "description" : "Turn any mesh into a 3D brick sculpture or simulation with the click of a button",
     "location"    : "View3D > Tools > Bricker",
     "warning"     : "",  # used for warning icon and text in addons panel
-    "wiki_url"    : "https://www.blendermarket.com/products/bricker/",
+    "wiki_url"    : "",
     "tracker_url" : "https://github.com/bblanimation/bricker/issues",
     "category"    : "Object"}
 
-developer_mode = 2  # NOTE: Set to 0 for release, 1 for exposed dictionary, 2 for 'BRICKER_OT_test_brick_generators' button
+developer_mode = 0  # NOTE: Set to 0 for release, 1 for exposed dictionary, 2 for 'BRICKER_OT_test_brick_generators' button
 # NOTE: Disable "LEGO Logo" for releases
 # NOTE: Disable "Slopes" brick type for releases
 # NOTE: Copy contents from 'bricksculpt_tools_backup' to 'bricksculpt_tools'
@@ -48,12 +48,7 @@ from .buttons.customize import *
 from .operators import *
 from .lib import *
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
-from . import addon_updater_ops
-from .ui.timers import *
-from .ui.cmlist_attrs import CMLIST_UL_properties
-from .ui.other_property_groups import *
-from .lib import keymaps, preferences, classesToRegister
-from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
+# from . import addon_updater_ops
 
 # store keymaps here to access after registration
 addon_keymaps = []
@@ -127,8 +122,8 @@ def register():
     bpy.app.handlers.load_post.append(handle_upconversion)
     bpy.app.handlers.load_post.append(reset_undo_stack)
 
-    # addon updater code and configurations
-    addon_updater_ops.register(bl_info)
+    # # addon updater code and configurations
+    # addon_updater_ops.register(bl_info)
 
     # register timers
     bpy.app.timers.register(handle_selections)
@@ -139,8 +134,8 @@ def unregister():
     if bpy.app.timers.is_registered(handle_selections):
         bpy.app.timers.unregister(handle_selections)
 
-    # addon updater unregister
-    addon_updater_ops.unregister()
+    # # addon updater unregister
+    # addon_updater_ops.unregister()
 
     # unregister app handlers
     bpy.app.handlers.load_post.remove(reset_undo_stack)

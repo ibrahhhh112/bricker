@@ -74,6 +74,9 @@ class BRICKER_OT_initialize(Operator):
         # register timers
         if not bpy.app.timers.is_registered(handle_selections):
             bpy.app.timers.register(handle_selections)
+        # auto-set customObject1
+        for cm in context.scene.cmlist:
+            cm.customObject1 = bpy.data.objects.get("Six-Sided Cube (high)")
         # run modal
         context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}

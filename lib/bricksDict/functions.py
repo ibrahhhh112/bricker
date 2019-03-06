@@ -365,8 +365,8 @@ def getArgumentsForBricksDict(cm, source=None, source_details=None, dimensions=N
             # set brick scale
             scale = cm.brickHeight/curCustomObj_details.dist.z
             brickScale = Vector((scale * curCustomObj_details.dist.x + dimensions["gap"],
-                        scale * curCustomObj_details.dist.y + dimensions["gap"],
-                        scale * curCustomObj_details.dist.z + dimensions["gap"]))
+                                 scale * curCustomObj_details.dist.y + dimensions["gap"],
+                                 scale * curCustomObj_details.dist.z + dimensions["gap"]))
             # get transformation matrices
             t_mat = Matrix.Translation(-curCustomObj_details.mid)
             maxDist = max(curCustomObj_details.dist)

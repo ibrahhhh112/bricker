@@ -176,7 +176,8 @@ class BRICKER_OT_draw_adjacent(Operator):
 
     # get items for brickType prop
     def get_items(self, context):
-        items = getAvailableTypes(by="ACTIVE", includeSizes="ALL")
+        items = [("CUSTOM 1", "Sertan Block", "Sertan Block")]
+        # items = getAvailableTypes(by="ACTIVE", includeSizes="ALL")
         return items
 
     # define props for popup

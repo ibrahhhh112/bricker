@@ -40,9 +40,17 @@ class BRICKER_OT_uv_unwrap(bpy.types.Operator):
         return True
 
     def execute(self, context):
+        act = context.object
+        selection = context.selected_objects
+        scn, cm, n = getActiveContextInfo()
         bricks = getBricks()
+        if cm.modelCreated and cm.lastSplitModel:
+            bricks = bricks[0]
         select(bricks, only=True, active=True)
         bpy.ops.uv.smart_project()
+        select(selection, only=True)
+        scn.objects.active = act
+        cm.uvUnwrap = True
         return{"FINISHED"}
 
     ################################################

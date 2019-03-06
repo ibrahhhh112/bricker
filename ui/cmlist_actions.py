@@ -135,7 +135,18 @@ class CMLIST_OT_list_action(bpy.types.Operator):
         item.startFrame = scn.frame_start
         item.stopFrame = scn.frame_end
         # create new matObj for current cmlist id
+        # matObjNames = ["Bricker_{}_RANDOM_mats".format(i), "Bricker_{}_ABS_mats".format(i)]
+        # for n in matObjNames:
+        #     matObj = bpy.data.objects.get(n)
+        #     if matObj is None:
+        #         matObj = bpy.data.objects.new(n, bpy.data.meshes.new(n + "_mesh"))
+        #         getSafeScn().objects.link(matObj)
         createMatObjs(i)
+        obj = bpy.data.objects.get("Six-Sided Cube (high)")
+        if obj is None:
+            loadBlockModel()
+            obj = bpy.data.objects.get("Six-Sided Cube (high)")
+        item.customObject1 = obj
 
     def removeItem(cls, idx):
         scn, cm, sn = getActiveContextInfo()

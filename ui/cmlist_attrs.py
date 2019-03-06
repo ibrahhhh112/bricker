@@ -112,7 +112,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         step=1,
         precision=3,
         min=0, max=1,
-        default=0.005)
+        default=0.003)
     mergeSeed: IntProperty(
         name="Random Seed",
         description="Random seed for brick merging calculations",
@@ -164,7 +164,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         name="Split Model",
         description="Split model into separate objects (slower)",
         update=dirtyModel,
-        default=False)
+        default=True)
     randomLoc: FloatProperty(
         name="Random Location",
         description="Max random location applied to each brick",
@@ -172,7 +172,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         step=1,
         precision=3,
         min=0, max=1,
-        default=0.01)
+        default=0.007)
     randomRot: FloatProperty(
         name="Random Rotation",
         description="Max random rotation applied to each brick",
@@ -180,7 +180,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         step=1,
         precision=3,
         min=0, max=1,
-        default=0.025)
+        default=0.02)
     brickShell: EnumProperty(
         name="Brick Shell",
         description="Choose whether the outer shell of bricks will be inside or outside the source mesh",
@@ -223,7 +223,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
                ("BRICKS AND PLATES", "Bricks and Plates", description),
                ("BRICKS", "Bricks (fast)", description)],
         update=updateBrickType,
-        default="BRICKS")
+        default="CUSTOM")
     alignBricks: BoolProperty(
         name="Align Bricks Horizontally",
         description="Keep bricks aligned horizontally, and fill the gaps with plates",
@@ -285,7 +285,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         precision=3,
         subtype="TRANSLATION",
         min=0.001, max=2,
-        default=(1, 1, 1))
+        default=(0.9, 0.9, 0.9))
 
     # CUSTOMIZE SETTINGS
     autoUpdateOnDelete: BoolProperty(
@@ -374,14 +374,14 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         description="Roughness value for the created materials",
         precision=3,
         min=0.0, max=1.0,
-        default=0.5,
+        default=0.1,
         update=dirtyMaterial)
     colorSnapSubsurface: FloatProperty(
         name="Subsurface Sattering",
         description="Subsurface scattering value for the created materials",
         precision=3,
         min=0.0, max=1.0,
-        default=0.0,
+        default=0.02,
         update=dirtyMaterial)
     colorSnapSubsurfaceSaturation: FloatProperty(
         name="SSS Saturation",
@@ -508,6 +508,16 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         description="Make loop cut on cylinders so that bevel operation can bevel base of studs",
         update=dirtyBricks,
         default=False)
+    injectionPattern = BoolProperty(
+        name="Injection Mold Pattern",
+        description="Add a cylindrical injection pattern to the blocks",
+        update=dirtyBricks,
+        default=True)
+    uvUnwrap = BoolProperty(
+        name="UV Unwrap",
+        description="Create a Smart UV Project for the blocks automatically",
+        update=dirtyBricks,
+        default=True)
     # BEVEL SETTINGS
     bevelAdded: BoolProperty(
         name="Bevel Bricks",
@@ -518,14 +528,14 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
         description="Bevel amount (relative to Brick Height)",
         step=1,
         min=0.000001, max=10,
-        default=0.01,
+        default=0.015,
         update=updateBevel)
     bevelSegments: IntProperty(
         name="Bevel Resolution",
         description="Number of segments for round edges/verts",
         step=1,
         min=1, max=10,
-        default=1,
+        default=3,
         update=updateBevel)
     bevelProfile: FloatProperty(
         name="Bevel Profile",
@@ -610,7 +620,7 @@ class CMLIST_UL_properties(bpy.types.PropertyGroup):
     brickifyInBackground: BoolProperty(
         name="Brickify in Background",
         description="Run brickify calculations in background (if disabled, user interface will freeze during calculation)",
-        default=True)
+        default=False)
     # EXPORT SETTINGS
     exportPath: StringProperty(
         name="Export Path",

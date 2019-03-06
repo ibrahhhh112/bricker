@@ -20,6 +20,7 @@ import collections
 import json
 import math
 import numpy as np
+from os.path import join, dirname, abspath
 import bmesh
 
 # Blender imports
@@ -453,6 +454,12 @@ def getBrickMats(materialType, cm_id):
 def bricker_handle_exception():
     handle_exception(log_name="Bricker log", report_button_loc="Bricker > Brick Models > Report Error")
 
+
+def loadBlockModel():
+    fullBlendPath = join(dirname(dirname(abspath(__file__))), "block_models.blend")
+    with bpy.data.libraries.load(fullBlendPath) as (data_from, data_to):
+        for attr in dir(data_to):
+            setattr(data_to, attr, getattr(data_from, attr))
 
 def createMatObjs(idx):
     """ create new matObjs for current cmlist id """
