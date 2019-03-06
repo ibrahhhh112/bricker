@@ -133,7 +133,8 @@ def getMatNames(all=False):
 def brick_materials_loaded():
     scn = bpy.context.scene
     # make sure abs_plastic_materials addon is installed
-    brick_mats_installed = hasattr(scn, "isBrickMaterialsInstalled") and scn.isBrickMaterialsInstalled
+
+    brick_mats_installed = brick_materials_installed()
     if not brick_mats_installed:
         return False
     # check if any of the colors haven't been loaded
