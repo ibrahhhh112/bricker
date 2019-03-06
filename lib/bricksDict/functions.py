@@ -194,6 +194,7 @@ def createNewMaterial(model_name, rgba, rgba_vals, sss, sat_mat, specular, rough
     mat = mat or bpy.data.materials.new(name=mat_name)
     # set diffuse and transparency of material
     if mat_is_new:
+        mat.diffuse_color = rgba[:3]
         if scn.render.engine in ("CYCLES", "BLENDER_EEVEE", "octane"):
             mat.use_nodes = True
             mat_nodes = mat.node_tree.nodes
