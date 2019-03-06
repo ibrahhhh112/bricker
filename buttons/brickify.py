@@ -332,7 +332,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if len(obj.data.uv_layers) == 0:
                 select(obj, only=True, active=True)
                 bpy.ops.uv.smart_project()
-                obj.select = False
+                deselect(obj)
 
         if bpy.props.Bricker_developer_mode > 0 and cm.materialType == "SOURCE" and cm.colorSnap == "RGB" and brick_materials_loaded():
             for mat in bpy.data.materials:
