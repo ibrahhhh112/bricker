@@ -165,12 +165,6 @@ class BrickerBrickify(bpy.types.Operator):
         self.brickerAddonPath = dirname(dirname(abspath(__file__)))
         self.jobs = list()
         self.cm = cm
-        # set abs plastic material details
-        scn.abs_uv_scale = 0.4
-        scn.abs_fingerprints = 0.75
-
-        if self.splitBeforeUpdate:
-            cm.splitModel = True
 
     ###################################################
     # class variables
@@ -189,6 +183,12 @@ class BrickerBrickify(bpy.types.Operator):
         # ensure that Bricker can run successfully
         if not self.isValid(scn, cm, n, self.source, Bricker_bricks_gn):
             return {"CANCELLED"}
+
+        # set abs plastic material details
+        scn.abs_uv_scale = 0.4
+        scn.abs_fingerprints = 0.75
+        if self.splitBeforeUpdate:
+            cm.splitModel = True
 
         # initialize variables
         self.source.cmlist_id = cm.id
