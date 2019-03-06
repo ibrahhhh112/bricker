@@ -28,7 +28,8 @@ from mathutils import Matrix, Vector, Euler
 props = bpy.props
 
 # Addon imports
-from ..functions import *
+# from ..functions import *
+from ..functions.wrappers import *
 from ..lib.abs_plastic_materials import getAbsPlasticMaterialNames
 
 

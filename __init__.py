@@ -46,7 +46,7 @@ from .ui import *
 from .buttons import *
 from .buttons.customize import *
 from .operators import *
-from .lib import *
+from .lib import classesToRegister, keymaps
 from .lib.Brick.legal_brick_sizes import getLegalBrickSizes
 # from . import addon_updater_ops
 

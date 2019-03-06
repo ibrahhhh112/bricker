@@ -21,6 +21,7 @@ from .drawAdjacent import *
 from .mergeBricks import *
 from .redrawBricks import *
 from .setExposure import *
+from .bricksculpt import *
 from .splitBricks import *
 from .select.bySize import *
 from .select.byType import *

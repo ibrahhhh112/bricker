@@ -160,6 +160,11 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         scn, cm, _ = getActiveContextInfo()
         wm = bpy.context.window_manager
         wm.Bricker_runningBlockingOperation = True
+        # set abs plastic material details
+        scn.abs_uv_scale = 0.4
+        scn.abs_fingerprints = 0.75
+        if self.splitBeforeUpdate:
+            cm.splitModel = True
         try:
             previously_animated = cm.animated
             previously_model_created = cm.modelCreated
@@ -224,12 +229,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         self.brickerAddonPath = dirname(dirname(abspath(__file__)))
         self.jobs = list()
         self.cm = cm
-        # set abs plastic material details
-        scn.abs_uv_scale = 0.4
-        scn.abs_fingerprints = 0.75
-
-        if self.splitBeforeUpdate:
-            cm.splitModel = True
 
     ###################################################
     # class variables
