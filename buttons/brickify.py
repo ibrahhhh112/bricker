@@ -103,15 +103,12 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                             self.linkBrickCollection(cm, bricker_bricks_coll)
                         self.jobs.remove(job)
                     elif self.JobManager.job_dropped(job):
-                        errormsg = "\n*** ISSUE WITH BACKGROUND PROCESSOR ***\n\n"
-                        for line in self.JobManager.get_job_status(job)["stderr"]:
-                            errormsg += line + "\n"
+                        errormsg = self.JobManager.get_issue_string(job)
                         print_exception("Bricker log", errormsg=errormsg)
                         reportFrameStr = " frame %(frame)s of" % locals() if animAction else ""
                         self.report({"WARNING"}, "Dropped%(reportFrameStr)s model '%(n)s'" % locals())
                         tag_redraw_areas("VIEW_3D")
-                        if animAction:
-                            cm.numAnimatedFrames += 1
+                        if animAction: cm.numAnimatedFrames += 1
                         self.jobs.remove(job)
                 # cancel and save finished frames if stopped
                 if cm.stopAnimationProcess:
@@ -410,7 +407,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # create, transform, and bevel bricks
         if cm.brickifyInBackground:
             filename = bpy.path.basename(bpy.data.filepath)[:-6]
-            curJob = "%(filename)s__%(n)s.py" % locals()
+            curJob = "%(filename)s__%(n)s" % locals()
             script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
             jobAdded = self.JobManager.add_job(curJob, script=script, passed_data={"frame":None, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True)
             if not jobAdded: raise Exception("Job already added")
@@ -495,7 +492,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                 cm.framesToAnimate -= 1
                 continue
             if cm.brickifyInBackground:
-                curJob = "%(filename)s__%(n)s__%(curFrame)s.py" % locals()
+                curJob = "%(filename)s__%(n)s__%(curFrame)s" % locals()
                 script = os.path.join(self.brickerAddonPath, "lib", "brickify_in_background_template.py")
                 jobAdded = self.JobManager.add_job(curJob, script=script, passed_data={"frame":curFrame, "cmlist_index":scn.cmlist_index, "action":self.action}, use_blend_file=True, overwrite_blend=overwrite_blend)
                 if not jobAdded: raise Exception("Job for frame '%(curFrame)s' already added" % locals())
@@ -713,6 +710,9 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         # ensure source name isn't too long
         if len(source_name) > 30:
             self.report({"WARNING"}, "Source object name too long (must be <= 30 characters)")
+        # verify Blender file is saved if running in background
+        if cm.brickifyInBackground and bpy.data.filepath == "":
+            self.report({"WARNING"}, "Please save the file first")
             return False
         # ensure custom material exists
         if cm.materialType == "CUSTOM" and cm.customMat is None:
@@ -763,11 +763,6 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             if source.rigid_body is not None and source.rigid_body.type == "ACTIVE":
                 self.report({"WARNING"}, "First bake rigid body transformations to keyframes (SPACEBAR > Bake To Keyframes).")
                 return False
-
-        # verify Blender file is saved if running in background
-        if cm.brickifyInBackground and bpy.data.filepath == "":
-            self.report({"WARNING"}, "Please save the file first")
-            return False
 
         if self.action in ("ANIMATE", "UPDATE_ANIM"):
             # verify start frame is less than stop frame
