@@ -71,7 +71,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     if self.JobManager.job_complete(job):
                         if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                         # cache bricksDict
-                        bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
+                        try:
+                            bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
+                        except:
+                            return {"CANCELLED"}
                         cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
                         # process retrieved bricker data
                         bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())

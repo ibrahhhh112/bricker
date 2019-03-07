@@ -77,6 +77,7 @@ linesToAddAtEnd = [
     # write python data to library in temp location 'storagePath'
     "data_file = open(storagePath.replace('.blend', '.py'), 'w')\n",
     "print(json.dumps(python_data), file=data_file)\n",
+    "data_file.close()\n",
 ]
 
 def getElapsedTime(startTime, endTime, precision:int=2):
