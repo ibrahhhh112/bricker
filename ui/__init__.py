@@ -154,7 +154,7 @@ class VIEW3D_PT_bricker_brick_models(Panel):
                     row.operator("bricker.delete_model", text="Delete Brick Animation", icon="CANCEL")
                     col = layout.column(align=True)
                     row = col.row(align=True)
-                    if cm.brickifyingInBackground:
+                    if cm.brickifyingInBackground and cm.framesToAnimate > 0:
                         col.scale_y = 0.75
                         row.label(text="Animating...")
                         row.operator("bricker.stop_brickifying_in_background", text="Stop", icon="PAUSE")

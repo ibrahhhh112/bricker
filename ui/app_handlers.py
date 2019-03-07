@@ -50,9 +50,10 @@ def handle_animation(scn):
             adjusted_frame_current = getAnimAdjustedFrame(scn.frame_current, cm.lastStartFrame, cm.lastStopFrame)
             onCurF = adjusted_frame_current == cf
             # hide bricks from view and render unless on current frame
+            if curBrickColl.hide_render == onCurF:
+                curBrickColl.hide_render = not onCurF
             if curBrickColl.hide_viewport == onCurF:
                 curBrickColl.hide_viewport = not onCurF
-                curBrickColl.hide_render = not onCurF
             if hasattr(bpy.context, "active_object"):
                 obj = bpy.context.active_object
                 if obj and obj.name.startswith("Bricker_%(n)s_bricks" % locals()) and onCurF:

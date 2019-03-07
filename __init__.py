@@ -117,7 +117,7 @@ def register():
         addon_keymaps.append(km)
 
     # register app handlers
-    bpy.app.handlers.frame_change_pre.append(handle_animation)
+    bpy.app.handlers.frame_change_post.append(handle_animation)
     bpy.app.handlers.load_pre.append(clear_bfm_cache)
     bpy.app.handlers.load_post.append(handle_loading_to_light_cache)
     bpy.app.handlers.save_pre.append(handle_storing_to_deep_cache)
@@ -151,7 +151,7 @@ def unregister():
     bpy.app.handlers.save_pre.remove(handle_storing_to_deep_cache)
     bpy.app.handlers.load_post.remove(handle_loading_to_light_cache)
     bpy.app.handlers.load_pre.remove(clear_bfm_cache)
-    bpy.app.handlers.frame_change_pre.remove(handle_animation)
+    bpy.app.handlers.frame_change_post.remove(handle_animation)
 
     # handle the keymaps
     wm = bpy.context.window_manager
