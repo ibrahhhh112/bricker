@@ -71,10 +71,10 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     if self.JobManager.job_complete(job):
                         if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                         # cache bricksDict
-                        try:
-                            bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
-                        except:
-                            return {"CANCELLED"}
+                        retrieved_data = self.JobManager.get_retrieved_python_data(job)
+                        bricksDict = json.loads(retrieved_data["bricksDict"])
+                        cm.brickSizesUsed = retrieved_data["brickSizesUsed"]
+                        cm.brickTypesUsed = retrieved_data["brickTypesUsed"]
                         cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
                         # process retrieved bricker data
                         bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())
@@ -193,7 +193,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
-            stopwatch("Total Time Elapsed", self.start_time, 2)
+            stopwatch("Total Time Elapsed", self.start_time, precision=2)
             return {"FINISHED"}
 
     def cancel(self, context):
@@ -745,7 +745,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
         brick_coll_name = "Bricker_%(source_name)s_bricks" % locals()
         if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
-            if collExists(brick_coll_name):
+            if brick_coll_name in bpy.data.collections.keys():
                 self.report({"WARNING"}, "Brickified Model already created.")
                 return False
             # verify source exists and is of type mesh
@@ -777,7 +777,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
 
         if self.action == "UPDATE_MODEL":
             # make sure 'Bricker_[source name]_bricks' collection exists
-            if not collExists(brick_coll_name):
+            if brick_coll_name not in bpy.data.collections.keys():
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
                 return False
 

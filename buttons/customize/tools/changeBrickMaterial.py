@@ -79,7 +79,7 @@ class BRICKER_OT_change_brick_material(Operator):
                 for obj_name in self.objNamesD[cm_id]:
                     dictKey = getDictKey(obj_name)
                     # change material
-                    keysInBrick = getKeysInBrick(bricksDict, bricksDict[dictKey]["size"], cm.zStep, dictKey)
+                    keysInBrick = getKeysInBrick(bricksDict, bricksDict[dictKey]["size"], cm.zStep, key=dictKey)
                     for k in keysInBrick:
                         bricksDict[k]["mat_name"] = targetMatName
                         bricksDict[k]["custom_mat_name"] = True

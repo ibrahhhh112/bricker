@@ -48,7 +48,7 @@ def settingsCanBeDrawn():
     scn = bpy.context.scene
     if scn.cmlist_index == -1:
         return False
-    if bversion() < '002.080.00':
+    if bversion() < '002.080':
         return False
     if not bpy.props.bricker_initialized:
         return False
@@ -91,8 +91,8 @@ class VIEW3D_PT_bricker_brick_models(Panel):
         # draw auto-updater update box
         addon_updater_ops.update_notice_box_ui(self, context)
 
-        # if blender version is before 2.78, ask user to upgrade Blender
-        if bversion() < '002.080.00':
+        # if blender version is before 2.80, ask user to upgrade Blender
+        if bversion() < '002.080':
             col = layout.column(align=True)
             col.label(text="ERROR: upgrade needed", icon='ERROR')
             col.label(text="This version of Bricker requires Blender 2.80+")

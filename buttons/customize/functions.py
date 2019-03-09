@@ -107,6 +107,8 @@ def getUsedSizes():
     scn = bpy.context.scene
     items = [("NONE", "None", "")]
     for cm in scn.cmlist:
+        if not cm.brickSizesUsed:
+            continue
         sortBy = lambda k: (strToList(k)[2], strToList(k)[0], strToList(k)[1])
         items += [(s, s, "") for s in sorted(cm.brickSizesUsed.split("|"), reverse=True, key=sortBy) if (s, s, "") not in items]
     return items
