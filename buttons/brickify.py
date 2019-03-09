@@ -152,7 +152,7 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                         self.finishAnimation()
                     cm.brickifyingInBackground = False
                     self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
-                    stopwatch("Total Time Elapsed", self.start_time, 2)
+                    stopwatch("Total Time Elapsed", self.start_time, precision=2)
                     wm = context.window_manager
                     wm.event_timer_remove(self._timer)
                     return {"FINISHED"}
