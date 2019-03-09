@@ -27,7 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from .cache import *
-from ..lib.JobManager import JobManager
+from ..lib.background_processing.classes.JobManager import JobManager
 
 
 def getModelType(cm):

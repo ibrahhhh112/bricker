@@ -916,12 +916,12 @@ def transformToLocal(vec, mat, junk_bme=None):
     return vec
 
 
-def bashSafeName(string):
+def makeBashSafe(string):
     # protects against file names that would cause problems with bash calls
     if string.startswith(".") or string.startswith("-"):
         string = "_" + string[1:]
     # replaces problematic characters in shell with underscore '_'
     chars = "!#$&'()*,;<=>?[]^`{|}~: "
-    for char in list(chars):
-        string = string.replace(char, "_")
+    for char in chars:
+        string = string.replace(char, "\\" + char)
     return string

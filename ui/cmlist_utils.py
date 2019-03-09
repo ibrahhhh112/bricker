@@ -27,7 +27,7 @@ props = bpy.props
 # Addon imports
 from ..functions import *
 from ..buttons.bevel import *
-from ..lib.JobManager import JobManager
+from ..lib.background_processing.classes.JobManager import JobManager
 
 
 def uniquifyName(self, context):

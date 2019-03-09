@@ -33,7 +33,7 @@ from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
-from ..lib.JobManager import JobManager
+from ..lib.background_processing.classes.JobManager import JobManager
 from ..functions import *
 
 
@@ -153,6 +153,8 @@ class BRICKER_OT_brickify(bpy.types.Operator):
                     cm.brickifyingInBackground = False
                     self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
                     stopwatch("Total Time Elapsed", self.start_time, 2)
+                    wm = context.window_manager
+                    wm.event_timer_remove(self._timer)
                     return {"FINISHED"}
             except:
                 bricker_handle_exception()
