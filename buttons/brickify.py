@@ -33,7 +33,7 @@ from .delete_model import BRICKER_OT_delete_model
 from .bevel import BRICKER_OT_bevel
 from .cache import *
 from ..lib.bricksDict import *
-from ..lib.JobManager import JobManager
+from ..lib.background_processing.classes.JobManager import JobManager
 from ..functions import *
 
 
@@ -112,6 +112,8 @@ class BrickerBrickify(bpy.types.Operator):
                 self.finishAnimation()
                 self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
                 stopwatch("Total Time Elapsed", self.start_time, 2)
+                wm = context.window_manager
+                wm.event_timer_remove(self._timer)
                 return {"FINISHED"}
         return {"PASS_THROUGH"}
 

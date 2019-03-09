@@ -1,0 +1,3 @@
+[submodule "lib/background-processing"]
+	path = lib/background-processing
+	url = https://github.com/bblanimation/background-processing/
