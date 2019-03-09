@@ -125,7 +125,7 @@ class bricksculpt_tools:
         elif state == "RELEASE":
             # assemble keysToMergeOnRelease
             for pk in self.parentKeysToMergeOnRelease:
-                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, pk)
+                brickKeys = getKeysInBrick(self.bricksDict, self.bricksDict[pk]["size"], cm.zStep, key=pk)
                 self.keysToMergeOnRelease += brickKeys
             self.parentKeysToMergeOnRelease = []
             self.keysToMergeOnRelease = uniquify(self.keysToMergeOnRelease)
@@ -156,7 +156,7 @@ class bricksculpt_tools:
             self.addedBricks = []
 
     def soloLayer(self, cm, curKey, curLoc, objSize):
-        brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, curKey, curLoc)
+        brickKeys = getKeysInBrick(self.bricksDict, objSize, cm.zStep, loc=curLoc)
         assert type(brickKeys) is list
         curKey = self.getNearestLocToCursor(brickKeys)
         curZ = getDictLoc(self.bricksDict, curKey)[2]
@@ -177,7 +177,7 @@ class bricksculpt_tools:
             self.hiddenBricks.append(brick)
 
     def unSoloLayer(self):
-        unhide(self.hiddenBricks)
+        [unhide(brick) for brick in self.hiddenBricks]
         self.hiddenBricks = []
 
     def splitBrickAndGetNearest1x1(self, cm, n, curKey, curLoc, objSize):

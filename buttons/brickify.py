@@ -70,7 +70,10 @@ class BrickerBrickify(bpy.types.Operator):
                 if self.JobManager.job_complete(job):
                     if animAction: self.report({"INFO"}, "Completed frame %(frame)s of model '%(n)s'" % locals())
                     # cache bricksDict
-                    bricksDict = json.loads(self.JobManager.get_retrieved_python_data(job)["bricksDict"])
+                    retrieved_data = self.JobManager.get_retrieved_python_data(job)
+                    bricksDict = json.loads(retrieved_data["bricksDict"])
+                    cm.brickSizesUsed = retrieved_data["brickSizesUsed"]
+                    cm.brickTypesUsed = retrieved_data["brickTypesUsed"]
                     cacheBricksDict(self.action, cm, bricksDict, curFrame=frame)
                     # process retrieved bricker data
                     bricker_parent = bpy.data.objects.get("Bricker_%(n)s_parent%(objFrameStr)s" % locals())
@@ -111,7 +114,7 @@ class BrickerBrickify(bpy.types.Operator):
             elif self.JobManager.jobs_complete():
                 self.finishAnimation()
                 self.report({"INFO"}, "Brickify background process complete for model '%(n)s'" % locals())
-                stopwatch("Total Time Elapsed", self.start_time, 2)
+                stopwatch("Total Time Elapsed", self.start_time, precision=2)
                 wm = context.window_manager
                 wm.event_timer_remove(self._timer)
                 return {"FINISHED"}
@@ -151,7 +154,7 @@ class BrickerBrickify(bpy.types.Operator):
             wm.modal_handler_add(self)
             return {"RUNNING_MODAL"}
         else:
-            stopwatch("Total Time Elapsed", self.start_time, 2)
+            stopwatch("Total Time Elapsed", self.start_time, precision=2)
             return {"FINISHED"}
 
     def cancel(self, context):
@@ -655,7 +658,7 @@ class BrickerBrickify(bpy.types.Operator):
 
         if self.action in ("CREATE", "ANIMATE"):
             # verify function can run
-            if groupExists(Bricker_bricks_gn):
+            if Bricker_bricks_gn in bpy.data.groups.keys():
                 self.report({"WARNING"}, "Brickified Model already created.")
                 return False
             # verify source exists and is of type mesh
@@ -687,7 +690,7 @@ class BrickerBrickify(bpy.types.Operator):
 
         if self.action == "UPDATE_MODEL":
             # make sure 'Bricker_[source name]_bricks' group exists
-            if not groupExists(Bricker_bricks_gn):
+            if Bricker_bricks_gn not in bpy.data.groups.keys():
                 self.report({"WARNING"}, "Brickified Model doesn't exist. Create one with the 'Brickify Object' button.")
                 return False
 

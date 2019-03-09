@@ -95,9 +95,9 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
         curLayers = list(scn.layers)
         setLayers([True]*20)
         # match source layers to brick layers
-        gn = "Bricker_%(n)s_bricks" % locals()
-        if groupExists(gn) and len(bpy.data.groups[gn].objects) > 0:
-            brick = bpy.data.groups[gn].objects[0]
+        bGroup = bpy.data.groups.get("Bricker_%(n)s_bricks" % locals())
+        if bGroup is not None and len(bGroup.objects) > 0:
+            brick = bGroup.objects[0]
             source.layers = brick.layers
 
         # clean up 'Bricker_[source name]' group
@@ -268,7 +268,7 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
                 except KeyError:
                     loc_diff = None
                 storeTransformData(cm, p, offsetBy=loc_diff)
-            if not cm.lastSplitModel and groupExists(Bricker_bricks_gn):
+            if not cm.lastSplitModel and Bricker_bricks_gn in bpy.data.groups.keys():
                 bricks = getBricks()
                 if len(bricks) > 0:
                     b = bricks[0]
@@ -308,8 +308,8 @@ class BRICKER_OT_delete_model(bpy.types.Operator):
             # clean up Bricker_bricks group
             sys.stdout.write("\rDeleting...")
             sys.stdout.flush()
-            if groupExists(Bricker_bricks_gn):
-                brickGroup = bpy.data.groups[Bricker_bricks_gn]
+            brickGroup = bpy.data.groups.get(Bricker_bricks_gn)
+            if brickGroup is not None:
                 bricks = getBricks()
                 if not cm.lastSplitModel:
                     if len(bricks) > 0:

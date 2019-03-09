@@ -155,7 +155,7 @@ def attemptMerge(bricksDict, key, availableKeys, defaultSize, zStep, randState, 
     bricksDict[key]["size"] = brickSize
 
     # set attributes for merged brick keys
-    keysInBrick = getKeysInBrick(bricksDict, brickSize, zStep, key, loc)
+    keysInBrick = getKeysInBrick(bricksDict, brickSize, zStep, loc=loc)
     for k in keysInBrick:
         bricksDict[k]["attempted_merge"] = True
         bricksDict[k]["parent"] = "self" if k == key else key

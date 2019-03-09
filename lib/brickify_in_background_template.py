@@ -17,4 +17,4 @@ data_blocks = [target_group, parent_obj]
 
 ### PYTHON DATA TO BE SEND BACK TO THE BLENDER HOST ###
 
-python_data = {"bricksDict":cm.BFMCache}
+python_data = {"bricksDict":cm.BFMCache, "brickSizesUsed":cm.brickSizesUsed, "brickTypesUsed":cm.brickTypesUsed}

@@ -179,7 +179,7 @@ def mergeWithAdjacentBricks(brickD, bricksDict, key, keysNotChecked, defaultSize
 
 
 def updateKeysLists(bricksDict, size, zStep, key, loc, availableKeys):
-    keysChecked = getKeysInBrick(bricksDict, size, zStep, key, loc)
+    keysChecked = getKeysInBrick(bricksDict, size, zStep, loc=loc)
     for k in keysChecked:
         # remove key if it exists in availableKeys
         remove_item(availableKeys, k)
@@ -337,7 +337,7 @@ def getMaterial(bricksDict, key, size, zStep, materialType, customMat, randomMat
         mat = customMat
     elif materialType == "SOURCE":
         # get most frequent material in brick size
-        keysInBrick = getKeysInBrick(bricksDict, size, zStep, key)
+        keysInBrick = getKeysInBrick(bricksDict, size, zStep, key=key)
         for key0 in keysInBrick:
             curBrickD = bricksDict[key0]
             if curBrickD["val"] >= highestVal:

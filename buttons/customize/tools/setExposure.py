@@ -70,6 +70,7 @@ class BRICKER_OT_set_exposure(Operator):
                 bricksDict = json.loads(self.cached_bfm[cm_id])
                 keysToUpdate = []
                 cm.customized = True
+                zStep = cm.zStep
 
                 # iterate through names of selected objects
                 for obj_name in self.objNamesD[cm_id]:
@@ -78,13 +79,15 @@ class BRICKER_OT_set_exposure(Operator):
                     # get size of current brick (e.g. [2, 4, 1])
                     objSize = bricksDict[dictKey]["size"]
 
-                    # set top as exposed
-                    if self.side in ("TOP", "BOTH"):
-                        bricksDict[dictKey]["top_exposed"] = not bricksDict[dictKey]["top_exposed"]
-                    # set bottom as exposed
-                    if self.side in ("BOTTOM", "BOTH"):
-                        bricksDict[dictKey]["bot_exposed"] = not bricksDict[dictKey]["bot_exposed"]
-                    # add curKey to simple bricksDict for drawing
+                    keysInBrick = getKeysInBrick(bricksDict, objSize, zStep, key=dictKey)
+                    for key in keysInBrick:
+                        # set top as exposed
+                        if self.side in ("TOP", "BOTH"):
+                            bricksDict[key]["top_exposed"] = not bricksDict[key]["top_exposed"]
+                        # set bottom as exposed
+                        if self.side in ("BOTTOM", "BOTH"):
+                            bricksDict[key]["bot_exposed"] = not bricksDict[key]["bot_exposed"]
+                    # add curKey to keysToUpdate
                     keysToUpdate.append(dictKey)
 
                 # draw modified bricks

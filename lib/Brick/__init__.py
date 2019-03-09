@@ -106,21 +106,15 @@ class Bricks:
             newSize[1] = size[1]
             size[0] = 1
             size[1] = 1
-        splitKeys = []
-        x,y,z = loc
         # split brick into individual bricks
-        for x0 in range(x, x + size[0]):
-            for y0 in range(y, y + size[1]):
-                for z0 in range(z, z + size[2], zStep):
-                    curKey = listToStr((x0,y0,z0))
-                    bricksDict[curKey]["size"] = newSize.copy()
-                    bricksDict[curKey]["type"] = "BRICK" if newSize[2] == 3 else "PLATE"
-                    bricksDict[curKey]["parent"] = "self"
-                    bricksDict[curKey]["top_exposed"] = bricksDict[key]["top_exposed"]
-                    bricksDict[curKey]["bot_exposed"] = bricksDict[key]["bot_exposed"]
-                    # add curKey to list of split keys
-                    splitKeys.append(curKey)
-        return splitKeys
+        keysInBrick = getKeysInBrick(bricksDict, size, zStep, loc=loc)
+        for curKey in keysInBrick:
+            bricksDict[curKey]["size"] = newSize.copy()
+            bricksDict[curKey]["type"] = "BRICK" if newSize[2] == 3 else "PLATE"
+            bricksDict[curKey]["parent"] = "self"
+            bricksDict[curKey]["top_exposed"] = bricksDict[key]["top_exposed"]
+            bricksDict[curKey]["bot_exposed"] = bricksDict[key]["bot_exposed"]
+        return keysInBrick
 
     @staticmethod
     def get_dimensions(height=1, zScale=1, gap_percentage=0.01):

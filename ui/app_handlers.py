@@ -63,9 +63,9 @@ def handle_animation(scn):
 def isObjVisible(scn, cm, n):
     objVisible = False
     if cm.modelCreated or cm.animated:
-        gn = "Bricker_%(n)s_bricks" % locals()
-        if groupExists(gn) and len(bpy.data.groups[gn].objects) > 0:
-            obj = bpy.data.groups[gn].objects[0]
+        g = bpy.data.groups.get("Bricker_%(n)s_bricks" % locals())
+        if g is not None and len(g.objects) > 0:
+            obj = g.objects[0]
         else:
             obj = None
     else:

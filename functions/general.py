@@ -240,7 +240,8 @@ def getLocsInBrick(bricksDict, size, zStep, key, loc=None):
     return [[x0 + x, y0 + y, z0 + z] for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
 
-def getKeysInBrick(bricksDict, size, zStep, key, loc=None):
+def getKeysInBrick(bricksDict, size, zStep:int, loc:list=None, key:str=None):
+    assert key is not None or loc is not None
     x0, y0, z0 = loc or getDictLoc(bricksDict, key)
     return [listToStr((x0 + x, y0 + y, z0 + z)) for z in range(0, size[2], zStep) for y in range(size[1]) for x in range(size[0])]
 
@@ -248,7 +249,8 @@ def getKeysInBrick(bricksDict, size, zStep, key, loc=None):
 def isOnShell(bricksDict, key, loc=None, zStep=None, shellDepth=1):
     """ check if any locations in brick are on the shell """
     size = bricksDict[key]["size"]
-    brickKeys = getKeysInBrick(bricksDict, size, zStep, key, loc)
+    loc = loc or getDictLoc(bricksDict, key)
+    brickKeys = getKeysInBrick(bricksDict, size, zStep, loc=loc)
     for k in brickKeys:
         if bricksDict[k]["val"] >= 1 - (shellDepth - 1) / 100:
             return True
@@ -269,7 +271,7 @@ def getDictLoc(bricksDict, key):
 
 
 def getBrickCenter(bricksDict, key, zStep, loc=None):
-    brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, key, loc=loc)
+    brickKeys = getKeysInBrick(bricksDict, bricksDict[key]["size"], zStep, loc=loc)
     coords = [bricksDict[k0]["co"] for k0 in brickKeys]
     coord_ave = Vector((mean([co[0] for co in coords]), mean([co[1] for co in coords]), mean([co[2] for co in coords])))
     return coord_ave
@@ -482,5 +484,5 @@ def updateCanRun(type):
         if type == "ANIMATION":
             return commonNeedsUpdate or (cm.materialType != "CUSTOM" and cm.materialIsDirty)
         elif type == "MODEL":
-            Bricker_bricks_gn = "Bricker_%(n)s_bricks" % locals()
-            return commonNeedsUpdate or (groupExists(Bricker_bricks_gn) and len(bpy.data.groups[Bricker_bricks_gn].objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3
+            group = bpy.data.groups.get("Bricker_%(n)s_bricks" % locals())
+            return commonNeedsUpdate or (group is not None and len(group.objects) == 0) or (cm.materialType != "CUSTOM" and (cm.materialType != "RANDOM" or cm.splitModel or cm.lastMaterialType != cm.materialType or cm.materialIsDirty) and cm.materialIsDirty) or cm.hasCustomObj1 or cm.hasCustomObj2 or cm.hasCustomObj3

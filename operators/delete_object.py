@@ -56,15 +56,7 @@ class OBJECT_OT_delete_override(Operator):
 
     def invoke(self, context, event):
         # Run confirmation popup for delete action
-        confirmation_returned = context.window_manager.invoke_confirm(self, event)
-        if confirmation_returned != {'FINISHED'}:
-            return confirmation_returned
-        else:
-            try:
-                self.runDelete(context)
-            except:
-                bricker_handle_exception()
-            return {'FINISHED'}
+        return context.window_manager.invoke_confirm(self, event)
 
     ################################################
     # initialization method
@@ -152,7 +144,7 @@ class OBJECT_OT_delete_override(Operator):
                             curKey = listToStr((x, y, z))
                             # make adjustments to adjacent bricks
                             if cm.autoUpdateOnDelete and cm.lastSplitModel:
-                                self.updateAdjBricksDicts(bricksDict, cm.zStep, curKey, Vector((x, y, z)), keysToUpdate)
+                                self.updateAdjBricksDicts(bricksDict, cm.zStep, curKey, [x, y, z], keysToUpdate)
                             # reset bricksDict values
                             bricksDict[curKey]["draw"] = False
                             bricksDict[curKey]["val"] = 0
